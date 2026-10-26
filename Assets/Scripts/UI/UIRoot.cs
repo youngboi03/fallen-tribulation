@@ -1137,7 +1137,7 @@ namespace VK
             var sub = UIK.Txt(o, s.charName + "   ·   Kiếp " + s.kiep, 30, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
             sub.rectTransform.Place(0.5f, 1, 1000, 44, 0, -250);
             var panel = UIK.Img(o, UIK.Panel, "sum");
-            panel.rectTransform.Place(0.5f, 0.5f, 820, 560, 0, -20);
+            panel.rectTransform.Place(0.5f, 0.5f, 820, 500, 0, -50);   // starts below the character · Kiếp subtitle
             UIK.VL(panel.gameObject, 8, 24, TextAnchor.UpperCenter);
             UIK.Txt(panel.transform, (s.win ? "Vượt qua cả 20 đợt" : "Gục ngã ở đợt " + s.wave), 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
             UIK.Txt(panel.transform, "Cảnh giới: <color=#7CF0FF>" + Content.Realm(s.level) + "</color>", 26, UIK.Dim);
