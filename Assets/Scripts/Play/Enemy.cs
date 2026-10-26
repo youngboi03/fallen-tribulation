@@ -48,9 +48,10 @@ namespace VK
             def = d; boss = asBoss; elite = d.elite; bossIndex = bossIdx; wave = w;
             float wm = w - 1;
             float waveHp = 1f + 0.38f * wm + 0.085f * wm * wm;
-            maxHp = boss ? d.hp * hpMul : d.hp * waveHp * hpMul;
+            float late = Mathf.Max(0f, wm - 11f);   // the last two regions push back against snowballed builds
+            maxHp = boss ? d.hp * hpMul : d.hp * waveHp * hpMul * (1f + late * 0.06f);
             hp = maxHp;
-            dmg = boss ? d.dmg * dmgMul : d.dmg * (1f + 0.28f * wm + 0.012f * wm * wm) * dmgMul;
+            dmg = boss ? d.dmg * dmgMul : d.dmg * (1f + 0.28f * wm + 0.012f * wm * wm) * dmgMul * (1f + late * 0.035f);
             speed = d.speed * (1f + Mathf.Min(0.25f, wm * 0.012f)) * (boss ? 1f : Random.Range(0.9f, 1.1f) * Game.I.dir.SpeedMul);
             radius = 0.34f * d.scale;
             baseScale = d.scale;
@@ -230,7 +231,7 @@ namespace VK
         /// <summary>Runs at the player, then swells up and explodes; killing it first makes it explode on its kin instead.</summary>
         Vector2 Bomber(float dt, Vector2 dir, float dist)
         {
-            const float Fuse = 0.75f, R = 1.9f;
+            const float Fuse = 0.9f, R = 1.9f;
             if (state == 0)
             {
                 if (dist < 1.9f)
@@ -266,7 +267,7 @@ namespace VK
             Fx.Burst(pos, new Color(1f, 0.6f, 0.2f), 18, 7f, 0.14f, 0.45f, true);
             Fx.Shake(0.25f, 0.2f);
             Sfx.Play("heavy", 0.7f, 0.1f, 0.9f);
-            if (hurtsPlayer && Vector2.Distance(g.player.Pos, pos) < r + g.player.radius * 0.5f) g.player.Hurt(dmg * 1.6f, pos);
+            if (hurtsPlayer && Vector2.Distance(g.player.Pos, pos) < r + g.player.radius * 0.5f) g.player.Hurt(dmg * 1.15f, pos);
             var list = Snapshot();
             foreach (var e in list)
                 if (e != this && !e.dead && !e.boss && Vector2.Distance(e.Pos, pos) < r + e.radius)

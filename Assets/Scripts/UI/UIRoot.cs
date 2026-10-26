@@ -86,7 +86,9 @@ namespace VK
         Text Title(Transform p, string s, float y, int size = 64, Color? c = null)
         {
             var t = UIK.Txt(p, s, size, c ?? UIK.Gold, TextAnchor.MiddleCenter, FontStyle.Bold);
-            t.rectTransform.Place(0.5f, 1f, 1600, size + 30, 0, -y);
+            t.rectTransform.Place(0.5f, 1f, 1800, size + 30, 0, -y);
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;   // long translations shrink to one line instead of wrapping over what is below
+            t.resizeTextForBestFit = true; t.resizeTextMinSize = size / 2; t.resizeTextMaxSize = size;
             var ol = t.gameObject.AddComponent<Outline>();
             ol.effectColor = new Color(0.25f, 0.1f, 0f, 0.8f);
             ol.effectDistance = new Vector2(2, -2);
@@ -117,7 +119,7 @@ namespace VK
         {
             var box = UIK.Img(top, new Color(0.12f, 0.1f, 0.05f, 0.95f), "toast");
             UIK.Border(box.gameObject, UIK.Gold, 2);
-            box.rectTransform.Place(1f, 0f, 460, 90, -20, 20 + toasts.Count * 100);
+            box.rectTransform.Place(0f, 0f, 460, 90, 20, 120 + toasts.Count * 100);   // bottom-left above the weapon bar: no buttons live there
             var cg = box.gameObject.AddComponent<CanvasGroup>();
             cg.blocksRaycasts = false;
             var t = UIK.Txt(box.transform, "<b>" + title + "</b>\n<size=20><color=#C8C2D8>" + sub + "</color></size>", 26, UIK.Gold);
@@ -209,7 +211,7 @@ namespace VK
                 var t = toasts[i];
                 t.t += dt;
                 t.cg.alpha = t.t < 0.25f ? t.t / 0.25f : t.t > 3.2f ? Mathf.Max(0, 1f - (t.t - 3.2f) / 0.4f) : 1f;
-                t.rt.anchoredPosition = new Vector2(-20 + (t.t < 0.25f ? (1f - t.t / 0.25f) * 300f : 0), 20 + i * 100);
+                t.rt.anchoredPosition = new Vector2(20 - (t.t < 0.25f ? (1f - t.t / 0.25f) * 300f : 0), 120 + i * 100);
                 if (t.t > 3.6f) { Destroy(t.rt.gameObject); toasts.RemoveAt(i); }
             }
             // hurt
@@ -369,7 +371,7 @@ namespace VK
             selInit = false;
             UIK.Clear(hud);
             hpFill = null;
-            var o = Overlay(0.55f);
+            var o = Overlay(0.4f);
             LangButton(o);
             Title(o, "VẠN KIẾP TU TIÊN", 110, 110);
             var sub = UIK.Txt(o, "Một kiếm phá vạn kiếp  ·  Roguelite tu tiên", 32, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);

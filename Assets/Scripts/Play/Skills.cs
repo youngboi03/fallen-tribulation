@@ -52,7 +52,7 @@ namespace VK
                     Fx.Ring(pos, new Color(1f, 0.5f, 0.15f), 0.3f, rad, 0.4f);
                     Fx.Glow(pos, new Color(1f, 0.45f, 0.1f, 0.8f), rad * 2.4f, 0.4f);
                     Fx.Burst(pos, new Color(1f, 0.55f, 0.15f), 40, 10f, 0.2f, 0.6f, true);
-                    p.Heal(Mathf.Round(r.MaxHP * 0.15f));
+                    p.Heal(Mathf.Round(r.MaxHP * 0.25f));
                     Fx.Shake(0.35f, 0.3f);
                     Fx.Hitstop(0.05f);
                     Sfx.Play("heavy", 0.9f, 0f, 0.8f, 0f);

@@ -125,14 +125,15 @@ namespace VK
                     if (g.ui.screen == UIScreen.Shop)
                     {
                         var r = g.run;
-                        Debug.Log($"[AUTOTEST] wave {r.wave} done: lvl {r.level} gold {r.gold} kills {r.kills} hp {r.hp:0}/{r.MaxHP:0} dmg {r.dmgDealt:0} peakEnemies {peak} weapons {r.weapons.Count} items {r.items.Count} low {lowHp * 100:0}% hits {r.hitsThisWave} realTime {Time.realtimeSinceStartup - waveStart:0.0}s");
+                        Debug.Log($"[AUTOTEST] wave {r.wave} done: lvl {r.level} gold {r.gold} kills {r.kills} hp {r.hp:0}/{r.MaxHP:0} dmg {r.dmgDealt:0} peakEnemies {peak} weapons {r.weapons.Count} items {r.items.Count} low {lowHp * 100:0}% hits {r.hitsThisWave} realTime {Time.realtimeSinceStartup - waveStart:0.0}s build {string.Join(",", r.weapons.ConvertAll(w => w.def.id + w.tier))}");
                         Shot("w" + r.wave.ToString("00") + "_shop_a"); yield return Real(0.3f);
                         BuyStuff();
                         g.ui.ShowShop();
                         yield return Real(0.3f);
                         Shot("w" + r.wave.ToString("00") + "_shop_b"); yield return Real(0.3f);
                         if (r.wave >= maxWaves) { Finish(); yield break; }
-                        g.NextWave(r.routeOffer > 0 && (r.wave + 1) % 5 != 0 && Random.value < 0.5f ? r.routeOffer : 0);
+                        bool risky = smart ? lowHp > 0.75f : Random.value < 0.5f;   // a sensible player only gambles when the last wave went well
+                        g.NextWave(r.routeOffer > 0 && (r.wave + 1) % 5 != 0 && risky ? r.routeOffer : 0);
                     }
                 }
                 else if (g.state == GState.Over)
@@ -231,7 +232,7 @@ namespace VK
                     {
                         bool merge = r.MergeTarget(s.w, s.tier) != null;
                         if (r.weapons.Count >= r.maxWeapons && !merge) continue;
-                        sc = 4 + s.tier * 3 + (s.w.HasTag((Tag)fav) ? 6 : 0) + (merge ? 4 : 0);
+                        sc = 4 + s.tier * 3 + (s.w.HasTag((Tag)fav) ? 6 : 0) + (merge ? 4 : 0) + (r.weapons.Count < 4 ? 10 : 0);   // damage first
                     }
                     else
                     {

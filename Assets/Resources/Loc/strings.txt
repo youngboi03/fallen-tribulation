@@ -10,7 +10,7 @@ vừa là	and	也是
 kinh nghiệm	experience	经验
 để mua đồ giữa các đợt	to spend between waves	用于波次间购物
 Đạo Hạnh	Dao Merit	道行
-Thành tựu	Achievement	成就
+Thành tựu	Achievements	成就
 Thành Tựu	Achievements	成就
 THÀNH TỰU	ACHIEVEMENTS	成就
 Kiếp	Tribulation	劫
@@ -163,8 +163,8 @@ Xem lại hướng dẫn	Replay tutorial	重看教程
 WASD / phím mũi tên	WASD / arrow keys	WASD／方向键
 Kéo joystick bên trái	Drag the left joystick	拖动左侧摇杆
 để di chuyển	to move	移动
-Vũ khí tự tấn công	Weapons attack automatically	武器自动攻击
-kẻ địch gần nhất — hãy giữ khoảng cách vừa tầm	the nearest enemy — keep them at just the right distance	最近的敌人——保持合适距离
+Vũ khí tự tấn công	Weapons automatically attack	武器自动攻击
+kẻ địch gần nhất — hãy giữ khoảng cách vừa tầm	the nearest enemy — keep foes at just the right distance	最近的敌人——保持合适距离
 Nhấn	Press	按
 Chạm nút	Tap	点击
 để lướt: bất tử trong lúc lướt, xuyên qua quái và đạn	to dash: invulnerable while dashing, pass through monsters and bullets	冲刺：冲刺时无敌，可穿过怪物和子弹
@@ -208,8 +208,8 @@ Hoàn thành	Completion	完成度
 HOÀN THÀNH	COMPLETE	完成
 Thắng	Wins	胜场
 Lượt chơi	Runs	局数
-VẠN KIẾP TU TIÊN	TEN THOUSAND TRIBULATIONS	万劫修仙
-Một kiếm phá vạn kiếp	One sword breaks ten thousand tribulations	一剑破万劫
+VẠN KIẾP TU TIÊN	MYRIAD TRIBULATIONS	万劫修仙
+Một kiếm phá vạn kiếp	One sword breaks a myriad tribulations	一剑破万劫
 Roguelite tu tiên	Cultivation roguelite	修仙肉鸽
 Nhập Đạo	Enter the Dao	入道
 Rời Khỏi	Quit	退出
@@ -245,6 +245,7 @@ Né	Dodged	闪避
 Hợp nhất	Merge	合成
 Khóa	Lock	锁定
 Mở	Unlock	解锁
+Đạt thành tựu	Achievement unlocked	达成成就
 Hoang Sơn	Barren Mountains	荒山
 Hàn Băng Cốc	Frost Valley	寒冰谷
 Huyết Sát Hải	Blood Sea	血煞海
@@ -276,7 +277,7 @@ Kiếm Vũ	Sword Rain	剑雨
 12 phi kiếm toả ra, tự tìm địch	12 flying swords fan out and seek enemies	12把飞剑散开，自动寻敌
 phi kiếm toả ra, tự tìm địch	flying swords fan out and seek enemies	把飞剑散开，自动寻敌
 Đan Hỏa Bạo	Pill Fire Burst	丹火爆
-Nổ lửa quanh thân, hồi 15% máu	Fire explodes around you, heal 15% HP	周身爆炎，回复15%生命
+Nổ lửa quanh thân, hồi 25% máu	Fire explodes around you, heal 25% HP	周身爆炎，回复25%生命
 Kim Cang Chấn	Vajra Quake	金刚震
 Bất tử 2s + sóng chấn đẩy lùi	Invulnerable 2s + knockback shockwave	无敌2秒+击退冲击波
 Định Thân Phù	Binding Talisman	定身符
@@ -443,7 +444,7 @@ Hạ gục boss đầu tiên	Defeat your first boss	击败第一个首领
 Tổng cộng diệt 1.000 kẻ địch	Slay 1,000 enemies in total	累计击杀1000名敌人
 Tổng cộng diệt 10.000 kẻ địch	Slay 10,000 enemies in total	累计击杀10000名敌人
 Phi thăng ở Kiếp	Ascend at Tribulation	飞升于劫
-Phi thăng với cả 5 nhân vật	Ascend with all 5 characters	5名角色全部飞升
+Phi thăng với cả 6 nhân vật	Ascend with all 6 characters	6名角色全部飞升
 Mở khóa tất cả nhân vật	Unlock every character	解锁所有角色
 Đạt Trúc Cơ trong một lượt	Reach Foundation in one run	单局达到筑基
 Đạt Kim Đan trong một lượt	Reach Golden Core in one run	单局达到金丹

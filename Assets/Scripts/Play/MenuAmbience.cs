@@ -3,12 +3,15 @@ using UnityEngine;
 
 namespace VK
 {
-    /// <summary>Living background behind the main menu: the last-played cultivator meditating, monsters wandering, qi motes rising.</summary>
+    /// <summary>
+    /// Living background behind the main menu: a painted landscape (PixelLab) that slowly drifts, the last-played
+    /// cultivator meditating and qi motes rising. Without the painting, monsters wander the arena instead.
+    /// </summary>
     public class MenuAmbience : MonoBehaviour
     {
         class Walker { public Transform t; public SpriteRenderer sr; public Vector2 target; public float speed, phase, scale; }
         readonly List<Walker> walkers = new List<Walker>();
-        SpriteRenderer hero, heroAura;
+        SpriteRenderer hero, heroAura, backdrop;
         float moteT;
         bool shown;
 
@@ -22,8 +25,16 @@ namespace VK
             hero = new GameObject("body").AddComponent<SpriteRenderer>();
             hero.transform.SetParent(h.transform, false);
             hero.transform.localScale = Vector3.one * 1.6f;
+            var bg = Resources.Load<Sprite>("PixelLab/Backgrounds/menu");
+            if (bg != null)
+            {
+                backdrop = new GameObject("menuBackdrop").AddComponent<SpriteRenderer>();
+                backdrop.transform.SetParent(transform, false);
+                backdrop.sprite = bg;
+                backdrop.sortingOrder = -500;   // above the arena floor and walls, below everything that moves
+            }
             int[] pool = { Res.Px.HuyetThu, Res.Px.MaBuc, Res.Px.DocTrung, Res.Px.DocChu, Res.Px.OanHon, Res.Px.ThietBoiThu, Res.Px.TaTu, Res.Px.HoaMa, Res.Px.BaoHon };
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < (backdrop ? 0 : 9); i++)
             {
                 var go = new GameObject("menuWalker");
                 go.transform.SetParent(transform, false);
@@ -48,6 +59,7 @@ namespace VK
         {
             shown = v;
             hero.transform.parent.gameObject.SetActive(v);
+            if (backdrop) backdrop.gameObject.SetActive(v);
             foreach (var w in walkers) w.t.gameObject.SetActive(v);
         }
 
@@ -59,6 +71,17 @@ namespace VK
             if (want != shown) SetVisible(want);
             if (!want) return;
             float t = Time.time, dt = Time.deltaTime;
+
+            var cam = g.cam;
+            if (backdrop && cam)
+            {   // cover the whole view, slightly oversized so a slow drift never shows an edge
+                float vh = cam.orthographicSize * 2f, vw = vh * cam.aspect;
+                Vector2 sz = backdrop.sprite.bounds.size;
+                float k = Mathf.Max(vw / sz.x, vh / sz.y) * 1.06f;
+                backdrop.transform.localScale = new Vector3(k, k, 1f);
+                Vector3 cp = cam.transform.position;
+                backdrop.transform.position = new Vector3(cp.x + Mathf.Sin(t * 0.05f) * vw * 0.02f, cp.y + Mathf.Sin(t * 0.07f) * vh * 0.01f, 0f);
+            }
 
             hero.sprite = Res.Tile(Content.Chars[Mathf.Clamp(g.save.lastChar, 0, Content.Chars.Count - 1)].sprite);
             hero.transform.localPosition = new Vector3(-9.5f, -0.8f + Mathf.Sin(t * 1.5f) * 0.12f, 0);   // floating in meditation

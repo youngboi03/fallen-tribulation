@@ -102,6 +102,9 @@ Mỗi lần lên cảnh giới: hồi đầy máu, lựa chọn nâng cấp ph�
 - **Hình ảnh**: viền sáng cho tinh anh (đỏ) và boss (tím), đột phá có cột sáng, thời tiết theo vùng, menu có nhân vật ngồi thiền và yêu ma đi lại, màn kết thúc hiện build.
 - **Cân bằng**: độ khó Kiếp tăng dần theo đợt (`ramp = 0.2 + đợt/12`), sát thương quái có thêm hệ số bậc 2 và máu quái thêm hệ số bậc 3 cho cuối game. Lộ Tuyến không áp dụng ở đợt boss.
 - **Sẵn sàng phát hành**: input / lưu game / thành tựu đi qua lớp nền tảng, có tay cầm và cảm ứng. Xem `docs/PORTING.md`.
+- **Ngôn ngữ**: Tiếng Việt / English / 中文, đổi ngay trong game (nút *Language*). Game viết bằng tiếng Việt; `Loc.Tr` dịch theo cụm từ tại điểm hiển thị nên thêm nội dung mới chỉ cần thêm dòng vào `tools/loc/*.txt`.
+- **Hình ảnh PixelLab**: 6 nhân vật, 13 yêu ma (+ dạng ngụy trang của Bảo Rương Yêu), 6 boss, nền Wang-tile riêng cho 4 vùng (rải mảng địa hình bằng nhiễu Perlin), tranh phong cảnh cho menu. Vũ khí/pháp bảo vẫn dùng Kenney.
+- **Cân bằng (bot "smart", có meta)**: Kiếp tăng dần tới 1.5× ở nửa sau; từ đợt 12 quái thường +6% máu và +3.5% sát thương mỗi đợt; Tinh Anh Tụ Tập tối đa 28% tinh anh; Bạo Hồn nổ ×1.15 sát thương, châm ngòi 0.9s; Ma Tu khởi đầu với Huyết Nguyệt Đao; Đan Tu +20% Pháp Thuật, +5 Hồi Phục, +5 Sinh Lực, Thần Thông hồi 25% máu (9s); Lôi Tu +3 Sinh Lực.
 
 ## 13. Asset
 Kenney (CC0): Tiny Dungeon (sprite), Impact/Interface/RPG Audio, Music Jingles. Nhạc nền tự tổng hợp bằng code

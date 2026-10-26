@@ -32,7 +32,7 @@ namespace VK
             ClearAll();
             wave = w;
             kiep = Game.I.run.kiep;
-            float ramp = Mathf.Min(1f, 0.2f + w / 12f);   // kiếp bonus grows over the run so early waves stay fair
+            float ramp = Mathf.Min(1.5f, 0.2f + w / 12f);   // kiếp bonus grows over the run so early waves stay fair
             HpMul = 1f + 0.3f * kiep * ramp;
             DmgMul = 1f + 0.25f * kiep * ramp;
             bossWave = w % 5 == 0;
@@ -137,7 +137,7 @@ namespace VK
                 Vector2 p = pack ? Arena.Clamp(center + Random.insideUnitCircle * 1.6f, 0.5f) : RandomPos();
                 QueueSpawn(p, PickDef());
             }
-            float eliteChance = wave >= 8 || EliteMul > 1f ? (0.07f + (kiep >= 2 ? 0.06f : 0f)) * EliteMul : 0f;
+            float eliteChance = wave >= 8 || EliteMul > 1f ? Mathf.Min(0.28f, (0.07f + (kiep >= 2 ? 0.06f : 0f)) * EliteMul) : 0f;   // Elite Gathering: many elites, not a wall of them
             if (!bossWave && Random.value < eliteChance)
             {
                 var elites = Content.Enemies.FindAll(e => e.elite && e.minWave <= Mathf.Max(wave, EliteMul > 1f ? 8 : 0));

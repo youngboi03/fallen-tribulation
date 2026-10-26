@@ -10,7 +10,7 @@ vừa là|and|也是
 kinh nghiệm|experience|经验
 để mua đồ giữa các đợt|to spend between waves|用于波次间购物
 Đạo Hạnh|Dao Merit|道行
-Thành tựu|Achievement|成就
+Thành tựu|Achievements|成就
 Thành Tựu|Achievements|成就
 THÀNH TỰU|ACHIEVEMENTS|成就
 Kiếp|Tribulation|劫
@@ -163,8 +163,8 @@ Xem lại hướng dẫn|Replay tutorial|重看教程
 WASD / phím mũi tên|WASD / arrow keys|WASD／方向键
 Kéo joystick bên trái|Drag the left joystick|拖动左侧摇杆
 để di chuyển|to move|移动
-Vũ khí tự tấn công|Weapons attack automatically|武器自动攻击
-kẻ địch gần nhất — hãy giữ khoảng cách vừa tầm|the nearest enemy — keep them at just the right distance|最近的敌人——保持合适距离
+Vũ khí tự tấn công|Weapons automatically attack|武器自动攻击
+kẻ địch gần nhất — hãy giữ khoảng cách vừa tầm|the nearest enemy — keep foes at just the right distance|最近的敌人——保持合适距离
 Nhấn|Press|按
 Chạm nút|Tap|点击
 để lướt: bất tử trong lúc lướt, xuyên qua quái và đạn|to dash: invulnerable while dashing, pass through monsters and bullets|冲刺：冲刺时无敌，可穿过怪物和子弹
@@ -208,8 +208,8 @@ Hoàn thành|Completion|完成度
 HOÀN THÀNH|COMPLETE|完成
 Thắng|Wins|胜场
 Lượt chơi|Runs|局数
-VẠN KIẾP TU TIÊN|TEN THOUSAND TRIBULATIONS|万劫修仙
-Một kiếm phá vạn kiếp|One sword breaks ten thousand tribulations|一剑破万劫
+VẠN KIẾP TU TIÊN|MYRIAD TRIBULATIONS|万劫修仙
+Một kiếm phá vạn kiếp|One sword breaks a myriad tribulations|一剑破万劫
 Roguelite tu tiên|Cultivation roguelite|修仙肉鸽
 Nhập Đạo|Enter the Dao|入道
 Rời Khỏi|Quit|退出
@@ -245,3 +245,4 @@ Né|Dodged|闪避
 Hợp nhất|Merge|合成
 Khóa|Lock|锁定
 Mở|Unlock|解锁
+Đạt thành tựu|Achievement unlocked|达成成就

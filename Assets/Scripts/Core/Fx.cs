@@ -234,7 +234,7 @@ namespace VK
             Game.I.save.daoHanh += 20;
             Game.I.save.Save();
             var def = System.Array.Find(Content.Achs, a => a.id == id);
-            if (def != null && Game.I.ui != null) Game.I.ui.Toast("Thành tựu: " + def.name, "+20 Đạo Hạnh");
+            if (def != null && Game.I.ui != null) Game.I.ui.Toast("Đạt thành tựu: " + def.name, "+20 Đạo Hạnh");
             Sfx.Play("confirm", 0.7f, 0f, 1.2f);
         }
     }

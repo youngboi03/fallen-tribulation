@@ -30,7 +30,7 @@ Kiếm Vũ|Sword Rain|剑雨
 12 phi kiếm toả ra, tự tìm địch|12 flying swords fan out and seek enemies|12把飞剑散开，自动寻敌
 phi kiếm toả ra, tự tìm địch|flying swords fan out and seek enemies|把飞剑散开，自动寻敌
 Đan Hỏa Bạo|Pill Fire Burst|丹火爆
-Nổ lửa quanh thân, hồi 15% máu|Fire explodes around you, heal 15% HP|周身爆炎，回复15%生命
+Nổ lửa quanh thân, hồi 25% máu|Fire explodes around you, heal 25% HP|周身爆炎，回复25%生命
 Kim Cang Chấn|Vajra Quake|金刚震
 Bất tử 2s + sóng chấn đẩy lùi|Invulnerable 2s + knockback shockwave|无敌2秒+击退冲击波
 Định Thân Phù|Binding Talisman|定身符
@@ -197,7 +197,7 @@ Hạ gục boss đầu tiên|Defeat your first boss|击败第一个首领
 Tổng cộng diệt 1.000 kẻ địch|Slay 1,000 enemies in total|累计击杀1000名敌人
 Tổng cộng diệt 10.000 kẻ địch|Slay 10,000 enemies in total|累计击杀10000名敌人
 Phi thăng ở Kiếp|Ascend at Tribulation|飞升于劫
-Phi thăng với cả 5 nhân vật|Ascend with all 5 characters|5名角色全部飞升
+Phi thăng với cả 6 nhân vật|Ascend with all 6 characters|6名角色全部飞升
 Mở khóa tất cả nhân vật|Unlock every character|解锁所有角色
 Đạt Trúc Cơ trong một lượt|Reach Foundation in one run|单局达到筑基
 Đạt Kim Đan trong một lượt|Reach Golden Core in one run|单局达到金丹

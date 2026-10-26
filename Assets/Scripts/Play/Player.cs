@@ -157,7 +157,8 @@ namespace VK
             float hop = moving ? Mathf.Abs(Mathf.Sin(animT)) * 0.1f : 0f;
             float breathe = moving ? 1f : 1f + Mathf.Sin(animT) * 0.03f;
             body.localPosition = new Vector3(0, hop, 0);
-            body.localScale = new Vector3(moving ? 1f + hop * 0.6f : 1f, moving ? 1f - hop * 0.6f : breathe, 1f);
+            const float Size = 1.3f;   // the hero reads a bit larger than ordinary monsters
+            body.localScale = new Vector3((moving ? 1f + hop * 0.6f : 1f) * Size, (moving ? 1f - hop * 0.6f : breathe) * Size, 1f);
             if (Mathf.Abs(vel.x) > 0.1f) sr.flipX = vel.x < 0;
             sr.sortingOrder = Mathf.RoundToInt(-pos.y * 5f);
 

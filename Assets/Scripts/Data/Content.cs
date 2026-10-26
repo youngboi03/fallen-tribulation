@@ -217,8 +217,8 @@ namespace VK
                 mods=new[]{ new Mod(Stat.Melee,15), new Mod(Stat.Crit,5) } },
             new CharDef { id="dan_tu", name="Đan Tu", title="Bạch Hạc Lão Nhân", sprite=Res.Px.DanTu, startWeapon="hoa_truong",
                 desc="Luyện đan sư, pháp thuật mạnh, hồi máu nhanh.", unlockDesc="Đạt tới đợt 5",
-                skill="Đan Hỏa Bạo", skillDesc="Nổ lửa quanh thân, hồi 15% máu", skillCd=11f,
-                mods=new[]{ new Mod(Stat.Spell,15), new Mod(Stat.Regen,3), new Mod(Stat.Melee,-15) } },
+                skill="Đan Hỏa Bạo", skillDesc="Nổ lửa quanh thân, hồi 25% máu", skillCd=9f,
+                mods=new[]{ new Mod(Stat.Spell,20), new Mod(Stat.Regen,5), new Mod(Stat.MaxHP,5), new Mod(Stat.Melee,-15) } },
             new CharDef { id="the_tu", name="Thể Tu", title="Thiết Hán Vô Danh", sprite=Res.Px.TheTu, startWeapon="thiet_chuy",
                 desc="Luyện thể, da dày thịt béo, đánh chậm mà nặng.", unlockDesc="Tổng cộng diệt 1500 kẻ địch",
                 skill="Kim Cang Chấn", skillDesc="Bất tử 2s + sóng chấn đẩy lùi", skillCd=12f,
@@ -234,7 +234,7 @@ namespace VK
             new CharDef { id="loi_tu", name="Lôi Tu", title="Lôi Vân Tử", sprite=Res.Px.LoiTu, startWeapon="loi_truong",
                 desc="Lôi pháp: đánh cực nhanh, sét lan khắp đàn quái.", unlockDesc="Đạt tới đợt 10",
                 skill="Thiên Lôi Dẫn", skillDesc="Gọi 8 tia sét lên kẻ địch gần nhất, làm choáng 1s", skillCd=11f,
-                mods=new[]{ new Mod(Stat.AtkSpeed,20), new Mod(Stat.Spell,5), new Mod(Stat.Speed,5), new Mod(Stat.MaxHP,-2) } },
+                mods=new[]{ new Mod(Stat.AtkSpeed,20), new Mod(Stat.Spell,10), new Mod(Stat.Speed,5), new Mod(Stat.MaxHP,3) } },
         };
 
         public static bool CharUnlocked(int i, SaveData s)
@@ -331,7 +331,7 @@ namespace VK
             new AchDef("kiep3", "Độ Kiếp", "Phi thăng ở Kiếp 3"),
             new AchDef("kiep5", "Thiên Kiếp Bất Diệt", "Phi thăng ở Kiếp 5"),
             new AchDef("codex", "Bách Khoa Toàn Thư", "Hoàn thành Đồ Giám"),
-            new AchDef("allwin", "Tông Sư", "Phi thăng với cả 5 nhân vật"),
+            new AchDef("allwin", "Tông Sư", "Phi thăng với cả 6 nhân vật"),
         };
 
         public const int MaxKiep = 5;

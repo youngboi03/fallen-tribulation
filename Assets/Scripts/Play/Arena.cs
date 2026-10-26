@@ -16,6 +16,43 @@ namespace VK
         SpriteRenderer circleA, circleB, circleC;
         readonly List<SpriteRenderer> floor = new List<SpriteRenderer>(), walls = new List<SpriteRenderer>();
         readonly List<float> bright = new List<float>();
+        readonly List<Vector2Int> floorCell = new List<Vector2Int>();
+        static readonly Sprite[][] floorTiles = new Sprite[4][];   // per region: 16 Wang tiles by corner mask, empty = no PixelLab art
+        // PixelLab floors keep their painted colours, only dimmed per region so characters stand out (snow needs the most)
+        static readonly Color[] FloorDim = { new Color(0.8f, 0.78f, 0.78f), new Color(0.6f, 0.64f, 0.7f), new Color(0.78f, 0.72f, 0.72f), new Color(0.62f, 0.58f, 0.66f) };
+
+        /// <summary>The 16 corner-mask tiles of a region's PixelLab floor (index = NW*8 + NE*4 + SW*2 + SE), or null.</summary>
+        static Sprite[] FloorTiles(int region)
+        {
+            if (floorTiles[region] != null) return floorTiles[region].Length == 0 ? null : floorTiles[region];
+            var tex = Resources.Load<Texture2D>("PixelLab/Floors/floor" + region);
+            if (tex == null) { floorTiles[region] = new Sprite[0]; return null; }
+            int n = tex.height;
+            var arr = new Sprite[16];
+            for (int i = 0; i < 16; i++) arr[i] = Sprite.Create(tex, new Rect(i * n, 0, n, n), new Vector2(0.5f, 0.5f), n);
+            return floorTiles[region] = arr;
+        }
+
+        /// <summary>Patchy second terrain: true where the upper terrain covers this grid vertex.</summary>
+        static bool Upper(int region, int vx, int vy)
+        {
+            float f = Mathf.PerlinNoise(vx * 0.17f + region * 31.7f, vy * 0.17f + region * 17.3f);
+            float g = Mathf.PerlinNoise(vx * 0.45f + 7.1f + region, vy * 0.45f + 3.3f);
+            return f * 0.8f + g * 0.2f > (region == 2 ? 0.6f : region == 3 ? 0.64f : 0.55f);   // fewer bright crystals in the last region: they must not read as bullets
+        }
+
+        void ApplyFloorSprites(int region)
+        {
+            var tiles = FloorTiles(region);
+            for (int i = 0; i < floor.Count; i++)
+            {
+                var c = floorCell[i];
+                if (tiles == null) { floor[i].sprite = Res.Tile(0); continue; }
+                int m = (Upper(region, c.x, c.y + 1) ? 8 : 0) | (Upper(region, c.x + 1, c.y + 1) ? 4 : 0)
+                      | (Upper(region, c.x, c.y) ? 2 : 0) | (Upper(region, c.x + 1, c.y) ? 1 : 0);
+                floor[i].sprite = tiles[m];
+            }
+        }
         Color[] fromF, fromW; Color toF, toW, toR, fromR;
         float themeT = 1f;
         public int Theme { get; private set; } = -1;
@@ -41,7 +78,7 @@ namespace VK
                     sr.sprite = Res.Tile(tile);
                     sr.sortingOrder = wall ? -990 : -1000;
                     if (wall) walls.Add(sr);
-                    else { floor.Add(sr); bright.Add(0.62f + (float)rng.NextDouble() * 0.06f); }
+                    else { floor.Add(sr); floorCell.Add(new Vector2Int(x, y)); bright.Add(0.62f + (float)rng.NextDouble() * 0.06f); }
                 }
             for (int x = -w + 3; x < w - 2; x += 6)
             {
@@ -84,6 +121,7 @@ namespace VK
             fromF = new Color[floor.Count]; for (int i = 0; i < floor.Count; i++) fromF[i] = floor[i].color;
             fromW = new Color[walls.Count]; for (int i = 0; i < walls.Count; i++) fromW[i] = walls[i].color;
             fromR = circleA.color;
+            ApplyFloorSprites(t);
             themeT = instant ? 0.999f : 0f;
             if (Game.I && Game.I.cam) Game.I.cam.backgroundColor = BgTint[t];
             Apply(instant ? 1f : 0f);
@@ -94,7 +132,9 @@ namespace VK
             for (int i = 0; i < floor.Count; i++)
             {
                 float b = bright[i];
-                var target = new Color(toF.r * b, toF.g * b * 0.95f, toF.b * b);
+                // PixelLab floors are painted in their own colours: only dim them a little so characters stand out
+                var target = FloorTiles(Theme) != null ? FloorDim[Theme] * (b / 0.65f) : new Color(toF.r * b, toF.g * b * 0.95f, toF.b * b);
+                target.a = 1f;
                 floor[i].color = Color.Lerp(fromF[i], target, k);
             }
             for (int i = 0; i < walls.Count; i++) walls[i].color = Color.Lerp(fromW[i], toW, k);
