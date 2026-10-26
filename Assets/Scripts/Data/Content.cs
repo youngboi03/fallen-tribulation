@@ -1,0 +1,358 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace VK
+{
+    /// <summary>All balance data lives here.</summary>
+    public static class Content
+    {
+        public static readonly float[] TierMul = { 1f, 1.7f, 2.8f, 4.5f };
+        public static readonly float[] TierCd = { 1f, 0.92f, 0.85f, 0.78f };
+        public static readonly int[] TierPrice = { 1, 2, 4, 7 };
+        public static readonly string[] TierName = { "Phàm", "Linh", "Huyền", "Tiên" };
+        public static readonly Color[] TierColor = {
+            new Color(0.92f, 0.92f, 0.92f), new Color(0.36f, 0.75f, 1f), new Color(0.78f, 0.49f, 1f), new Color(1f, 0.66f, 0.2f) };
+        public static string TierHex(int t) => "#" + ColorUtility.ToHtmlStringRGB(TierColor[Mathf.Clamp(t, 0, 3)]);
+
+        public static readonly string[] TagName = { "Kiếm", "Thể", "Hỏa", "Lôi", "Phù", "Độc" };
+        public static readonly Color[] TagColor = {
+            new Color(0.75f, 0.88f, 1f), new Color(0.95f, 0.72f, 0.45f), new Color(1f, 0.45f, 0.25f),
+            new Color(0.55f, 0.7f, 1f), new Color(1f, 0.9f, 0.45f), new Color(0.55f, 0.95f, 0.4f) };
+        public static string TagHex(Tag t) => "#" + ColorUtility.ToHtmlStringRGB(TagColor[(int)t]);
+
+        public static readonly string[] RealmName = { "Luyện Khí", "Trúc Cơ", "Kim Đan", "Nguyên Anh", "Hóa Thần", "Luyện Hư" };
+        public static string Realm(int level)
+        {
+            int r = Mathf.Min(level / 10, RealmName.Length - 1);
+            int layer = r == 0 ? level : level - r * 10 + 1;
+            return RealmName[r] + " tầng " + layer;
+        }
+        public static string RealmOnly(int level) => RealmName[Mathf.Min(level / 10, RealmName.Length - 1)];
+
+        public static float XpNeed(int level) => Mathf.Round(Mathf.Pow(level + 3, 2) * 1.25f + level * 2);
+
+        // ---------------------------------------------------------------- weapons
+        public static readonly List<WeaponDef> Weapons = new List<WeaponDef>
+        {
+            new WeaponDef { id="thiet_kiem", name="Thiết Kiếm", sprite=104, type=WType.Thrust, tags=new[]{Tag.Kiem},
+                dmg=9, cd=0.85f, range=2.7f, pierce=1, knock=1f, price=14, desc="Đâm thẳng, xuyên 2 kẻ địch." },
+            new WeaponDef { id="doan_dao", name="Đoản Đao", sprite=103, type=WType.Thrust, tags=new[]{Tag.Kiem},
+                dmg=5, cd=0.42f, range=2.1f, crit=15, knock=0.5f, price=12, desc="Cực nhanh. +15% bạo kích riêng." },
+            new WeaponDef { id="truong_thuong", name="Trường Thương", sprite=131, type=WType.Thrust, tags=new[]{Tag.Kiem, Tag.The},
+                dmg=11, cd=1.1f, range=3.8f, pierce=99, knock=1.4f, price=18, desc="Tầm rất xa, xuyên mọi kẻ địch trên đường." },
+            new WeaponDef { id="cu_kiem", name="Cự Kiếm", sprite=106, type=WType.Swing, tags=new[]{Tag.Kiem, Tag.The},
+                dmg=20, cd=1.45f, range=2.5f, splash=1.55f, knock=1.6f, price=24, desc="Bổ xuống tạo sóng chấn vùng rộng." },
+            new WeaponDef { id="thiet_chuy", name="Thiết Chùy", sprite=117, type=WType.Swing, tags=new[]{Tag.The},
+                dmg=16, cd=1.25f, range=2.3f, splash=1.35f, knock=2.4f, price=18, desc="Đập vùng, đẩy lùi cực mạnh." },
+            new WeaponDef { id="song_phu", name="Song Phủ", sprite=118, type=WType.Swing, tags=new[]{Tag.The},
+                dmg=12, cd=0.95f, range=2.1f, splash=1.15f, crit=5, knock=1.2f, price=20, desc="Chém vùng nhanh." },
+            new WeaponDef { id="hoa_truong", name="Hỏa Trượng", sprite=129, type=WType.Bolt, tags=new[]{Tag.Hoa},
+                dmg=8, cd=0.95f, range=7f, splash=1.1f, burn=0.6f, speed=9f, price=18, look=ProjLook.Glow,
+                fx=new Color(1f,0.5f,0.15f), desc="Cầu lửa nổ vùng và thiêu đốt." },
+            new WeaponDef { id="loi_truong", name="Lôi Trượng", sprite=130, type=WType.Chain, tags=new[]{Tag.Loi},
+                dmg=7, cd=1.0f, range=6.5f, chains=3, price=20, fx=new Color(0.6f,0.8f,1f), desc="Sét nảy qua 4 kẻ địch." },
+            new WeaponDef { id="phu_luc", name="Phù Lục", sprite=Res.TalismanId, type=WType.Bolt, tags=new[]{Tag.Phu},
+                dmg=6, cd=0.55f, range=7.5f, pierce=1, speed=12f, price=14, look=ProjLook.Spin,
+                fx=new Color(1f,0.9f,0.5f), desc="Bắn bùa nhanh, xuyên 2 kẻ địch." },
+            new WeaponDef { id="phi_kiem", name="Phi Kiếm", sprite=104, tint=new Color(0.6f,1f,1f), type=WType.Fly, tags=new[]{Tag.Kiem, Tag.Phu},
+                dmg=10, cd=1.1f, range=8f, pierce=3, speed=11f, price=22, look=ProjLook.Point,
+                fx=new Color(0.5f,1f,1f), desc="Kiếm bay tự tìm địch, xuyên 4 kẻ." },
+            new WeaponDef { id="doc_dao", name="Độc Đao", sprite=105, tint=new Color(0.7f,1f,0.6f), type=WType.Thrust, tags=new[]{Tag.Doc, Tag.Kiem},
+                dmg=7, cd=0.7f, range=2.5f, poison=1.0f, price=15, desc="Đâm gây trúng độc." },
+            new WeaponDef { id="doc_binh", name="Độc Bình", sprite=114, type=WType.Bolt, tags=new[]{Tag.Doc},
+                dmg=5, cd=1.2f, range=6f, splash=1.6f, poison=1.3f, speed=7f, price=17, look=ProjLook.Spin,
+                fx=new Color(0.45f,1f,0.35f), desc="Ném bình độc, vỡ ra vùng độc." },
+            new WeaponDef { id="loi_phu", name="Lôi Phù", sprite=Res.TalismanId, tint=new Color(0.7f,0.85f,1f), type=WType.Chain, tags=new[]{Tag.Loi, Tag.Phu},
+                dmg=5, cd=0.75f, range=6f, chains=2, price=16, fx=new Color(0.7f,0.85f,1f), desc="Bùa sét nhanh, nảy 3 kẻ." },
+            new WeaponDef { id="hoa_phu", name="Hỏa Phù", sprite=Res.TalismanId, tint=new Color(1f,0.7f,0.6f), type=WType.Bolt, tags=new[]{Tag.Hoa, Tag.Phu},
+                dmg=6, cd=0.8f, range=7f, splash=0.8f, burn=0.4f, speed=10f, price=16, look=ProjLook.Glow,
+                fx=new Color(1f,0.35f,0.2f), desc="Bùa lửa nổ nhỏ, thiêu đốt." },
+            new WeaponDef { id="bang_phach_cham", name="Băng Phách Châm", sprite=103, tint=new Color(0.6f,0.9f,1f), type=WType.Bolt, tags=new[]{Tag.Phu},
+                dmg=4, cd=0.38f, range=6.5f, speed=15f, freeze=0.2f, price=16, look=ProjLook.Point,
+                fx=new Color(0.6f,0.9f,1f), desc="Kim băng cực nhanh, 20% đóng băng 1.2s." },
+            new WeaponDef { id="moc_kiem", name="Mộc Kiếm", sprite=107, type=WType.Thrust, tags=new[]{Tag.Kiem},
+                dmg=4, cd=0.32f, range=2.0f, knock=0.4f, price=10, desc="Kiếm gỗ rẻ, đâm liên tục." },
+            new WeaponDef { id="khai_son_phu", name="Khai Sơn Phủ", sprite=119, tint=new Color(1f,0.9f,0.8f), type=WType.Swing, tags=new[]{Tag.The},
+                dmg=26, cd=1.8f, range=2.4f, splash=1.9f, knock=3f, price=28, desc="Rìu bổ núi: chậm, vùng cực rộng." },
+            new WeaponDef { id="han_bang_binh", name="Hàn Băng Bình", sprite=113, tint=new Color(0.7f,0.95f,1f), type=WType.Bolt, tags=new[]{Tag.Phu, Tag.Doc},
+                dmg=5, cd=1.15f, range=6f, splash=1.5f, freeze=0.5f, speed=7f, price=18, look=ProjLook.Spin,
+                fx=new Color(0.6f,0.95f,1f), desc="Bình băng vỡ thành vùng, 50% đóng băng." },
+            new WeaponDef { id="huyet_nguyet_dao", name="Huyết Nguyệt Đao", sprite=105, tint=new Color(1f,0.55f,0.55f), type=WType.Thrust, tags=new[]{Tag.Kiem},
+                dmg=7, cd=0.65f, range=2.4f, crit=25, price=20, desc="Đao máu: +25% bạo kích riêng." },
+            new WeaponDef { id="loi_chuy", name="Lôi Chùy", sprite=117, tint=new Color(0.65f,0.8f,1f), type=WType.Swing, tags=new[]{Tag.The, Tag.Loi},
+                dmg=14, cd=1.3f, range=2.3f, splash=1.2f, chains=2, knock=1.6f, price=22, fx=new Color(0.6f,0.8f,1f),
+                desc="Đập vùng rồi phóng sét nảy 3 kẻ." },
+            new WeaponDef { id="hoa_long_tien", name="Hỏa Long Tiễn", sprite=131, tint=new Color(1f,0.6f,0.35f), type=WType.Bolt, tags=new[]{Tag.Hoa},
+                dmg=12, cd=1.25f, range=8.5f, pierce=2, burn=0.5f, speed=15f, price=20, look=ProjLook.Point,
+                fx=new Color(1f,0.5f,0.2f), desc="Tên lửa xuyên 3 kẻ, thiêu đốt." },
+            new WeaponDef { id="viem_duong_chuy", name="Viêm Dương Chùy", sprite=119, tint=new Color(1f,0.55f,0.4f), type=WType.Swing, tags=new[]{Tag.Hoa, Tag.The},
+                dmg=13, cd=1.15f, range=2.3f, splash=1.3f, burn=0.7f, knock=1.5f, price=22, fx=new Color(1f,0.5f,0.2f),
+                desc="Búa lửa đập vùng, thiêu mọi kẻ trúng đòn." },
+            new WeaponDef { id="loi_an", name="Lôi Ấn", sprite=101, tint=new Color(0.6f,0.8f,1f), type=WType.Chain, tags=new[]{Tag.Loi},
+                dmg=11, cd=1.4f, range=7f, chains=5, price=24, fx=new Color(0.7f,0.85f,1f), desc="Ấn sét nảy qua 6 kẻ địch." },
+            new WeaponDef { id="loi_hoa_chau", name="Lôi Hỏa Châu", sprite=102, tint=new Color(0.85f,0.65f,1f), type=WType.Bolt, tags=new[]{Tag.Hoa, Tag.Loi},
+                dmg=9, cd=1.0f, range=7f, splash=1.2f, burn=0.4f, speed=9f, price=22, look=ProjLook.Glow,
+                fx=new Color(0.8f,0.5f,1f), desc="Châu lôi hỏa nổ vùng, thiêu đốt." },
+        };
+
+        // ---------------------------------------------------------------- items
+        static Mod M(Stat s, float v) => new Mod(s, v);
+
+        public static readonly List<ItemDef> Items = new List<ItemDef>
+        {
+            // Phàm
+            new ItemDef { id="hoi_khi_dan", name="Hồi Khí Đan", sprite=115, tier=0, price=13, mods=new[]{M(Stat.MaxHP,6)} },
+            new ItemDef { id="hoi_xuan_dan", name="Hồi Xuân Đan", sprite=126, tier=0, price=13, mods=new[]{M(Stat.Regen,2)} },
+            new ItemDef { id="cuong_bao_dan", name="Cuồng Bạo Đan", sprite=127, tier=0, price=15, mods=new[]{M(Stat.Damage,6)} },
+            new ItemDef { id="phong_hanh_phu", name="Phong Hành Phù", sprite=Res.TalismanId, tint=new Color(0.75f,1f,0.8f), tier=0, price=12, mods=new[]{M(Stat.Speed,6)} },
+            new ItemDef { id="thiet_giap", name="Thiết Giáp", sprite=101, tier=0, price=15, mods=new[]{M(Stat.Armor,2)} },
+            new ItemDef { id="tu_linh_ban", name="Tụ Linh Bàn", sprite=56, tier=0, price=12, mods=new[]{M(Stat.Pickup,30), M(Stat.Harvest,3)} },
+            new ItemDef { id="kiem_pho", name="Kiếm Phổ", sprite=66, tint=new Color(0.7f,0.85f,1f), tier=0, price=14, mods=new[]{M(Stat.Melee,9)} },
+            new ItemDef { id="phap_quyet", name="Pháp Quyết", sprite=66, tint=new Color(0.85f,0.6f,1f), tier=0, price=14, mods=new[]{M(Stat.Spell,9)} },
+            new ItemDef { id="ung_nhan", name="Ưng Nhãn", sprite=102, tint=new Color(1f,0.9f,0.6f), tier=0, price=15, mods=new[]{M(Stat.Crit,4)} },
+            new ItemDef { id="tho_van_phu", name="Thổ Vận Phù", sprite=64, tier=0, price=12, mods=new[]{M(Stat.Luck,10)} },
+            new ItemDef { id="khinh_kiem_quyet", name="Khinh Kiếm Quyết", sprite=125, tier=0, price=15, mods=new[]{M(Stat.AtkSpeed,6)} },
+            // Linh
+            new ItemDef { id="huyet_long_huyet", name="Huyết Long Huyết", sprite=115, tint=new Color(1f,0.5f,0.5f), tier=1, price=30, max=4,
+                mods=new[]{M(Stat.MaxHP,12), M(Stat.Regen,2), M(Stat.Speed,-3)} },
+            new ItemDef { id="kim_cang_than", name="Kim Cang Thân", sprite=102, tier=1, price=32, max=3, mods=new[]{M(Stat.Armor,5), M(Stat.Speed,-4)} },
+            new ItemDef { id="thiet_quyen", name="Thiết Quyền", sprite=74, tier=1, price=30, mods=new[]{M(Stat.Melee,16), M(Stat.AtkSpeed,-3)} },
+            new ItemDef { id="bat_quai", name="Bát Quái Kính", sprite=56, tint=new Color(1f,0.85f,0.4f), tier=1, price=36, max=1,
+                mods=new[]{M(Stat.Crit,3)}, desc="Mỗi đòn thứ 8 của mỗi vũ khí chắc chắn bạo kích." },
+            new ItemDef { id="ma_huyet_chau", name="Ma Huyết Châu", sprite=127, tint=new Color(0.9f,0.3f,0.5f), tier=1, price=30, max=3,
+                mods=new[]{M(Stat.Lifesteal,6), M(Stat.Regen,-2)} },
+            new ItemDef { id="tu_bao_bon", name="Tụ Bảo Bồn", sprite=89, tier=1, price=35, max=1,
+                desc="Cuối mỗi đợt nhận lãi 10% linh thạch đang có (tối đa 20)." },
+            new ItemDef { id="linh_nhan_chau", name="Linh Nhãn Châu", sprite=102, tint=new Color(0.6f,1f,1f), tier=1, price=30,
+                mods=new[]{M(Stat.Range,15), M(Stat.Crit,3)} },
+            new ItemDef { id="phong_loi_hai", name="Phong Lôi Hài", sprite=128, tint=new Color(0.7f,1f,0.8f), tier=1, price=32, max=1,
+                mods=new[]{M(Stat.Speed,10), M(Stat.Dodge,5)}, desc="Hồi chiêu lướt -35%." },
+            new ItemDef { id="the_hon_phu", name="Thế Hồn Phù", sprite=65, tier=1, price=28, max=3, mods=new[]{M(Stat.Dodge,8), M(Stat.MaxHP,-3)} },
+            // Huyền
+            new ItemDef { id="loi_linh_chau", name="Lôi Linh Châu", sprite=130, tier=2, price=55, max=1,
+                desc="Bạo kích gọi sét đánh 2 kẻ gần đó (60% sát thương)." },
+            new ItemDef { id="hoa_long_chau", name="Hỏa Long Châu", sprite=129, tier=2, price=55, max=1,
+                desc="Kẻ địch chết phát nổ, gây 50% sát thương đòn kết liễu xung quanh." },
+            new ItemDef { id="song_tu_bi_kip", name="Song Tu Bí Kíp", sprite=66, tint=new Color(1f,0.8f,0.3f), tier=2, price=60, max=2,
+                desc="+1 ô vũ khí." },
+            new ItemDef { id="huyet_kiem_tam", name="Huyết Kiếm Tâm", sprite=107, tier=2, price=50, max=1,
+                desc="Mỗi 25 kẻ địch bị giết: +1% Sát Thương vĩnh viễn trong lượt này." },
+            new ItemDef { id="cuong_chien_y", name="Cuồng Chiến Ý", sprite=110, tier=2, price=50, max=1,
+                desc="Mỗi 2% máu đã mất: +1% sát thương." },
+            new ItemDef { id="tham_lam_ho_lo", name="Tham Lam Hồ Lô", sprite=82, tier=2, price=45, max=2,
+                mods=new[]{M(Stat.Harvest,15), M(Stat.Luck,15), M(Stat.MaxHP,-6)} },
+            // Joker (cộng hưởng hệ thống)
+            new ItemDef { id="tich_linh_ho_lo", name="Tích Linh Hồ Lô", sprite=82, tint=new Color(1f,0.85f,0.4f), tier=1, price=35, max=1,
+                desc="+2% sát thương cho mỗi đợt đã vượt qua." },
+            new ItemDef { id="sat_luc_an", name="Sát Lục Ấn", sprite=64, tint=new Color(1f,0.45f,0.45f), tier=1, price=32, max=1,
+                desc="Khi Liên Sát ≥ 30: +25% Tốc Đánh." },
+            new ItemDef { id="kim_thiem", name="Kim Thiềm", sprite=108, tint=new Color(1f,0.85f,0.3f), tier=2, price=50, max=1,
+                desc="+1% sát thương cho mỗi 10 linh thạch đang giữ (tối đa +40%)." },
+            new ItemDef { id="phan_than_phu", name="Phân Thân Phù", sprite=Res.TalismanId, tint=new Color(1f,0.6f,0.9f), tier=2, price=55, max=1,
+                desc="Vũ khí bắn đạn/phi kiếm: 30% bắn thêm 1 viên." },
+            new ItemDef { id="pha_quan_kich", name="Phá Quân Kích", sprite=118, tint=new Color(1f,0.5f,0.4f), tier=2, price=50, max=1,
+                desc="+40% sát thương lên kẻ địch đang bị thiêu đốt, trúng độc hoặc đóng băng." },
+            new ItemDef { id="thon_thien", name="Thôn Thiên Ma Công", sprite=111, tint=new Color(0.8f,0.5f,1f), tier=3, price=85, max=1,
+                desc="Hạ tinh anh/boss: +3 Sinh Lực vĩnh viễn (trong lượt)." },
+            // Tiên
+            new ItemDef { id="bat_tu_phu", name="Bất Tử Phù", sprite=65, tint=new Color(1f,0.85f,0.4f), tier=3, price=80, max=1,
+                desc="Khi chết: hồi sinh với 50% máu (1 lần)." },
+            new ItemDef { id="ngu_hanh_ban", name="Ngũ Hành Bàn", sprite=90, tier=3, price=75, max=1,
+                desc="Nếu sở hữu từ 5 Đạo khác nhau: sát thương ×1.5." },
+            new ItemDef { id="van_kiem_quy_tong", name="Vạn Kiếm Quy Tông", sprite=106, tint=new Color(1f,0.85f,0.4f), tier=3, price=80, max=1,
+                desc="+12% sát thương cho mỗi vũ khí Đạo Kiếm đang có." },
+            new ItemDef { id="thien_dao_chi_tam", name="Thiên Đạo Chi Tâm", sprite=29, tier=3, price=100, max=1,
+                mods=new[]{M(Stat.Damage,20), M(Stat.AtkSpeed,10), M(Stat.Crit,8), M(Stat.MaxHP,15)} },
+        };
+
+        // ---------------------------------------------------------------- routes (Lộ Tuyến)
+        public static readonly string[] RouteName = { "Đường Bằng", "Ma Triều", "Tinh Anh Tụ Tập", "Huyết Nguyệt" };
+        public static readonly string[] RouteDesc = { "Bình thường",
+            "+40% quái · mỗi mạng 40% rơi thêm linh khí", "Tinh anh ×4 (mỗi con rơi Bảo Rương)", "Quái nhanh +25% · cuối đợt nhận 1 Bảo Rương" };
+
+        // ---------------------------------------------------------------- enemies
+        public static readonly List<EnemyDef> Enemies = new List<EnemyDef>
+        {
+            new EnemyDef { id="huyet_thu", name="Huyết Thử", sprite=123, hp=4, speed=2.5f, dmg=2, beh=EBeh.Chase, orbs=1, minWave=1, weight=10 },
+            new EnemyDef { id="ma_buc", name="Ma Bức", sprite=120, hp=3, speed=3.5f, dmg=1, beh=EBeh.Swarm, orbs=1, minWave=2, weight=7 },
+            new EnemyDef { id="luc_doc_trung", name="Lục Độc Trùng", sprite=108, hp=10, speed=1.8f, dmg=2, beh=EBeh.Splitter, orbs=2, minWave=3, weight=5,
+                blood=new Color(0.3f,0.9f,0.5f) },
+            new EnemyDef { id="doc_chu", name="Độc Chu", sprite=122, hp=8, speed=2.2f, dmg=3, beh=EBeh.Charger, orbs=2, minWave=4, weight=5 },
+            new EnemyDef { id="oan_hon", name="Oan Hồn", sprite=121, hp=9, speed=2.0f, dmg=2, beh=EBeh.Shooter, orbs=2, minWave=5, weight=4,
+                blood=new Color(0.7f,0.8f,1f) },
+            new EnemyDef { id="thiet_boi_thu", name="Thiết Bối Thử", sprite=124, hp=20, speed=2.3f, dmg=3, beh=EBeh.Chase, orbs=2, minWave=7, weight=5 },
+            new EnemyDef { id="ta_tu", name="Tà Tu", sprite=111, hp=16, speed=1.8f, dmg=3, beh=EBeh.Shooter, orbs=3, minWave=9, weight=3,
+                tint=new Color(1f,0.8f,0.8f) },
+            new EnemyDef { id="doc_nhan_ma", name="Độc Nhãn Ma", sprite=109, hp=65, speed=1.5f, dmg=5, scale=1.45f, beh=EBeh.Chase, orbs=8, minWave=8, weight=1.0f, elite=true },
+            new EnemyDef { id="bao_hon", name="Bạo Hồn", sprite=121, hp=12, speed=2.9f, dmg=4, beh=EBeh.Bomber, orbs=2, minWave=6, weight=3,
+                tint=new Color(1f,0.6f,0.4f), blood=new Color(1f,0.55f,0.2f) },
+            new EnemyDef { id="bao_ruong_yeu", name="Bảo Rương Yêu", sprite=92, hp=45, speed=2.4f, dmg=4, scale=1.15f, beh=EBeh.Mimic, orbs=14, minWave=6, weight=0.3f,
+                blood=new Color(0.9f,0.7f,0.3f) },
+            new EnemyDef { id="anh_sat", name="Ảnh Sát", sprite=111, hp=30, speed=2.2f, dmg=5, beh=EBeh.Blinker, orbs=4, minWave=12, weight=2,
+                tint=new Color(0.55f,0.45f,0.8f), blood=new Color(0.6f,0.4f,1f) },
+            new EnemyDef { id="hoa_ma", name="Hỏa Ma", sprite=110, hp=40, speed=2.6f, dmg=4, scale=1.2f, beh=EBeh.Charger, orbs=5, minWave=11, weight=2,
+                blood=new Color(1f,0.5f,0.2f) },
+            new EnemyDef { id="ma_tuong", name="Ma Tướng", sprite=87, hp=130, speed=1.7f, dmg=6, scale=1.5f, beh=EBeh.Chase, orbs=12, minWave=14, weight=0.8f, elite=true,
+                tint=new Color(0.85f,0.75f,1f) },
+        };
+
+        public static readonly EnemyDef MiniSlime = new EnemyDef { id="mini", name="Tiểu Độc Trùng", sprite=108, hp=3, speed=2.6f, dmg=1, scale=0.65f,
+            beh=EBeh.Chase, orbs=1, blood=new Color(0.3f,0.9f,0.5f) };
+
+        public static readonly EnemyDef[] Bosses =
+        {
+            new EnemyDef { id="b1", name="Độc Nhãn Ma Vương", sprite=109, hp=1400, speed=1.7f, dmg=7, scale=3.2f, beh=EBeh.Boss, orbs=40 },
+            new EnemyDef { id="b2", name="Hỏa Ma Tướng Quân", sprite=110, hp=10000, speed=1.9f, dmg=12, scale=3.2f, beh=EBeh.Boss, orbs=60,
+                blood=new Color(1f,0.5f,0.2f) },
+            new EnemyDef { id="b3", name="Huyết Y Ma Tôn", sprite=111, hp=45000, speed=2.0f, dmg=20, scale=3.2f, beh=EBeh.Boss, orbs=80,
+                tint=new Color(1f,0.6f,0.6f) },
+            new EnemyDef { id="b4", name="Thiên Ma Chi Chủ", sprite=87, hp=140000, speed=2.1f, dmg=30, scale=3.6f, beh=EBeh.Boss, orbs=0,
+                tint=new Color(0.75f,0.55f,1f), blood=new Color(0.7f,0.4f,1f) },
+            new EnemyDef { id="b1b", name="Huyết Bức Vương", sprite=120, hp=1300, speed=2.4f, dmg=7, scale=3.0f, beh=EBeh.Boss, orbs=40,
+                tint=new Color(1f,0.75f,0.75f) },
+            new EnemyDef { id="b2b", name="Vạn Độc Chu Hậu", sprite=122, hp=10000, speed=2.0f, dmg=12, scale=3.2f, beh=EBeh.Boss, orbs=60,
+                tint=new Color(0.8f,1f,0.75f), blood=new Color(0.4f,0.95f,0.3f) },
+        };
+        /// <summary>Boss for a 5-wave slot (0-3); slots 0 and 1 have an alternate boss picked per run.</summary>
+        public static EnemyDef BossFor(int slot, bool alt) => alt && slot < 2 ? Bosses[4 + slot] : Bosses[slot];
+
+        // ---------------------------------------------------------------- characters
+        public static readonly List<CharDef> Chars = new List<CharDef>
+        {
+            new CharDef { id="kiem_tu", name="Kiếm Tu", title="Lý Thanh Phong", sprite=98, startWeapon="thiet_kiem",
+                desc="Kiếm khách cân bằng, sở trường bạo kích.", unlockDesc="Mặc định",
+                skill="Kiếm Vũ", skillDesc="12 phi kiếm toả ra, tự tìm địch", skillCd=9f,
+                mods=new[]{ new Mod(Stat.Melee,15), new Mod(Stat.Crit,5) } },
+            new CharDef { id="dan_tu", name="Đan Tu", title="Bạch Hạc Lão Nhân", sprite=84, startWeapon="hoa_truong",
+                desc="Luyện đan sư, pháp thuật mạnh, hồi máu nhanh.", unlockDesc="Đạt tới đợt 5",
+                skill="Đan Hỏa Bạo", skillDesc="Nổ lửa quanh thân, hồi 15% máu", skillCd=11f,
+                mods=new[]{ new Mod(Stat.Spell,15), new Mod(Stat.Regen,3), new Mod(Stat.Melee,-15) } },
+            new CharDef { id="the_tu", name="Thể Tu", title="Thiết Hán Vô Danh", sprite=86, startWeapon="thiet_chuy",
+                desc="Luyện thể, da dày thịt béo, đánh chậm mà nặng.", unlockDesc="Tổng cộng diệt 1500 kẻ địch",
+                skill="Kim Cang Chấn", skillDesc="Bất tử 2s + sóng chấn đẩy lùi", skillCd=12f,
+                mods=new[]{ new Mod(Stat.MaxHP,15), new Mod(Stat.Armor,3), new Mod(Stat.Melee,10), new Mod(Stat.AtkSpeed,-10), new Mod(Stat.Speed,-5) } },
+            new CharDef { id="phu_tu", name="Phù Tu", title="Tô Vân Nhi", sprite=99, startWeapon="phu_luc",
+                desc="Phù sư, tầm xa, cơ duyên tốt.", unlockDesc="Đạt cảnh giới Kim Đan",
+                skill="Định Thân Phù", skillDesc="Đóng băng địch quanh thân 2.5s, chúng nhận thêm 30% ST", skillCd=12f,
+                mods=new[]{ new Mod(Stat.Luck,20), new Mod(Stat.Range,20), new Mod(Stat.Spell,10), new Mod(Stat.MaxHP,-4) } },
+            new CharDef { id="ma_tu", name="Ma Tu", title="Huyết Ảnh", sprite=112, startWeapon="huyet_nguyet_dao",
+                desc="Tà đạo: sát thương khủng, hút máu, nhưng mỏng manh.", unlockDesc="Phi thăng (thắng) 1 lần",
+                skill="Huyết Tế", skillDesc="Hiến 15% máu: 5s +60% ST, +25% hút máu", skillCd=14f,
+                mods=new[]{ new Mod(Stat.Damage,40), new Mod(Stat.Lifesteal,10), new Mod(Stat.MaxHP,-3), new Mod(Stat.Regen,-3), new Mod(Stat.Armor,-1) } },
+            new CharDef { id="loi_tu", name="Lôi Tu", title="Lôi Vân Tử", sprite=88, startWeapon="loi_truong",
+                desc="Lôi pháp: đánh cực nhanh, sét lan khắp đàn quái.", unlockDesc="Đạt tới đợt 10",
+                skill="Thiên Lôi Dẫn", skillDesc="Gọi 8 tia sét lên kẻ địch gần nhất, làm choáng 1s", skillCd=11f,
+                mods=new[]{ new Mod(Stat.AtkSpeed,20), new Mod(Stat.Spell,5), new Mod(Stat.Speed,5), new Mod(Stat.MaxHP,-2) } },
+        };
+
+        public static bool CharUnlocked(int i, SaveData s)
+        {
+            switch (i)
+            {
+                case 0: return true;
+                case 1: return s.bestWave >= 5;
+                case 2: return s.totalKills >= 1500;
+                case 3: return s.bestLevel >= 20;
+                case 4: return s.wins >= 1;
+                case 5: return s.bestWave >= 10;
+            }
+            return false;
+        }
+
+        // ---------------------------------------------------------------- synergies
+        public static readonly SynergyDef[] Synergies =
+        {
+            new SynergyDef { tag=Tag.Kiem, desc=new[]{"+5% Bạo Kích","+25% ST Bạo Kích","+20% Tốc Đánh"},
+                mods=new[]{ new[]{M(Stat.Crit,5)}, new[]{M(Stat.CritDmg,25)}, new[]{M(Stat.AtkSpeed,20)} } },
+            new SynergyDef { tag=Tag.The, desc=new[]{"+8 Sinh Lực","+3 Hộ Giáp, +15% Cận Chiến","+25 Sinh Lực"},
+                mods=new[]{ new[]{M(Stat.MaxHP,8)}, new[]{M(Stat.Armor,3), M(Stat.Melee,15)}, new[]{M(Stat.MaxHP,25)} } },
+            new SynergyDef { tag=Tag.Hoa, desc=new[]{"+10% Pháp Thuật","Thiêu đốt ×2","+35% Pháp Thuật"},
+                mods=new[]{ new[]{M(Stat.Spell,10)}, new Mod[0], new[]{M(Stat.Spell,35)} } },
+            new SynergyDef { tag=Tag.Loi, desc=new[]{"Sét nảy +1","+15% Tốc Đánh","Sét nảy +2, +10% Bạo Kích"},
+                mods=new[]{ new Mod[0], new[]{M(Stat.AtkSpeed,15)}, new[]{M(Stat.Crit,10)} } },
+            new SynergyDef { tag=Tag.Phu, desc=new[]{"+15% Tầm Đánh","Đạn xuyên +1, +15 Cơ Duyên","+30% Pháp Thuật"},
+                mods=new[]{ new[]{M(Stat.Range,15)}, new[]{M(Stat.Luck,15)}, new[]{M(Stat.Spell,30)} } },
+            new SynergyDef { tag=Tag.Doc, desc=new[]{"Độc +50%","Độc lây khi kẻ địch chết","Độc ×2"},
+                mods=new[]{ new Mod[0], new Mod[0], new Mod[0] } },
+        };
+        public static readonly int[] SynergyAt = { 2, 4, 6 };
+
+        // ---------------------------------------------------------------- level-up pool
+        public static readonly Stat[] LevelStats = {
+            Stat.MaxHP, Stat.Regen, Stat.Lifesteal, Stat.Damage, Stat.Melee, Stat.Spell, Stat.AtkSpeed, Stat.Crit,
+            Stat.CritDmg, Stat.Range, Stat.Armor, Stat.Dodge, Stat.Speed, Stat.Luck, Stat.Harvest };
+        public static float LevelValue(Stat s, int tier)
+        {
+            switch (s)
+            {
+                case Stat.MaxHP: return new[] { 3, 6, 9, 13 }[tier];
+                case Stat.Regen: return new[] { 2, 3, 4, 6 }[tier];
+                case Stat.Lifesteal: return new[] { 1, 2, 3, 5 }[tier];
+                case Stat.Damage: return new[] { 5, 8, 12, 17 }[tier];
+                case Stat.Melee: return new[] { 6, 10, 15, 22 }[tier];
+                case Stat.Spell: return new[] { 6, 10, 15, 22 }[tier];
+                case Stat.AtkSpeed: return new[] { 5, 9, 13, 18 }[tier];
+                case Stat.Crit: return new[] { 3, 5, 7, 10 }[tier];
+                case Stat.CritDmg: return new[] { 10, 16, 25, 35 }[tier];
+                case Stat.Range: return new[] { 8, 12, 18, 26 }[tier];
+                case Stat.Armor: return new[] { 1, 2, 3, 4 }[tier];
+                case Stat.Dodge: return new[] { 3, 5, 7, 9 }[tier];
+                case Stat.Speed: return new[] { 3, 6, 9, 12 }[tier];
+                case Stat.Luck: return new[] { 5, 10, 15, 20 }[tier];
+                case Stat.Harvest: return new[] { 5, 8, 12, 16 }[tier];
+            }
+            return 1;
+        }
+
+        // ---------------------------------------------------------------- meta
+        public static readonly MetaDef[] Meta =
+        {
+            new MetaDef { name="Căn Cốt", desc="+4 Sinh Lực mỗi cấp", stat=Stat.MaxHP, per=4 },
+            new MetaDef { name="Kiếm Ý", desc="+3% Sát Thương mỗi cấp", stat=Stat.Damage, per=3 },
+            new MetaDef { name="Phúc Duyên", desc="+6 Cơ Duyên mỗi cấp", stat=Stat.Luck, per=6 },
+            new MetaDef { name="Khinh Công", desc="+3% Thân Pháp mỗi cấp", stat=Stat.Speed, per=3 },
+            new MetaDef { name="Tài Lộc", desc="+12 Linh Thạch khởi đầu mỗi cấp", special=true },
+            new MetaDef { name="Ngộ Tính", desc="+7% kinh nghiệm mỗi cấp", special=true },
+        };
+        public const int MetaMax = 5;
+        public static int MetaCost(int lvl) => 15 + lvl * 15;
+
+        // ---------------------------------------------------------------- achievements
+        public static readonly AchDef[] Achs =
+        {
+            new AchDef("wave1", "Sơ Nhập Giang Hồ", "Vượt qua đợt 1"),
+            new AchDef("boss1", "Trảm Ma", "Hạ gục boss đầu tiên"),
+            new AchDef("wave10", "Bán Bộ Thành Danh", "Vượt qua đợt 10"),
+            new AchDef("win", "Phi Thăng", "Vượt qua đợt 20"),
+            new AchDef("lv10", "Trúc Cơ", "Đạt Trúc Cơ trong một lượt"),
+            new AchDef("lv20", "Kim Đan", "Đạt Kim Đan trong một lượt"),
+            new AchDef("lv30", "Nguyên Anh", "Đạt Nguyên Anh trong một lượt"),
+            new AchDef("k1000", "Sát Thần I", "Tổng cộng diệt 1.000 kẻ địch"),
+            new AchDef("k10000", "Sát Thần II", "Tổng cộng diệt 10.000 kẻ địch"),
+            new AchDef("tier4", "Tiên Khí Xuất Thế", "Sở hữu vũ khí phẩm Tiên"),
+            new AchDef("syn6", "Đại Đạo Viên Mãn", "Kích hoạt mốc 6 của một Đạo"),
+            new AchDef("rich", "Phú Khả Địch Quốc", "Giữ 400 linh thạch cùng lúc"),
+            new AchDef("bighit", "Nhất Kích Tất Sát", "Gây 500 sát thương trong một đòn"),
+            new AchDef("combo100", "Huyết Chiến Bách Liên", "Đạt Liên Sát x100"),
+            new AchDef("nohit", "Thân Như Quỷ Mị", "Vượt qua một đợt (từ đợt 5) không trúng đòn nào"),
+            new AchDef("allchars", "Vạn Pháp Quy Nhất", "Mở khóa tất cả nhân vật"),
+            new AchDef("kiep3", "Độ Kiếp", "Phi thăng ở Kiếp 3"),
+            new AchDef("kiep5", "Thiên Kiếp Bất Diệt", "Phi thăng ở Kiếp 5"),
+            new AchDef("codex", "Bách Khoa Toàn Thư", "Hoàn thành Đồ Giám"),
+            new AchDef("allwin", "Tông Sư", "Phi thăng với cả 5 nhân vật"),
+        };
+
+        public const int MaxKiep = 5;
+        public static readonly string[] KiepDesc = {
+            "Kiếp 0 — Phàm nhân lộ: thử thách chuẩn.",
+            "Kiếp 1 — Quái +30% máu, +25% sát thương (tăng dần theo đợt).",
+            "Kiếp 2 — Thêm: quái tinh anh xuất hiện nhiều hơn.",
+            "Kiếp 3 — Thêm: quái xuất hiện dày hơn 20%.",
+            "Kiếp 4 — Thêm: Thiên Kiếp giáng xuống mọi đợt.",
+            "Kiếp 5 — Thêm: boss thêm 15% máu. Chỉ dành cho bậc tông sư.",
+        };
+
+        public static WeaponDef W(string id) => Weapons.Find(w => w.id == id);
+        public static ItemDef It(string id) => Items.Find(w => w.id == id);
+    }
+}

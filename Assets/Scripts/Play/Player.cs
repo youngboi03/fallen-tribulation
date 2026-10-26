@@ -1,0 +1,246 @@
+using UnityEngine;
+
+namespace VK
+{
+    public class Player : MonoBehaviour
+    {
+        public float radius = 0.36f;
+        public Vector2 Vel => vel;
+        public Vector2 Pos => transform.position;
+        public bool IsDashing => dashT > 0;
+        public float DashReady => Mathf.Clamp01(1f - dashCd / Mathf.Max(0.01f, DashCooldown));
+        public bool god;
+        public float SkillReady => Mathf.Clamp01(1f - skillCd / Mathf.Max(0.01f, Game.I.run != null ? Game.I.run.ch.skillCd : 1f));
+        float skillCd, goldT;
+        public void Invuln(float t) { iframe = Mathf.Max(iframe, t); goldT = t; }
+
+        Transform body;
+        SpriteRenderer sr, shadow, aura;
+        MaterialPropertyBlock mpb;
+        Vector2 vel, lastMove = Vector2.right, dashDir;
+        float dashT, dashCd, iframe, flash, animT, ghostT, dead;
+        static readonly int FlashId = Shader.PropertyToID("_Flash");
+        static readonly int FlashColId = Shader.PropertyToID("_FlashColor");
+
+        public static Player Create()
+        {
+            var go = new GameObject("Player");
+            var p = go.AddComponent<Player>();
+            p.Build();
+            return p;
+        }
+
+        void Build()
+        {
+            mpb = new MaterialPropertyBlock();
+            var sh = new GameObject("shadow");
+            sh.transform.SetParent(transform, false);
+            sh.transform.localPosition = new Vector3(0, -0.42f, 0);
+            sh.transform.localScale = new Vector3(0.75f, 0.25f, 1);
+            shadow = sh.AddComponent<SpriteRenderer>();
+            shadow.sprite = Res.Circle; shadow.color = new Color(0, 0, 0, 0.35f); shadow.sortingOrder = -120;
+
+            var au = new GameObject("aura");
+            au.transform.SetParent(transform, false);
+            au.transform.localScale = Vector3.one * 2.2f;
+            aura = au.AddComponent<SpriteRenderer>();
+            aura.sprite = Res.Glow; aura.sharedMaterial = Res.AddMat; aura.sortingOrder = -110;
+            aura.color = new Color(0.4f, 0.9f, 1f, 0.18f);
+
+            body = new GameObject("body").transform;
+            body.SetParent(transform, false);
+            sr = body.gameObject.AddComponent<SpriteRenderer>();
+            sr.sharedMaterial = Res.FlashMat;
+        }
+
+        public void Setup(CharDef c)
+        {
+            skillCd = 3f;
+            sr.sprite = Res.Tile(c.sprite);
+            transform.position = Vector3.zero;
+            dead = 0;
+            sr.color = Color.white;
+            body.localRotation = Quaternion.identity;
+        }
+
+        public void ResetForWave()
+        {
+            transform.position = Vector3.zero;
+            vel = Vector2.zero; dashT = 0; dashCd = 0; iframe = 1f; dead = 0; goldT = 0;
+            skillCd = Mathf.Min(skillCd, 3f);
+            body.localRotation = Quaternion.identity;
+            sr.color = Color.white;
+        }
+
+        public float DashCooldown => 1.2f * (Game.I.run != null && Game.I.run.Has("phong_loi_hai") ? 0.65f : 1f);
+
+        Vector2 ReadMove()
+        {
+            if (Game.I.bot != null) return Game.I.bot.Move(this);
+            return GameInput.Move;
+        }
+
+        bool ReadSkill()
+        {
+            if (Game.I.bot != null) return Game.I.bot.WantSkill(this);
+            return GameInput.Skill;
+        }
+
+        bool ReadDash()
+        {
+            if (Game.I.bot != null) return Game.I.bot.WantDash(this);
+            return GameInput.Dash;
+        }
+
+        void Update()
+        {
+            var g = Game.I;
+            if (g.state == GState.Over && dead > 0)
+            {   // death animation
+                dead += Time.deltaTime;
+                body.localRotation = Quaternion.Euler(0, 0, Mathf.Min(90f, dead * 300f));
+                sr.color = Color.Lerp(Color.white, new Color(0.5f, 0.2f, 0.2f, 0.7f), dead);
+                return;
+            }
+            if (!g.Playing) return;
+            float dt = Game.Dt;
+            var run = g.run;
+
+            Vector2 input = ReadMove();
+            bool dashPressed = ReadDash();
+            float spd = 5f * Mathf.Max(0.35f, 1f + run.stats[Stat.Speed] / 100f);
+            dashCd -= dt; iframe -= dt; skillCd -= dt; goldT -= dt;
+            if (run.riteT > 0) run.riteT -= dt;
+            if (Game.T > 4f && run.wave == 1) g.ui.Hint("dash", GameInput.K("Nhấn <color=#FFD266>SPACE</color>", "Chạm nút <color=#FFD266>Lướt</color>") + " để lướt: bất tử trong lúc lướt, xuyên qua quái và đạn.");
+            if (skillCd <= 0 && run.wave >= 1 && Game.T > 12f) g.ui.Hint("skill", "Thần Thông đã sẵn sàng! " + GameInput.K("Nhấn <color=#FFD266>E</color> (hoặc chuột trái)", "Chạm nút <color=#FFD266>Thần Thông</color>") + ": " + run.ch.skill + " — " + run.ch.skillDesc + ".");
+            if (skillCd <= 0 && ReadSkill())
+            {
+                skillCd = run.ch.skillCd;
+                Skills.Cast(this, run);
+            }
+
+            if (dashT > 0)
+            {
+                dashT -= dt;
+                vel = dashDir * spd * 3.4f;
+                ghostT -= dt;
+                if (ghostT <= 0)
+                {
+                    ghostT = 0.025f;
+                    Fx.Particle(Pos, Vector2.zero, new Color(0.5f, 0.95f, 1f, 0.55f), new Color(0.3f, 0.6f, 1f, 0f), 1f, 1f, 0.22f, sr.sprite, true, 0, 9);
+                }
+            }
+            else
+            {
+                if (dashPressed && dashCd <= 0)
+                {
+                    dashDir = input.sqrMagnitude > 0.01f ? input.normalized : lastMove;
+                    dashT = 0.16f; dashCd = DashCooldown;
+                    iframe = Mathf.Max(iframe, 0.28f);
+                    Sfx.Play("dash", 0.6f, 0.1f, 1.3f);
+                    Fx.Burst(Pos + Vector2.down * 0.35f, new Color(0.8f, 0.7f, 0.6f, 0.7f), 6, 3f, 0.12f, 0.35f);
+                }
+                Vector2 target = input * spd;
+                vel = Vector2.MoveTowards(vel, target, dt * spd * 12f);
+            }
+            if (input.sqrMagnitude > 0.01f) lastMove = input.normalized;
+
+            var pos = Arena.Clamp(Pos + vel * dt, radius);
+            transform.position = pos;
+
+            float regen = run.stats[Stat.Regen];
+            if (regen > 0 && run.hp < run.MaxHP) run.hp = Mathf.Min(run.MaxHP, run.hp + regen * 0.12f * dt);
+
+            // animation: hop while walking, breathe while idle
+            bool moving = vel.sqrMagnitude > 0.25f;
+            animT += dt * (moving ? 13f : 3f);
+            float hop = moving ? Mathf.Abs(Mathf.Sin(animT)) * 0.1f : 0f;
+            float breathe = moving ? 1f : 1f + Mathf.Sin(animT) * 0.03f;
+            body.localPosition = new Vector3(0, hop, 0);
+            body.localScale = new Vector3(moving ? 1f + hop * 0.6f : 1f, moving ? 1f - hop * 0.6f : breathe, 1f);
+            if (Mathf.Abs(vel.x) > 0.1f) sr.flipX = vel.x < 0;
+            sr.sortingOrder = Mathf.RoundToInt(-pos.y * 5f);
+
+            flash = Mathf.MoveTowards(flash, 0, dt * 6f);
+            sr.GetPropertyBlock(mpb);
+            if (goldT > 0) { mpb.SetFloat(FlashId, 0.35f + Mathf.Sin(Time.time * 12f) * 0.15f); mpb.SetColor(FlashColId, new Color(1f, 0.85f, 0.3f)); }
+            else { mpb.SetFloat(FlashId, flash); mpb.SetColor(FlashColId, new Color(1f, 0.3f, 0.3f)); }
+            sr.SetPropertyBlock(mpb);
+            var c = sr.color; c.a = iframe > 0 && dashT <= 0 && goldT <= 0 && Mathf.Repeat(Time.time * 16f, 1f) < 0.5f ? 0.45f : 1f; sr.color = c;
+
+            float hpk = run.hp / run.MaxHP;
+            aura.color = run.riteT > 0 ? new Color(1f, 0.1f, 0.15f, 0.35f + Mathf.Sin(Time.time * 10f) * 0.1f) : goldT > 0 ? new Color(1f, 0.8f, 0.3f, 0.35f) : hpk < 0.3f ? new Color(1f, 0.25f, 0.25f, 0.18f + Mathf.Sin(Time.time * 8f) * 0.08f) : new Color(0.4f, 0.9f, 1f, 0.15f);
+            aura.transform.localScale = Vector3.one * (2.1f + Mathf.Sin(Time.time * 2f) * 0.1f);
+
+            // weapons orbit the player
+            int n = run.weapons.Count;
+            for (int i = 0; i < n; i++)
+            {
+                float ang = (90f + i * 360f / n + Game.T * 25f) * Mathf.Deg2Rad;
+                float r = n == 1 ? 0.8f : 1.0f;
+                Vector2 home = pos + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang) * 0.8f) * r;
+                run.weapons[i].Tick(home, dt);
+            }
+        }
+
+        public void Hurt(float dmg, Vector2 from)
+        {
+            var g = Game.I;
+            if (god || iframe > 0 || dashT > 0 || g.state != GState.Playing) return;
+            var run = g.run;
+            if (Random.value * 100f < Mathf.Min(60f, run.stats[Stat.Dodge]))
+            {
+                Fx.Text(Pos + Vector2.up * 0.6f, "Né!", new Color(0.6f, 1f, 1f), 0.9f);
+                iframe = 0.3f;
+                Sfx.Play("tick", 0.6f);
+                return;
+            }
+            float armor = run.stats[Stat.Armor];
+            float mul = armor >= 0 ? 1f / (1f + armor / 15f) : 2f - 1f / (1f - armor / 15f);
+            float d = Mathf.Max(1f, Mathf.Round(dmg * mul));
+            run.hp -= d;
+            run.hitsThisWave++;
+            iframe = 0.5f; flash = 1f;
+            Vector2 away = (Pos - from).normalized;
+            vel += away * 7f;
+            Fx.Text(Pos + Vector2.up * 0.6f, "-" + d, new Color(1f, 0.3f, 0.3f), 1.2f);
+            Fx.Burst(Pos, new Color(0.9f, 0.15f, 0.2f), 10, 5f);
+            Fx.Shake(0.28f, 0.25f);
+            Fx.Hitstop(0.07f);
+            Sfx.Play("hurt", 0.8f);
+            g.ui.HurtFlash();
+            if (run.hp <= 0) { run.hp = 0; g.OnPlayerDeath(); }
+        }
+
+        float lastHealText;
+        public void Heal(float v)
+        {
+            var run = Game.I.run;
+            if (run.hp >= run.MaxHP) return;
+            run.hp = Mathf.Min(run.MaxHP, run.hp + v);
+            if (Time.time - lastHealText > 0.25f)
+            {
+                lastHealText = Time.time;
+                Fx.Text(Pos + Vector2.up * 0.7f, "+" + StatInfo.Num(v), new Color(0.4f, 1f, 0.5f), 0.75f);
+            }
+        }
+
+        public void Revive()
+        {
+            iframe = 2.5f;
+            Fx.Ring(Pos, new Color(1f, 0.85f, 0.4f), 0.3f, 7f, 0.9f);
+            Fx.Burst(Pos, new Color(1f, 0.85f, 0.4f), 50, 10f, 0.2f, 1f, true);
+            Sfx.Play("breakthrough", 1f, 0f);
+            foreach (var e in new System.Collections.Generic.List<Enemy>(Enemy.All))
+                if (e && !e.boss && Vector2.Distance(e.Pos, Pos) < 5f) e.Damage(99999, false, e.Pos - Pos, 3f, null);
+        }
+
+        public void Die()
+        {
+            dead = 0.001f;
+            Fx.Burst(Pos, new Color(0.9f, 0.15f, 0.2f), 30, 7f, 0.18f, 0.8f);
+            Fx.Hitstop(0.2f);
+            foreach (var w in Game.I.run.weapons) w.Drop();
+        }
+    }
+}
