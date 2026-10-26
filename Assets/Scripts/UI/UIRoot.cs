@@ -188,7 +188,11 @@ namespace VK
             float a = hintT < 0.25f ? hintT / 0.25f : hintT < 7.5f ? 1f : Mathf.Max(0, 1f - (hintT - 7.5f) / 0.5f);
             hintCg.alpha = a;
             hintCg.blocksRaycasts = a > 0.5f;
-            hintBox.anchoredPosition = new Vector2(0, 112 + (hintT < 0.25f ? (1f - hintT / 0.25f) * -40f : 0));
+            // in a fight the hint sits low; on menu screens (shop, encounter, chest…) it sits over the title so it never covers buttons
+            bool low = Game.I.state == GState.Playing && !Game.I.paused;
+            float slide = hintT < 0.25f ? (1f - hintT / 0.25f) * 40f : 0f;
+            hintBox.anchorMin = hintBox.anchorMax = hintBox.pivot = new Vector2(0.5f, low ? 0f : 1f);
+            hintBox.anchoredPosition = new Vector2(0, low ? 112 - slide : -14 + slide);
         }
 
         void Update()
@@ -366,6 +370,7 @@ namespace VK
             UIK.Clear(hud);
             hpFill = null;
             var o = Overlay(0.55f);
+            LangButton(o);
             Title(o, "VẠN KIẾP TU TIÊN", 110, 110);
             var sub = UIK.Txt(o, "Một kiếm phá vạn kiếp  ·  Roguelite tu tiên", 32, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
             sub.rectTransform.Place(0.5f, 1, 1200, 50, 0, -235);
@@ -392,6 +397,23 @@ namespace VK
         }
 
         static readonly string[] DmgNumNames = { "Tất cả", "Chỉ bạo kích", "Tắt" };
+        public void ApplyLanguage(int lang)
+        {
+            Save.lang = lang; Save.Save();
+            Loc.SetLang(lang);
+            var font = Res.Font;   // swap the font on every live text (CJK needs an OS font)
+            foreach (var t in FindObjectsByType<Text>(FindObjectsInactive.Include, FindObjectsSortMode.None)) t.font = font;
+            if (screen == UIScreen.Pause) ShowPause(); else ShowMenu();
+        }
+
+        /// <summary>Language picker in the top-right corner of the menu and pause screens.</summary>
+        void LangButton(Transform o)
+        {
+            var b = UIK.Btn(o, "", () => ApplyLanguage((Save.lang + 1) % 3), UIK.BtnBlue, 24);
+            b.SetLabel("Language: " + Loc.LangName[Loc.Lang]);
+            b.GetComponent<RectTransform>().Place(1, 1, 230, 56, -30, -30);
+        }
+
         void SettingsButtons(Transform col)
         {
             if (screen == UIScreen.Menu)
@@ -445,16 +467,18 @@ namespace VK
                 UIK.LE(card.gameObject, Content.Chars.Count > 5 ? 288 : 340, sel ? 560 : 520);
                 UIK.Border(card.gameObject, sel ? UIK.Gold : new Color(1, 1, 1, 0.1f), sel ? 3 : 2);
                 UIK.VL(card.gameObject, 8, 18, TextAnchor.UpperCenter);
-                var portrait = UIK.Icon(card.transform, Res.Tile(c.sprite), unlocked ? Color.white : new Color(0.1f, 0.1f, 0.1f), 128);
-                UIK.Txt(card.transform, c.name, 36, unlocked ? (sel ? UIK.Gold : Color.white) : UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Bold);
-                UIK.Txt(card.transform, c.title, 22, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
+                bool en = Loc.Lang == Loc.EN;   // English runs longer: tighter type so the card still fits
+                int fs = en ? 18 : 21;
+                var portrait = UIK.Icon(card.transform, Res.Tile(c.sprite), unlocked ? Color.white : new Color(0.1f, 0.1f, 0.1f), en ? 104 : 128);
+                UIK.Txt(card.transform, c.name, en ? 26 : 36, unlocked ? (sel ? UIK.Gold : Color.white) : UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Bold);
+                UIK.Txt(card.transform, c.title, en ? 19 : 22, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
                 if (unlocked)
                 {
-                    UIK.Txt(card.transform, c.desc, 21, new Color(0.88f, 0.86f, 0.92f));
-                    UIK.Txt(card.transform, StatInfo.Fmt(c.mods), 21, Color.white);
+                    UIK.Txt(card.transform, c.desc, fs, new Color(0.88f, 0.86f, 0.92f));
+                    UIK.Txt(card.transform, StatInfo.Fmt(c.mods), fs, Color.white);
                     var w = Content.W(c.startWeapon);
-                    UIK.Txt(card.transform, "Khởi đầu: <color=#FFD266>" + w.name + "</color>", 21, UIK.Dim);
-                    UIK.Txt(card.transform, "<color=#FFB347><b>[E] " + c.skill + "</b></color>\n<size=19>" + c.skillDesc + "</size>", 21, new Color(1f, 0.9f, 0.75f));
+                    UIK.Txt(card.transform, "Khởi đầu: <color=#FFD266>" + w.name + "</color>", fs, UIK.Dim);
+                    UIK.Txt(card.transform, "<color=#FFB347><b>[E] " + c.skill + "</b></color>\n<size=" + (fs - 2) + ">" + c.skillDesc + "</size>", fs, new Color(1f, 0.9f, 0.75f));
                     UIK.Spacer(card.transform);
                     var sbk = new StringBuilder("Kiếp đã vượt: ");
                     for (int k = 0; k <= Content.MaxKiep; k++) sbk.Append(Save.charWinKiep[i] >= k ? "<color=#FFD266>■</color> " : "<color=#4A4558>■</color> ");
@@ -479,7 +503,7 @@ namespace VK
             UIK.HL(kb.gameObject, 16, 0, TextAnchor.MiddleCenter, true);
             UIK.Btn(kb, "<", () => { selKiep = Mathf.Max(0, selKiep - 1); ShowCharSelect(); }, UIK.BtnGrey, 30, 70, 60);
             var kt = UIK.Txt(kb, "KIẾP " + selKiep, 36, selKiep == 0 ? Color.white : new Color(1f, 0.5f, 0.4f), TextAnchor.MiddleCenter, FontStyle.Bold);
-            UIK.LE(kt.gameObject, 220, 60);
+            UIK.LE(kt.gameObject, 340, 60);
             UIK.Btn(kb, ">", () => { if (selKiep < Save.maxKiepUnlocked) { selKiep++; ShowCharSelect(); } else Sfx.Play("error", 0.5f); }, UIK.BtnGrey, 30, 70, 60);
             var kd = UIK.Txt(o, Content.KiepDesc[selKiep] + (selKiep < Content.MaxKiep && selKiep == Save.maxKiepUnlocked ? "   <color=#8A8499>(Phi thăng ở Kiếp này để mở Kiếp tiếp theo)</color>" : ""), 22, UIK.Dim);
             kd.rectTransform.Place(0.5f, 0, 1600, 34, 0, 128);
@@ -1054,6 +1078,7 @@ namespace VK
         {
             screen = UIScreen.Pause;
             var o = Overlay(0.75f);
+            LangButton(o);
             Title(o, "TẠM DỪNG", 200, 72);
             var col = UIK.R(o, "col").Place(0.5f, 0.5f, 420, 440, 0, -60);
             UIK.VL(col.gameObject, 14, 0, TextAnchor.MiddleCenter);

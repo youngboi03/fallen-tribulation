@@ -1,0 +1,217 @@
+# vi | en | zh   — regions, characters, weapons, items, monsters, bosses, achievements, meta
+Hoang Sơn|Barren Mountains|荒山
+Hàn Băng Cốc|Frost Valley|寒冰谷
+Huyết Sát Hải|Blood Sea|血煞海
+Thiên Ma Giới|Heavenly Demon Realm|天魔界
+Kiếm Tu|Sword Cultivator|剑修
+Đan Tu|Alchemist|丹修
+Thể Tu|Body Cultivator|体修
+Phù Tu|Talisman Master|符修
+Ma Tu|Demon Cultivator|魔修
+Lôi Tu|Thunder Cultivator|雷修
+Lý Thanh Phong|Li Qingfeng|李清风
+Bạch Hạc Lão Nhân|Old Man White Crane|白鹤老人
+Thiết Hán Vô Danh|The Nameless Iron Man|无名铁汉
+Tô Vân Nhi|Su Yun'er|苏云儿
+Huyết Ảnh|Blood Shadow|血影
+Lôi Vân Tử|Thunder Cloud Master|雷云子
+Kiếm khách cân bằng, sở trường bạo kích|Balanced swordsman who excels at critical hits|均衡剑客，擅长暴击
+Luyện đan sư, pháp thuật mạnh, hồi máu nhanh|Pill master: strong spells, fast healing|炼丹师，法术强，回血快
+Luyện thể, da dày thịt béo, đánh chậm mà nặng|Body refiner: thick-skinned, slow but heavy blows|炼体者，皮糙肉厚，出手慢而重
+Phù sư, tầm xa, cơ duyên tốt|Talisman caster: long range, good luck|符师，射程远，机缘好
+Tà đạo: sát thương khủng, hút máu, nhưng mỏng manh|Heterodox path: huge damage and lifesteal, but fragile|邪道：伤害极高、吸血，但很脆弱
+Lôi pháp: đánh cực nhanh, sét lan khắp đàn quái|Thunder arts: blazing attack speed, lightning that spreads through the horde|雷法：攻速极快，雷电在怪群中蔓延
+Mặc định|Default|默认
+Đạt tới đợt|Reach wave|到达波次
+Tổng cộng diệt 1500 kẻ địch|Slay 1500 enemies in total|累计击杀1500名敌人
+Đạt cảnh giới Kim Đan|Reach the Golden Core realm|达到金丹境界
+Phi thăng (thắng) 1 lần|Ascend (win) once|飞升(胜利)1次
+Kiếm Vũ|Sword Rain|剑雨
+12 phi kiếm toả ra, tự tìm địch|12 flying swords fan out and seek enemies|12把飞剑散开，自动寻敌
+phi kiếm toả ra, tự tìm địch|flying swords fan out and seek enemies|把飞剑散开，自动寻敌
+Đan Hỏa Bạo|Pill Fire Burst|丹火爆
+Nổ lửa quanh thân, hồi 15% máu|Fire explodes around you, heal 15% HP|周身爆炎，回复15%生命
+Kim Cang Chấn|Vajra Quake|金刚震
+Bất tử 2s + sóng chấn đẩy lùi|Invulnerable 2s + knockback shockwave|无敌2秒+击退冲击波
+Định Thân Phù|Binding Talisman|定身符
+Đóng băng địch quanh thân 2.5s, chúng nhận thêm 30% ST|Freeze nearby enemies 2.5s; they take 30% more damage|冰冻周围敌人2.5秒，其受到伤害+30%
+Huyết Tế|Blood Rite|血祭
+Hiến 15% máu: 5s +60% ST, +25% hút máu|Sacrifice 15% HP: 5s of +60% damage, +25% lifesteal|献祭15%生命：5秒内伤害+60%，吸血+25%
+Thiên Lôi Dẫn|Heavenly Thunder Call|天雷引
+Gọi 8 tia sét lên kẻ địch gần nhất, làm choáng 1s|Call 8 lightning bolts on the nearest enemies, stunning them 1s|召唤8道雷击最近的敌人，眩晕1秒
+Thiết Kiếm|Iron Sword|铁剑
+Đâm thẳng, xuyên 2 kẻ địch|Straight thrust, pierces 2 enemies|直刺，贯穿2名敌人
+Đoản Đao|Short Blade|短刀
+Cực nhanh. +15% bạo kích riêng|Very fast. +15% own crit|极快。自身暴击+15%
+Trường Thương|Long Spear|长枪
+Tầm rất xa, xuyên mọi kẻ địch trên đường|Very long reach, pierces every enemy in its path|射程极远，贯穿路径上所有敌人
+Cự Kiếm|Greatsword|巨剑
+Chém vùng nhanh|Fast area slash|快速范围斩击
+Thiết Chùy|Iron Hammer|铁锤
+Đập vùng, đẩy lùi cực mạnh|Area smash with massive knockback|范围重击，强力击退
+Song Phủ|Twin Axes|双斧
+Bổ xuống tạo sóng chấn vùng rộng|Chops down with a wide shockwave|劈下产生大范围冲击波
+Hỏa Trượng|Fire Staff|火杖
+Cầu lửa nổ vùng và thiêu đốt|Fireballs explode and burn|火球爆炸并灼烧
+Lôi Trượng|Thunder Staff|雷杖
+Sét nảy qua 4 kẻ địch|Lightning chains through 4 enemies|雷电在4名敌人间弹射
+Phù Lục|Talisman Scroll|符箓
+Bắn bùa nhanh, xuyên 2 kẻ địch|Fast talismans that pierce 2 enemies|快速射出符咒，贯穿2名敌人
+Phi Kiếm|Flying Sword|飞剑
+Kiếm bay tự tìm địch, xuyên 4 kẻ|Homing flying sword, pierces 4|自动寻敌飞剑，贯穿4名
+Độc Đao|Venom Blade|毒刀
+Đâm gây trúng độc|Thrusts that poison|刺击使敌中毒
+Độc Bình|Poison Flask|毒瓶
+Ném bình độc, vỡ ra vùng độc|Throws a flask that shatters into a poison pool|投掷毒瓶，碎裂形成毒区
+Lôi Phù|Thunder Talisman|雷符
+Bùa sét nhanh, nảy 3 kẻ|Fast thunder talisman, chains 3|快速雷符，弹射3名
+Hỏa Phù|Fire Talisman|火符
+Bùa lửa nổ nhỏ, thiêu đốt|Small fire blast that burns|小型火焰爆炸，灼烧敌人
+Băng Phách Châm|Frost Soul Needle|冰魄针
+Kim băng cực nhanh, 20% đóng băng 1.2s|Very fast ice needles, 20% chance to freeze 1.2s|极速冰针，20%几率冰冻1.2秒
+Mộc Kiếm|Wooden Sword|木剑
+Kiếm gỗ rẻ, đâm liên tục|Cheap wooden sword, rapid thrusts|廉价木剑，连续刺击
+Khai Sơn Phủ|Mountain-Splitting Axe|开山斧
+Rìu bổ núi: chậm, vùng cực rộng|Mountain-cleaving axe: slow, huge area|开山之斧：缓慢，范围极大
+Hàn Băng Bình|Frost Flask|寒冰瓶
+Bình băng vỡ thành vùng, 50% đóng băng|Ice flask shatters into an area, 50% freeze|冰瓶碎裂成区域，50%冰冻
+Huyết Nguyệt Đao|Blood Moon Saber|血月刀
+Đao máu: +25% bạo kích riêng|Blood saber: +25% own crit|血刀：自身暴击+25%
+Lôi Chùy|Thunder Hammer|雷锤
+Đập vùng rồi phóng sét nảy 3 kẻ|Area smash that releases lightning chaining 3|范围重击后释放雷电弹射3名
+Hỏa Long Tiễn|Fire Dragon Arrow|火龙箭
+Tên lửa xuyên 3 kẻ, thiêu đốt|Fire arrow pierces 3 and burns|火箭贯穿3名并灼烧
+Viêm Dương Chùy|Blazing Sun Hammer|炎阳锤
+Búa lửa đập vùng, thiêu mọi kẻ trúng đòn|Fire hammer smashes an area, burning all it hits|火锤范围重击，灼烧所有命中者
+Lôi Ấn|Thunder Seal|雷印
+Ấn sét nảy qua 6 kẻ địch|Thunder seal chains through 6 enemies|雷印在6名敌人间弹射
+Lôi Hỏa Châu|Thunderfire Pearl|雷火珠
+Châu lôi hỏa nổ vùng, thiêu đốt|Thunderfire pearl explodes and burns|雷火珠范围爆炸并灼烧
+Hồi Khí Đan|Qi Recovery Pill|回气丹
+Hồi Xuân Đan|Spring Return Pill|回春丹
+Cuồng Bạo Đan|Berserk Pill|狂暴丹
+Kim Cang Thân|Vajra Body|金刚身
+Thiết Giáp|Iron Armor|铁甲
+Thiết Quyền|Iron Fist|铁拳
+Khinh Kiếm Quyết|Light Sword Art|轻剑诀
+Kiếm Phổ|Sword Manual|剑谱
+Kiếm Ý|Sword Intent|剑意
+Pháp Quyết|Spell Formula|法诀
+Ưng Nhãn|Eagle Eye|鹰眼
+Phong Hành Phù|Wind Walk Talisman|风行符
+Phong Lôi Hài|Wind Thunder Boots|风雷靴
+Thổ Vận Phù|Earth Fortune Talisman|土运符
+Tụ Bảo Bồn|Treasure Basin|聚宝盆
+Tụ Linh Bàn|Qi Gathering Plate|聚灵盘
+Linh Nhãn Châu|Spirit Eye Pearl|灵眼珠
+Bát Quái Kính|Bagua Mirror|八卦镜
+Tham Lam Hồ Lô|Greedy Gourd|贪婪葫芦
+Tích Linh Hồ Lô|Qi Storing Gourd|积灵葫芦
+Kim Thiềm|Golden Toad|金蟾
+Phân Thân Phù|Clone Talisman|分身符
+Sát Lục Ấn|Slaughter Seal|杀戮印
+Thôn Thiên Ma Công|Heaven Devouring Demon Art|吞天魔功
+Phá Quân Kích|Army Breaker Halberd|破军戟
+Ngũ Hành Bàn|Five Elements Plate|五行盘
+Vạn Kiếm Quy Tông|Ten Thousand Swords Return|万剑归宗
+Thiên Đạo Chi Tâm|Heart of the Heavenly Dao|天道之心
+Huyết Kiếm Tâm|Blood Sword Heart|血剑心
+Huyết Long Huyết|Blood Dragon's Blood|血龙血
+Ma Huyết Châu|Demon Blood Pearl|魔血珠
+Hỏa Long Châu|Fire Dragon Pearl|火龙珠
+Lôi Linh Châu|Thunder Spirit Pearl|雷灵珠
+Bất Tử Phù|Immortal Talisman|不死符
+Thế Hồn Phù|Soul Substitute Talisman|替魂符
+Song Tu Bí Kíp|Dual Cultivation Manual|双修秘籍
+Cuồng Chiến Ý|Battle Frenzy|狂战意
+Nhất Kích Tất Sát|One Strike Kill|一击必杀
+Thân Như Quỷ Mị|Ghostly Body|身如鬼魅
+Hạ tinh anh/boss: +3 Sinh Lực vĩnh viễn (trong lượt|Killing an elite/boss: +3 Max HP permanently (this run|击杀精英／首领：永久生命+3(本局
+Khi Liên Sát ≥ 30: +25% Tốc Đánh|While kill streak ≥ 30: +25% Attack Speed|连杀≥30时：攻速+25%
+Khi chết: hồi sinh với 50% máu (1 lần|On death: revive with 50% HP (once|死亡时：以50%生命复活(1次
+Kẻ địch chết phát nổ, gây 50% sát thương đòn kết liễu xung quanh|Enemies explode on death, dealing 50% of the killing blow around them|敌人死亡时爆炸，对周围造成致命一击50%的伤害
+Bạo kích gọi sét đánh 2 kẻ gần đó (60% sát thương|Crits call lightning on 2 nearby enemies (60% damage|暴击召唤雷电打击附近2名敌人(60%伤害
+Cuối mỗi đợt nhận lãi 10% linh thạch đang có (tối đa|At the end of each wave gain 10% interest on held Spirit Stones (max|每波结束获得持有灵石10%的利息(上限
+Mỗi 2% máu đã mất: +1% sát thương|Every 2% HP missing: +1% damage|每损失2%生命：伤害+1%
+Mỗi 25 kẻ địch bị giết: +1% Sát Thương vĩnh viễn trong lượt này|Every 25 kills: +1% Damage permanently this run|每击杀25名敌人：本局永久伤害+1%
+Mỗi đòn thứ 8 của mỗi vũ khí chắc chắn bạo kích|Every 8th hit of each weapon is a guaranteed crit|每把武器的第8击必定暴击
+Vũ khí bắn đạn/phi kiếm: 30% bắn thêm 1 viên|Projectile/flying-sword weapons: 30% chance to fire 1 extra|弹射／飞剑武器：30%几率额外发射1发
+Nếu sở hữu từ 5 Đạo khác nhau: sát thương|If you own 5 or more different Daos: damage|若拥有5种以上不同之道：伤害
+sát thương cho mỗi 10 linh thạch đang giữ (tối đa|damage per 10 Spirit Stones held (max|每持有10灵石伤害(上限
+sát thương cho mỗi vũ khí Đạo Kiếm đang có|damage per Sword-Dao weapon owned|每把剑道武器的伤害
+sát thương cho mỗi đợt đã vượt qua|damage per wave cleared|每通过一波的伤害
+sát thương lên kẻ địch đang bị thiêu đốt, trúng độc hoặc đóng băng|damage against burning, poisoned or frozen enemies|对灼烧、中毒或冰冻敌人的伤害
+ô vũ khí|weapon slot|武器栏
+Sét nảy +2, +10% Bạo Kích|Chain +2, +10% Crit|连锁+2，暴击+10%
+Đạn xuyên +1, +15 Cơ Duyên|Pierce +1, +15 Luck|穿透+1，机缘+15
+Độc lây khi kẻ địch chết|Poison spreads when enemies die|敌人死亡时毒素扩散
+Huyết Kiếm|Blood Sword|血剑
+Thôn Thiên +3 Sinh Lực|Heaven Devouring +3 Max HP|吞天 生命+3
+Huyết Thử|Blood Rat|血鼠
+Ma Bức|Demon Bat|魔蝠
+Lục Độc Trùng|Green Venom Worm|绿毒虫
+Tiểu Độc Trùng|Little Venom Worm|小毒虫
+Độc Chu|Venom Spider|毒蛛
+Oan Hồn|Wronged Ghost|冤魂
+Thiết Bối Thử|Ironback Rat|铁背鼠
+Tà Tu|Rogue Cultivator|邪修
+Độc Nhãn Ma|One-Eyed Demon|独眼魔
+Hỏa Ma|Fire Demon|火魔
+Ma Tướng|Demon General|魔将
+Bạo Hồn|Bursting Wraith|爆魂
+Bảo Rương Yêu|Mimic Chest|宝箱妖
+Ảnh Sát|Shadow Assassin|影杀
+Độc Nhãn Ma Vương|One-Eyed Demon King|独眼魔王
+Hỏa Ma Tướng Quân|Fire Demon General|火魔将军
+Huyết Y Ma Tôn|Blood-Robed Demon Lord|血衣魔尊
+Thiên Ma Chi Chủ|Lord of Heavenly Demons|天魔之主
+Huyết Bức Vương|Blood Bat King|血蝠王
+Vạn Độc Chu Hậu|Myriad Venom Spider Queen|万毒蛛后
+Căn Cốt|Root Bone|根骨
+Khinh Công|Lightness Skill|轻功
+Phúc Duyên|Fortune|福缘
+Tài Lộc|Wealth|财禄
+Ngộ Tính|Insight|悟性
+Sinh Lực mỗi cấp|Max HP per level|生命/级
+Sát Thương mỗi cấp|Damage per level|伤害/级
+Cơ Duyên mỗi cấp|Luck per level|机缘/级
+Thân Pháp mỗi cấp|Speed per level|身法/级
+kinh nghiệm mỗi cấp|experience per level|经验/级
+Sơ Nhập Giang Hồ|First Steps|初入江湖
+Trảm Ma|Demon Slayer|斩魔
+Sát Thần I|God of Slaughter I|杀神 I
+Sát Thần II|God of Slaughter II|杀神 II
+Phi Thăng|Ascension|飞升
+Độ Kiếp|Tribulation Crossed|渡劫
+Thiên Kiếp Bất Diệt|Indestructible Tribulation|天劫不灭
+Tông Sư|Grandmaster|宗师
+Đại Đạo Viên Mãn|Great Dao Perfected|大道圆满
+Tiên Khí Xuất Thế|Immortal Artifact Revealed|仙器出世
+Phú Khả Địch Quốc|Richer Than Nations|富可敌国
+Bán Bộ Thành Danh|Halfway to Fame|半步成名
+Bách Khoa Toàn Thư|Encyclopedia|百科全书
+Huyết Chiến Bách Liên|Hundred-Kill Bloodbath|血战百连
+Vạn Pháp Quy Nhất|All Laws Become One|万法归一
+Vượt qua đợt|Clear wave|通过波次
+Hạ gục boss đầu tiên|Defeat your first boss|击败第一个首领
+Tổng cộng diệt 1.000 kẻ địch|Slay 1,000 enemies in total|累计击杀1000名敌人
+Tổng cộng diệt 10.000 kẻ địch|Slay 10,000 enemies in total|累计击杀10000名敌人
+Phi thăng ở Kiếp|Ascend at Tribulation|飞升于劫
+Phi thăng với cả 5 nhân vật|Ascend with all 5 characters|5名角色全部飞升
+Mở khóa tất cả nhân vật|Unlock every character|解锁所有角色
+Đạt Trúc Cơ trong một lượt|Reach Foundation in one run|单局达到筑基
+Đạt Kim Đan trong một lượt|Reach Golden Core in one run|单局达到金丹
+Đạt Nguyên Anh trong một lượt|Reach Nascent Soul in one run|单局达到元婴
+Sở hữu vũ khí phẩm Tiên|Own an Immortal-grade weapon|拥有仙品武器
+Giữ 400 linh thạch cùng lúc|Hold 400 Spirit Stones at once|同时持有400灵石
+Gây 500 sát thương trong một đòn|Deal 500 damage in one hit|单次攻击造成500伤害
+Vượt qua một đợt (từ đợt 5) không trúng đòn nào|Clear a wave (from wave 5) without being hit|无伤通过一波(第5波起)
+Kích hoạt mốc 6 của một Đạo|Activate a Dao's 6-piece resonance|激活某道的6件共鸣
+Đạt Liên Sát|Reach a kill streak of|连杀达到
+Hoàn thành Đồ Giám|Complete the Codex|完成图鉴
+Kiếp 0 — Phàm nhân lộ: thử thách chuẩn|Tribulation 0 — Mortal Path: the standard challenge|劫0——凡人路：标准挑战
+Kiếp 1 — Quái +30% máu, +25% sát thương (tăng dần theo đợt|Tribulation 1 — Monsters +30% HP, +25% damage (ramping up by wave|劫1——怪物生命+30%，伤害+25%(随波次递增
+Kiếp 2 — Thêm: quái tinh anh xuất hiện nhiều hơn|Tribulation 2 — Plus: more elite monsters|劫2——追加：精英怪更多
+Kiếp 3 — Thêm: quái xuất hiện dày hơn|Tribulation 3 — Plus: denser monster spawns|劫3——追加：怪物更密集
+Kiếp 4 — Thêm: Thiên Kiếp giáng xuống mọi đợt|Tribulation 4 — Plus: Heavenly Tribulation strikes every wave|劫4——追加：每波都有天劫降临
+Kiếp 5 — Thêm: boss thêm 15% máu. Chỉ dành cho bậc tông sư|Tribulation 5 — Plus: bosses have 15% more HP. For grandmasters only|劫5——追加：首领生命+15%。仅限宗师

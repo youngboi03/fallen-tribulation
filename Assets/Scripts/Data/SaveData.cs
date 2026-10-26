@@ -16,6 +16,7 @@ namespace VK
         public float sfxVol = 0.8f, musicVol = 0.5f, shake = 1f;
         public int dmgNumbers;   // 0 all, 1 crits only, 2 off
         public int lastChar, lastKiep;
+        public int lang = -1;   // Loc.VI/EN/ZH; -1 = not chosen yet
 
         public static string Key = "vk_save_v1";
 

@@ -25,7 +25,7 @@ namespace VK
         {
             int r = Mathf.Min(level / 10, RealmName.Length - 1);
             int layer = r == 0 ? level : level - r * 10 + 1;
-            return RealmName[r] + " tầng " + layer;
+            return Loc.Lang == Loc.ZH ? Loc.Tr(RealmName[r]) + " " + layer + "层" : RealmName[r] + " tầng " + layer;   // Chinese puts the layer number first
         }
         public static string RealmOnly(int level) => RealmName[Mathf.Min(level / 10, RealmName.Length - 1)];
 
@@ -173,45 +173,37 @@ namespace VK
         // ---------------------------------------------------------------- enemies
         public static readonly List<EnemyDef> Enemies = new List<EnemyDef>
         {
-            new EnemyDef { id="huyet_thu", name="Huyết Thử", sprite=123, hp=4, speed=2.5f, dmg=2, beh=EBeh.Chase, orbs=1, minWave=1, weight=10 },
-            new EnemyDef { id="ma_buc", name="Ma Bức", sprite=120, hp=3, speed=3.5f, dmg=1, beh=EBeh.Swarm, orbs=1, minWave=2, weight=7 },
-            new EnemyDef { id="luc_doc_trung", name="Lục Độc Trùng", sprite=108, hp=10, speed=1.8f, dmg=2, beh=EBeh.Splitter, orbs=2, minWave=3, weight=5,
+            new EnemyDef { id="huyet_thu", name="Huyết Thử", sprite=Res.Px.HuyetThu, hp=4, speed=2.5f, dmg=2, beh=EBeh.Chase, orbs=1, minWave=1, weight=10 },
+            new EnemyDef { id="ma_buc", name="Ma Bức", sprite=Res.Px.MaBuc, hp=3, speed=3.5f, dmg=1, beh=EBeh.Swarm, orbs=1, minWave=2, weight=7 },
+            new EnemyDef { id="luc_doc_trung", name="Lục Độc Trùng", sprite=Res.Px.DocTrung, hp=10, speed=1.8f, dmg=2, beh=EBeh.Splitter, orbs=2, minWave=3, weight=5,
                 blood=new Color(0.3f,0.9f,0.5f) },
-            new EnemyDef { id="doc_chu", name="Độc Chu", sprite=122, hp=8, speed=2.2f, dmg=3, beh=EBeh.Charger, orbs=2, minWave=4, weight=5 },
-            new EnemyDef { id="oan_hon", name="Oan Hồn", sprite=121, hp=9, speed=2.0f, dmg=2, beh=EBeh.Shooter, orbs=2, minWave=5, weight=4,
+            new EnemyDef { id="doc_chu", name="Độc Chu", sprite=Res.Px.DocChu, hp=8, speed=2.2f, dmg=3, beh=EBeh.Charger, orbs=2, minWave=4, weight=5 },
+            new EnemyDef { id="oan_hon", name="Oan Hồn", sprite=Res.Px.OanHon, hp=9, speed=2.0f, dmg=2, beh=EBeh.Shooter, orbs=2, minWave=5, weight=4,
                 blood=new Color(0.7f,0.8f,1f) },
-            new EnemyDef { id="thiet_boi_thu", name="Thiết Bối Thử", sprite=124, hp=20, speed=2.3f, dmg=3, beh=EBeh.Chase, orbs=2, minWave=7, weight=5 },
-            new EnemyDef { id="ta_tu", name="Tà Tu", sprite=111, hp=16, speed=1.8f, dmg=3, beh=EBeh.Shooter, orbs=3, minWave=9, weight=3,
-                tint=new Color(1f,0.8f,0.8f) },
-            new EnemyDef { id="doc_nhan_ma", name="Độc Nhãn Ma", sprite=109, hp=65, speed=1.5f, dmg=5, scale=1.45f, beh=EBeh.Chase, orbs=8, minWave=8, weight=1.0f, elite=true },
-            new EnemyDef { id="bao_hon", name="Bạo Hồn", sprite=121, hp=12, speed=2.9f, dmg=4, beh=EBeh.Bomber, orbs=2, minWave=6, weight=3,
-                tint=new Color(1f,0.6f,0.4f), blood=new Color(1f,0.55f,0.2f) },
-            new EnemyDef { id="bao_ruong_yeu", name="Bảo Rương Yêu", sprite=92, hp=45, speed=2.4f, dmg=4, scale=1.15f, beh=EBeh.Mimic, orbs=14, minWave=6, weight=0.3f,
+            new EnemyDef { id="thiet_boi_thu", name="Thiết Bối Thử", sprite=Res.Px.ThietBoiThu, hp=20, speed=2.3f, dmg=3, beh=EBeh.Chase, orbs=2, minWave=7, weight=5 },
+            new EnemyDef { id="ta_tu", name="Tà Tu", sprite=Res.Px.TaTu, hp=16, speed=1.8f, dmg=3, beh=EBeh.Shooter, orbs=3, minWave=9, weight=3 },
+            new EnemyDef { id="doc_nhan_ma", name="Độc Nhãn Ma", sprite=Res.Px.DocNhanMa, hp=65, speed=1.5f, dmg=5, scale=1.45f, beh=EBeh.Chase, orbs=8, minWave=8, weight=1.0f, elite=true },
+            new EnemyDef { id="bao_hon", name="Bạo Hồn", sprite=Res.Px.BaoHon, hp=12, speed=2.9f, dmg=4, beh=EBeh.Bomber, orbs=2, minWave=6, weight=3, blood=new Color(1f,0.55f,0.2f) },
+            new EnemyDef { id="bao_ruong_yeu", name="Bảo Rương Yêu", sprite=Res.Px.Mimic, hp=45, speed=2.4f, dmg=4, scale=1.15f, beh=EBeh.Mimic, orbs=14, minWave=6, weight=0.3f,
                 blood=new Color(0.9f,0.7f,0.3f) },
-            new EnemyDef { id="anh_sat", name="Ảnh Sát", sprite=111, hp=30, speed=2.2f, dmg=5, beh=EBeh.Blinker, orbs=4, minWave=12, weight=2,
-                tint=new Color(0.55f,0.45f,0.8f), blood=new Color(0.6f,0.4f,1f) },
-            new EnemyDef { id="hoa_ma", name="Hỏa Ma", sprite=110, hp=40, speed=2.6f, dmg=4, scale=1.2f, beh=EBeh.Charger, orbs=5, minWave=11, weight=2,
+            new EnemyDef { id="anh_sat", name="Ảnh Sát", sprite=Res.Px.AnhSat, hp=30, speed=2.2f, dmg=5, beh=EBeh.Blinker, orbs=4, minWave=12, weight=2, blood=new Color(0.6f,0.4f,1f) },
+            new EnemyDef { id="hoa_ma", name="Hỏa Ma", sprite=Res.Px.HoaMa, hp=40, speed=2.6f, dmg=4, scale=1.2f, beh=EBeh.Charger, orbs=5, minWave=11, weight=2,
                 blood=new Color(1f,0.5f,0.2f) },
-            new EnemyDef { id="ma_tuong", name="Ma Tướng", sprite=87, hp=130, speed=1.7f, dmg=6, scale=1.5f, beh=EBeh.Chase, orbs=12, minWave=14, weight=0.8f, elite=true,
-                tint=new Color(0.85f,0.75f,1f) },
+            new EnemyDef { id="ma_tuong", name="Ma Tướng", sprite=Res.Px.MaTuong, hp=130, speed=1.7f, dmg=6, scale=1.5f, beh=EBeh.Chase, orbs=12, minWave=14, weight=0.8f, elite=true },
         };
 
-        public static readonly EnemyDef MiniSlime = new EnemyDef { id="mini", name="Tiểu Độc Trùng", sprite=108, hp=3, speed=2.6f, dmg=1, scale=0.65f,
+        public static readonly EnemyDef MiniSlime = new EnemyDef { id="mini", name="Tiểu Độc Trùng", sprite=Res.Px.DocTrung, hp=3, speed=2.6f, dmg=1, scale=0.65f,
             beh=EBeh.Chase, orbs=1, blood=new Color(0.3f,0.9f,0.5f) };
 
         public static readonly EnemyDef[] Bosses =
         {
-            new EnemyDef { id="b1", name="Độc Nhãn Ma Vương", sprite=109, hp=1400, speed=1.7f, dmg=7, scale=3.2f, beh=EBeh.Boss, orbs=40 },
-            new EnemyDef { id="b2", name="Hỏa Ma Tướng Quân", sprite=110, hp=10000, speed=1.9f, dmg=12, scale=3.2f, beh=EBeh.Boss, orbs=60,
+            new EnemyDef { id="b1", name="Độc Nhãn Ma Vương", sprite=Res.Px.Boss1, hp=1400, speed=1.7f, dmg=7, scale=3.2f, beh=EBeh.Boss, orbs=40 },
+            new EnemyDef { id="b2", name="Hỏa Ma Tướng Quân", sprite=Res.Px.Boss2, hp=10000, speed=1.9f, dmg=12, scale=3.2f, beh=EBeh.Boss, orbs=60,
                 blood=new Color(1f,0.5f,0.2f) },
-            new EnemyDef { id="b3", name="Huyết Y Ma Tôn", sprite=111, hp=45000, speed=2.0f, dmg=20, scale=3.2f, beh=EBeh.Boss, orbs=80,
-                tint=new Color(1f,0.6f,0.6f) },
-            new EnemyDef { id="b4", name="Thiên Ma Chi Chủ", sprite=87, hp=140000, speed=2.1f, dmg=30, scale=3.6f, beh=EBeh.Boss, orbs=0,
-                tint=new Color(0.75f,0.55f,1f), blood=new Color(0.7f,0.4f,1f) },
-            new EnemyDef { id="b1b", name="Huyết Bức Vương", sprite=120, hp=1300, speed=2.4f, dmg=7, scale=3.0f, beh=EBeh.Boss, orbs=40,
-                tint=new Color(1f,0.75f,0.75f) },
-            new EnemyDef { id="b2b", name="Vạn Độc Chu Hậu", sprite=122, hp=10000, speed=2.0f, dmg=12, scale=3.2f, beh=EBeh.Boss, orbs=60,
-                tint=new Color(0.8f,1f,0.75f), blood=new Color(0.4f,0.95f,0.3f) },
+            new EnemyDef { id="b3", name="Huyết Y Ma Tôn", sprite=Res.Px.Boss3, hp=45000, speed=2.0f, dmg=20, scale=3.2f, beh=EBeh.Boss, orbs=80 },
+            new EnemyDef { id="b4", name="Thiên Ma Chi Chủ", sprite=Res.Px.Boss4, hp=140000, speed=2.1f, dmg=30, scale=3.6f, beh=EBeh.Boss, orbs=0, blood=new Color(0.7f,0.4f,1f) },
+            new EnemyDef { id="b1b", name="Huyết Bức Vương", sprite=Res.Px.Boss1b, hp=1300, speed=2.4f, dmg=7, scale=3.0f, beh=EBeh.Boss, orbs=40 },
+            new EnemyDef { id="b2b", name="Vạn Độc Chu Hậu", sprite=Res.Px.Boss2b, hp=10000, speed=2.0f, dmg=12, scale=3.2f, beh=EBeh.Boss, orbs=60, blood=new Color(0.4f,0.95f,0.3f) },
         };
         /// <summary>Boss for a 5-wave slot (0-3); slots 0 and 1 have an alternate boss picked per run.</summary>
         public static EnemyDef BossFor(int slot, bool alt) => alt && slot < 2 ? Bosses[4 + slot] : Bosses[slot];
@@ -219,27 +211,27 @@ namespace VK
         // ---------------------------------------------------------------- characters
         public static readonly List<CharDef> Chars = new List<CharDef>
         {
-            new CharDef { id="kiem_tu", name="Kiếm Tu", title="Lý Thanh Phong", sprite=98, startWeapon="thiet_kiem",
+            new CharDef { id="kiem_tu", name="Kiếm Tu", title="Lý Thanh Phong", sprite=Res.Px.KiemTu, startWeapon="thiet_kiem",
                 desc="Kiếm khách cân bằng, sở trường bạo kích.", unlockDesc="Mặc định",
                 skill="Kiếm Vũ", skillDesc="12 phi kiếm toả ra, tự tìm địch", skillCd=9f,
                 mods=new[]{ new Mod(Stat.Melee,15), new Mod(Stat.Crit,5) } },
-            new CharDef { id="dan_tu", name="Đan Tu", title="Bạch Hạc Lão Nhân", sprite=84, startWeapon="hoa_truong",
+            new CharDef { id="dan_tu", name="Đan Tu", title="Bạch Hạc Lão Nhân", sprite=Res.Px.DanTu, startWeapon="hoa_truong",
                 desc="Luyện đan sư, pháp thuật mạnh, hồi máu nhanh.", unlockDesc="Đạt tới đợt 5",
                 skill="Đan Hỏa Bạo", skillDesc="Nổ lửa quanh thân, hồi 15% máu", skillCd=11f,
                 mods=new[]{ new Mod(Stat.Spell,15), new Mod(Stat.Regen,3), new Mod(Stat.Melee,-15) } },
-            new CharDef { id="the_tu", name="Thể Tu", title="Thiết Hán Vô Danh", sprite=86, startWeapon="thiet_chuy",
+            new CharDef { id="the_tu", name="Thể Tu", title="Thiết Hán Vô Danh", sprite=Res.Px.TheTu, startWeapon="thiet_chuy",
                 desc="Luyện thể, da dày thịt béo, đánh chậm mà nặng.", unlockDesc="Tổng cộng diệt 1500 kẻ địch",
                 skill="Kim Cang Chấn", skillDesc="Bất tử 2s + sóng chấn đẩy lùi", skillCd=12f,
                 mods=new[]{ new Mod(Stat.MaxHP,15), new Mod(Stat.Armor,3), new Mod(Stat.Melee,10), new Mod(Stat.AtkSpeed,-10), new Mod(Stat.Speed,-5) } },
-            new CharDef { id="phu_tu", name="Phù Tu", title="Tô Vân Nhi", sprite=99, startWeapon="phu_luc",
+            new CharDef { id="phu_tu", name="Phù Tu", title="Tô Vân Nhi", sprite=Res.Px.PhuTu, startWeapon="phu_luc",
                 desc="Phù sư, tầm xa, cơ duyên tốt.", unlockDesc="Đạt cảnh giới Kim Đan",
                 skill="Định Thân Phù", skillDesc="Đóng băng địch quanh thân 2.5s, chúng nhận thêm 30% ST", skillCd=12f,
                 mods=new[]{ new Mod(Stat.Luck,20), new Mod(Stat.Range,20), new Mod(Stat.Spell,10), new Mod(Stat.MaxHP,-4) } },
-            new CharDef { id="ma_tu", name="Ma Tu", title="Huyết Ảnh", sprite=112, startWeapon="huyet_nguyet_dao",
+            new CharDef { id="ma_tu", name="Ma Tu", title="Huyết Ảnh", sprite=Res.Px.MaTu, startWeapon="huyet_nguyet_dao",
                 desc="Tà đạo: sát thương khủng, hút máu, nhưng mỏng manh.", unlockDesc="Phi thăng (thắng) 1 lần",
                 skill="Huyết Tế", skillDesc="Hiến 15% máu: 5s +60% ST, +25% hút máu", skillCd=14f,
                 mods=new[]{ new Mod(Stat.Damage,40), new Mod(Stat.Lifesteal,10), new Mod(Stat.MaxHP,-3), new Mod(Stat.Regen,-3), new Mod(Stat.Armor,-1) } },
-            new CharDef { id="loi_tu", name="Lôi Tu", title="Lôi Vân Tử", sprite=88, startWeapon="loi_truong",
+            new CharDef { id="loi_tu", name="Lôi Tu", title="Lôi Vân Tử", sprite=Res.Px.LoiTu, startWeapon="loi_truong",
                 desc="Lôi pháp: đánh cực nhanh, sét lan khắp đàn quái.", unlockDesc="Đạt tới đợt 10",
                 skill="Thiên Lôi Dẫn", skillDesc="Gọi 8 tia sét lên kẻ địch gần nhất, làm choáng 1s", skillCd=11f,
                 mods=new[]{ new Mod(Stat.AtkSpeed,20), new Mod(Stat.Spell,5), new Mod(Stat.Speed,5), new Mod(Stat.MaxHP,-2) } },

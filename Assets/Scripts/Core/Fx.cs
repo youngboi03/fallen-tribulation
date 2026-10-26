@@ -117,6 +117,12 @@ namespace VK
             }
             tp.t.gameObject.SetActive(true);
             tp.active = true;
+            s = Loc.Tr(s);
+            if (tp.tm.font != Res.Font)
+            {
+                tp.tm.font = tp.sh.font = Res.Font;
+                tp.tm.GetComponent<MeshRenderer>().sharedMaterial = tp.sh.GetComponent<MeshRenderer>().sharedMaterial = Res.Font.material;
+            }
             tp.tm.text = s; tp.sh.text = s; tp.tm.color = c;
             tp.t.position = pos + new Vector2(Random.Range(-0.2f, 0.2f), 0.3f);
             tp.v = new Vector2(Random.Range(-0.6f, 0.6f), 2.6f);

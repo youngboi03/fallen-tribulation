@@ -1,0 +1,247 @@
+# vi | en | zh   — core terms, stats, realms, UI
+Linh thạch|Spirit Stones|灵石
+linh thạch|spirit stones|灵石
+Linh Thạch|Spirit Stones|灵石
+Linh Thạch khởi đầu mỗi cấp|starting Spirit Stones per level|初始灵石/级
+Linh Khí|Qi|灵气
+linh khí|qi|灵气
+Linh Khí vừa là|Qi is both|灵气既是
+vừa là|and|也是
+kinh nghiệm|experience|经验
+để mua đồ giữa các đợt|to spend between waves|用于波次间购物
+Đạo Hạnh|Dao Merit|道行
+Thành tựu|Achievement|成就
+Thành Tựu|Achievements|成就
+THÀNH TỰU|ACHIEVEMENTS|成就
+Kiếp|Tribulation|劫
+KIẾP|TRIBULATION|劫
+Kiếp đã vượt|Tribulations cleared|已渡劫数
+Phi Thăng theo Kiếp|Ascensions by Tribulation|各劫飞升
+Phi thăng ở Kiếp này để mở Kiếp tiếp theo|Ascend at this Tribulation to unlock the next|在此劫飞升以解锁下一劫
+Mở khóa Kiếp|Unlocked Tribulation|解锁劫
+Mở khóa nhân vật|Character unlocked|解锁角色
+ĐỢT|WAVE|波次
+Đợt|Wave|波次
+đợt|wave|波
+Tiến vào|Entering|进入
+giáng lâm|descends|降临
+nổi điên|is enraged|狂暴了
+Vượt qua cả 20 đợt|Survived all 20 waves|通过全部20波
+Gục ngã ở đợt|Fell on wave|倒在波次
+Chuẩn bị cho đợt|Prepare for wave|下一波：
+BẮT ĐẦU ĐỢT|START WAVE|开始波次
+BẮT ĐẦU|START|开始
+LỘ TUYẾN — ĐỢT|ROUTE — WAVE|路线 — 波次
+Lộ Tuyến|Route|路线
+Đường Bằng|Safe Road|坦途
+Đường Hiểm|Perilous Road|险途
+Bình thường|Normal|普通
+Ma Triều|Demon Tide|魔潮
+Tinh Anh Tụ Tập|Elite Gathering|精英聚集
+Huyết Nguyệt|Blood Moon|血月
+mỗi mạng 40% rơi thêm linh khí|each kill: 40% chance of extra qi|每次击杀40%额外掉落灵气
+Tinh anh ×4 (mỗi con rơi Bảo Rương|Elites ×4 (each drops a Treasure Chest|精英×4(每只掉落宝箱
+Quái nhanh|Monsters faster|怪物加速
+cuối đợt nhận 1 Bảo Rương|+1 Treasure Chest at wave end|波末获得1个宝箱
+quái|monsters|怪物
+Bảo Rương|Treasure Chest|宝箱
+BẢO RƯƠNG|TREASURE CHEST|宝箱
+rương|chests|宝箱
+Còn|Remaining:|剩余
+còn|left|剩余
+Tinh anh để lại bảo vật|An elite left a treasure|精英留下了宝物
+BẢO KHỐ|TREASURY|宝库
+để lại kho báu — chọn một món|left a treasury — choose one|留下宝库——选择一件
+Nhận|Take|领取
+Bán|Sell|出售
+Đã bán|Sold|已售出
+Đã đạt giới hạn|Limit reached|已达上限
+Giới hạn|Limit|上限
+Hết ô vũ khí|No free weapon slot|武器栏已满
+Thiếu linh thạch|Not enough Spirit Stones|灵石不足
+ĐÃ MUA|BOUGHT|已购买
+KỲ NGỘ|ENCOUNTER|奇遇
+Kỳ Ngộ|Encounter|奇遇
+LINH THỊ|SPIRIT MARKET|灵市
+Làm mới [R|Reroll [R|刷新 [R
+Làm mới|Reroll|刷新
+Lĩnh ngộ|Comprehend|领悟
+LÊN CẤP — CHỌN CÔNG PHÁP|LEVEL UP — CHOOSE A TECHNIQUE|升级——选择功法
+lần chọn|picks left|次选择
+Đột Phá|Breakthrough|突破
+ĐỘT PHÁ|BREAKTHROUGH|突破
+Cảnh giới|Realm|境界
+tầng|layer|层
+Luyện Khí|Qi Refining|炼气
+Trúc Cơ|Foundation|筑基
+Kim Đan|Golden Core|金丹
+Nguyên Anh|Nascent Soul|元婴
+Hóa Thần|Spirit Severing|化神
+Luyện Hư|Void Refining|炼虚
+Phàm|Mortal|凡
+Linh|Spirit|灵
+Huyền|Mystic|玄
+Tiên|Immortal|仙
+phẩm|grade|品
+Pháp bảo|Treasure|法宝
+PHÁP BẢO|TREASURES|法宝
+Vũ khí|Weapons|武器
+VŨ KHÍ|WEAPONS|武器
+YÊU MA|MONSTERS|妖魔
+ĐẠO CỘNG HƯỞNG|DAO RESONANCE|道之共鸣
+CHỈ SỐ|STATS|属性
+Kiếm|Sword|剑
+Thể|Body|体
+Hỏa|Fire|火
+Lôi|Thunder|雷
+Phù|Talisman|符
+Độc|Poison|毒
+Sinh Lực|Max HP|生命
+Hồi Phục|Regen|回复
+Hút Máu|Lifesteal|吸血
+Sát Thương|Damage|伤害
+Sát thương|Damage|伤害
+Cận Chiến|Melee|近战
+Pháp Thuật|Spell|法术
+Tốc Đánh|Attack Speed|攻速
+Bạo Kích|Crit|暴击
+ST Bạo Kích|Crit Damage|暴伤
+Tầm Đánh|Range|射程
+Hộ Giáp|Armor|护甲
+Né Tránh|Dodge|闪避
+Thân Pháp|Speed|身法
+Cơ Duyên|Luck|机缘
+Thu Hoạch|Harvest|收获
+Thu Linh|Pickup|拾取
+Máu tối đa|Maximum health|最大生命
+Hồi máu mỗi giây|Health regenerated per second|每秒回复生命
+cơ hội hồi 1 máu khi đánh trúng|chance to heal 1 HP on hit|命中时回复1生命的几率
+sát thương mọi vũ khí|damage for all weapons|所有武器伤害
+sát thương vũ khí cận chiến|melee weapon damage|近战武器伤害
+sát thương vũ khí pháp thuật|spell weapon damage|法术武器伤害
+tốc độ tấn công|attack speed|攻击速度
+cơ hội bạo kích|crit chance|暴击率
+sát thương bạo kích thêm|extra crit damage|额外暴击伤害
+tầm đánh|range|射程
+Giảm sát thương nhận vào|Reduces damage taken|减少所受伤害
+né đòn (tối đa|dodge chance (max|闪避率(上限
+tốc độ di chuyển|movement speed|移动速度
+Tăng cơ hội gặp đồ phẩm cao|Better odds of high-grade items|提高高品物品出现几率
+Linh thạch nhận thêm mỗi cuối đợt|Extra Spirit Stones at the end of each wave|每波结束额外获得灵石
+tầm hút linh khí|qi pickup range|灵气拾取范围
+Bạo kích riêng|own crit|自身暴击
+Vùng nổ|Blast radius|爆炸范围
+Tầm|Range|射程
+Hồi chiêu|Cooldown|冷却
+Hồi chiêu lướt|Dash cooldown|冲刺冷却
+Sét nảy|Chain|连锁
+Thiêu đốt|Burn|灼烧
+Trúng độc|Poison|中毒
+Đóng băng|Freeze|冰冻
+Lướt|Dash|冲刺
+Lướt [Space|Dash [Space|冲刺 [Space
+Thần Thông|Divine Art|神通
+Thần|Divine|神
+Thông|Art|通
+Thần Thông đã sẵn sàng|Divine Art ready|神通就绪
+LIÊN SÁT|KILL STREAK|连杀
+Liên Sát cao nhất|Best kill streak|最高连杀
+Diệt|Kills|击杀
+Lãi|Interest|利息
+Thu hoạch|Harvest|收获
+Máu hồi đầy|HP fully restored|生命已回满
+BOSS! Né|BOSS! Dodge|BOSS！闪避
+vạch đỏ|the red lines|红线
+lao húc) và vòng đạn. Vòng vàng là sét Thiên Kiếp — đứng ngoài vòng|charges) and bullet rings. Gold circles are Heavenly Tribulation lightning — stay outside them|冲撞)和弹幕环。金色圆圈是天劫雷——站在圈外
+THIÊN KIẾP|HEAVENLY TRIBULATION|天劫
+BẤT TỬ PHÙ|IMMORTAL TALISMAN|不死符
+Nghịch thiên cải mệnh|Defying heaven, rewriting fate|逆天改命
+HƯỚNG DẪN|TUTORIAL|教程
+bấm để ẩn|click to hide|点击隐藏
+Hướng dẫn: sẽ hiện lại|Tutorial: will show again|教程：将再次显示
+Xem lại hướng dẫn|Replay tutorial|重看教程
+WASD / phím mũi tên|WASD / arrow keys|WASD／方向键
+Kéo joystick bên trái|Drag the left joystick|拖动左侧摇杆
+để di chuyển|to move|移动
+Vũ khí tự tấn công|Weapons attack automatically|武器自动攻击
+kẻ địch gần nhất — hãy giữ khoảng cách vừa tầm|the nearest enemy — keep them at just the right distance|最近的敌人——保持合适距离
+Nhấn|Press|按
+Chạm nút|Tap|点击
+để lướt: bất tử trong lúc lướt, xuyên qua quái và đạn|to dash: invulnerable while dashing, pass through monsters and bullets|冲刺：冲刺时无敌，可穿过怪物和子弹
+hoặc chuột trái|or left mouse|或鼠标左键
+E thần thông|E divine art|E 神通
+SPACE lướt|SPACE dash|SPACE 冲刺
+WASD di chuyển|WASD move|WASD 移动
+Joystick trái di chuyển|Left joystick to move|左摇杆移动
+nút phải để lướt|right buttons to dash|右侧按钮冲刺
+ESC tạm dừng|ESC pause|ESC 暂停
+F11 toàn màn hình|F11 fullscreen|F11 全屏
+Đồ họa & âm thanh|Art & audio|美术与音效
+Mỗi lần lên cấp: chọn 1 công pháp (phím 1-4). Cứ 10 cấp là|Each level-up: pick 1 technique (keys 1-4). Every 10 levels is a|每次升级：选择1门功法(按键1-4)。每10级是一次
+cảnh giới — phần thưởng phẩm Tiên|realm breakthrough — Immortal-grade rewards|境界突破——仙品奖励
+phần thưởng phẩm Tiên|Immortal-grade rewards|仙品奖励
+Linh Thị: mua vũ khí/pháp bảo|Spirit Market: buy weapons/treasures|灵市：购买武器／法宝
+lên phẩm cao hơn. Gom 2/4/6 vũ khí cùng Đạo để kích hoạt cộng hưởng (bảng phải|into a higher grade. Collect 2/4/6 weapons of one Dao to trigger resonance (right panel|升到更高品级。集齐2/4/6把同道武器激活共鸣(右侧面板
+vũ khí cùng loại cùng phẩm → hợp nhất|weapons of the same kind and grade → merge|件同类同品武器→合成
+khó hơn nhưng thưởng lớn (thêm linh khí, rương|is harder but pays more (extra qi, chests|更难但奖励更多(额外灵气、宝箱
+Bấm R để làm mới shop|Press R to reroll the shop|按R刷新商店
+Bảo Rương do tinh anh và boss rơi: nhận pháp bảo hoặc bán lấy linh thạch|Treasure Chests drop from elites and bosses: take the treasure or sell it for Spirit Stones|宝箱由精英和首领掉落：领取法宝或出售换灵石
+Kỳ Ngộ: mỗi lựa chọn là một canh bạc. Đọc kỹ cái giá trước khi chọn (phím|Encounters: every choice is a gamble. Read the cost before choosing (keys|奇遇：每个选择都是赌博。选择前看清代价(按键
+bấm để bán / hợp nhất — 2 vũ khí cùng loại cùng phẩm → phẩm cao hơn|click to sell / merge — 2 weapons of the same kind and grade → higher grade|点击出售／合成——2把同类同品武器→更高品级
+▲ Có thể hợp nhất|▲ Can merge|▲ 可合成
+Đủ ô: tự hợp nhất lên|Slots full: auto-merges into|栏位已满：自动合成为
+Rê chuột lên một ô để xem chi tiết|Hover a slot for details|鼠标悬停查看详情
+Rê chuột lên vũ khí, pháp bảo hoặc chỉ số để xem chi tiết|Hover a weapon, treasure or stat for details|鼠标悬停武器、法宝或属性查看详情
+uất hiện từ đợt|ppears from wave|从该波出现：
+xuất hiện từ đợt|appears from wave|从该波出现：
+Xuất hiện từ đợt|Appears from wave|从该波出现：
+Chưa gặp|Not yet met|尚未遇见
+Đã ghi chép|Recorded|已记录
+ĐỒ GIÁM|CODEX|图鉴
+Đồ Giám|Codex|图鉴
+TÀNG KINH CÁC|SCRIPTURE PAVILION|藏经阁
+Tàng Kinh Các|Scripture Pavilion|藏经阁
+nhận sau mỗi lượt chơi và từ thành tựu|earned after every run and from achievements|每局结束和成就获得
+Viên mãn|Perfected|圆满
+Hoàn thành tổng|Total completion|总完成度
+Hoàn thành|Completion|完成度
+HOÀN THÀNH|COMPLETE|完成
+Thắng|Wins|胜场
+Lượt chơi|Runs|局数
+VẠN KIẾP TU TIÊN|TEN THOUSAND TRIBULATIONS|万劫修仙
+Một kiếm phá vạn kiếp|One sword breaks ten thousand tribulations|一剑破万劫
+Roguelite tu tiên|Cultivation roguelite|修仙肉鸽
+Nhập Đạo|Enter the Dao|入道
+Rời Khỏi|Quit|退出
+Quay Lại|Back|返回
+CHỌN ĐẠO LỘ|CHOOSE YOUR PATH|选择道途
+Khởi đầu|Starts with|初始武器
+CHƯA MỞ KHÓA|LOCKED|未解锁
+Máu gốc|Base HP|基础生命
+gốc|base|基础
+Nhạc|Music|音乐
+Âm hiệu|Sound|音效
+Rung màn hình|Screen shake|屏幕震动
+Số sát thương|Damage numbers|伤害数字
+Tất cả|All|全部
+Chỉ bạo kích|Crits only|仅暴击
+Tắt|Off|关
+TẠM DỪNG|PAUSED|暂停
+Tiếp Tục|Resume|继续
+Bỏ Cuộc|Give Up|放弃
+PHI THĂNG THÀNH TIÊN|ASCENDED TO IMMORTALITY|飞升成仙
+THÂN TỬ ĐẠO TIÊU|BODY AND DAO PERISHED|身死道消
+Kẻ địch bị diệt|Enemies slain|击杀敌人
+Tổng sát thương|Total damage|总伤害
+Đòn mạnh nhất|Biggest hit|最高一击
+Tái Chiến|Fight Again|再战
+Về Sơn Môn|Return to Sect|返回山门
+Mất|Lose|失去
+Kiếp 0 →|Tribulation 0 →|劫0 →
+phím|keys|按键
+cấp|level|级
+Né|Dodged|闪避
+Đổi lựa chọn|Reroll choices|更换选项
+Hợp nhất|Merge|合成
+Khóa|Lock|锁定
+Mở|Unlock|解锁

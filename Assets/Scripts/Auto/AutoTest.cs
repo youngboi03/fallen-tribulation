@@ -13,7 +13,7 @@ namespace VK
         string shotDir;
         int maxWaves = 6, charIdx, kiep, errors;
         bool god, smart;
-        int metaLv;
+        int metaLv, langArg = -1;
         float speed = 2f;
 
         void Start()
@@ -28,6 +28,7 @@ namespace VK
                     case "-char": int.TryParse(args[i + 1], out charIdx); break;
                     case "-kiep": int.TryParse(args[i + 1], out kiep); break;
                     case "-meta": int.TryParse(args[i + 1], out metaLv); break;
+                    case "-lang": int.TryParse(args[i + 1], out langArg); break;
                     case "-speed": float.TryParse(args[i + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out speed); break;
                 }
             }
@@ -44,6 +45,7 @@ namespace VK
             Game.I.save.maxKiepUnlocked = 5;
             for (int m = 0; m < Game.I.save.meta.Length; m++) Game.I.save.meta[m] = Mathf.Clamp(metaLv, 0, Content.MetaMax);
             Game.I.player.god = god;
+            Game.I.ui.ApplyLanguage(langArg >= 0 ? langArg : Loc.VI);
             StartCoroutine(Run());
         }
 

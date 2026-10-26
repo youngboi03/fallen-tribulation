@@ -14,10 +14,40 @@ namespace VK
 
         public const int TalismanId = 200;
 
+        /// <summary>Sprite ids of the PixelLab art.</summary>
+        public static class Px
+        {
+            public const int KiemTu = 300, DanTu = 301, TheTu = 302, PhuTu = 303, MaTu = 304, LoiTu = 305;
+            public const int HuyetThu = 310, MaBuc = 311, DocTrung = 312, DocChu = 313, OanHon = 314, ThietBoiThu = 315, TaTu = 316,
+                DocNhanMa = 317, HoaMa = 318, MaTuong = 319, BaoHon = 320, Mimic = 321, AnhSat = 322, MimicSleep = 323;
+            public const int Boss1 = 340, Boss2 = 341, Boss3 = 342, Boss4 = 343, Boss1b = 344, Boss2b = 345;
+        }
+
+        /// <summary>PixelLab sprites (Assets/Resources/PixelLab) addressed by id like the Kenney tiles; a missing file falls back to the Kenney tile.</summary>
+        static readonly Dictionary<int, (string path, int fallback)> pixelLab = new Dictionary<int, (string, int)>
+        {
+            { Px.KiemTu, ("Chars/kiem_tu", 98) }, { Px.DanTu, ("Chars/dan_tu", 84) }, { Px.TheTu, ("Chars/the_tu", 86) },
+            { Px.PhuTu, ("Chars/phu_tu", 99) }, { Px.MaTu, ("Chars/ma_tu", 112) }, { Px.LoiTu, ("Chars/loi_tu", 88) },
+            { Px.HuyetThu, ("Enemies/huyet_thu", 123) }, { Px.MaBuc, ("Enemies/ma_buc", 120) }, { Px.DocTrung, ("Enemies/doc_trung", 108) },
+            { Px.DocChu, ("Enemies/doc_chu", 122) }, { Px.OanHon, ("Enemies/oan_hon", 121) }, { Px.ThietBoiThu, ("Enemies/thiet_boi_thu", 124) },
+            { Px.TaTu, ("Enemies/ta_tu", 111) }, { Px.DocNhanMa, ("Enemies/doc_nhan_ma", 109) }, { Px.HoaMa, ("Enemies/hoa_ma", 110) },
+            { Px.MaTuong, ("Enemies/ma_tuong", 87) }, { Px.BaoHon, ("Enemies/bao_hon", 121) }, { Px.Mimic, ("Enemies/bao_ruong_yeu", 92) },
+            { Px.AnhSat, ("Enemies/anh_sat", 111) }, { Px.MimicSleep, ("Enemies/bao_ruong_ngu", 89) },
+            { Px.Boss1, ("Bosses/b1", 109) }, { Px.Boss2, ("Bosses/b2", 110) }, { Px.Boss3, ("Bosses/b3", 112) },
+            { Px.Boss4, ("Bosses/b4", 111) }, { Px.Boss1b, ("Bosses/b1b", 120) }, { Px.Boss2b, ("Bosses/b2b", 122) },
+        };
+
         public static Sprite Tile(int i)
         {
             if (tiles.TryGetValue(i, out var s)) return s;
             if (i == TalismanId) { s = MakeTalisman(); tiles[i] = s; return s; }
+            if (pixelLab.TryGetValue(i, out var px))
+            {
+                s = Resources.Load<Sprite>("PixelLab/" + px.path);
+                if (s == null) s = Tile(px.fallback);
+                tiles[i] = s;
+                return s;
+            }
             s = Resources.Load<Sprite>("Tiles/tile_" + i.ToString("0000"));
             if (s == null)
             {   // fallback if the importer didn't mark it as a sprite
@@ -46,10 +76,19 @@ namespace VK
         {
             get
             {
-                if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                if (font == null)
+                {
+                    // Chinese uses an installed OS CJK font (nothing is shipped); other languages use Unity's built-in font.
+                    if (Loc.Lang == Loc.ZH)
+                        font = Font.CreateDynamicFontFromOSFont(new[] { "Microsoft YaHei", "Microsoft YaHei UI", "SimHei", "SimSun", "PingFang SC",
+                            "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "Droid Sans Fallback", "Arial Unicode MS", "Arial" }, 32);
+                    if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                }
                 return font;
             }
         }
+
+        public static void ResetFont() => font = null;
 
         public static Material FlashMat
         {

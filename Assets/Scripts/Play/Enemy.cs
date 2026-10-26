@@ -76,7 +76,7 @@ namespace VK
             body = new GameObject("body").transform;
             body.SetParent(transform, false);
             sr = body.gameObject.AddComponent<SpriteRenderer>();
-            sr.sprite = Res.Tile(d.sprite);
+            sr.sprite = Res.Tile(d.beh == EBeh.Mimic ? Res.Px.MimicSleep : d.sprite);   // a mimic looks like a plain chest until it wakes
             sr.sharedMaterial = Res.FlashMat;
             sr.color = d.tint;
             body.localScale = Vector3.zero;
@@ -283,6 +283,8 @@ namespace VK
                 {
                     awake = true;
                     stateT = 0.35f;
+                    sr.sprite = Res.Tile(def.sprite);
+                    if (outline) outline.sprite = sr.sprite;
                     Fx.Text(Pos + Vector2.up * radius * 1.5f, "!", new Color(1f, 0.4f, 0.3f), 1.4f);
                     Sfx.Play("heavy", 0.5f, 0.1f, 1.3f);
                 }

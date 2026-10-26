@@ -6,7 +6,7 @@ Một lượt chơi mất khoảng 25–30 phút.
 
 ## Chơi ngay
 Chạy file **`Builds/Windows/VanKiepTuTien.exe`**.
-Game mở ở dạng cửa sổ 1600×900. Bấm **F11** (hoặc Alt+Enter) để chuyển sang toàn màn hình.
+Game mở ở dạng cửa sổ 1600×900. Có 3 ngôn ngữ **Tiếng Việt / English / 中文** (nút *Language* góc trên phải ở menu và màn tạm dừng). Bấm **F11** (hoặc Alt+Enter) để chuyển sang toàn màn hình.
 Lần chơi đầu có **hướng dẫn** tự hiện đúng lúc; muốn xem lại thì bấm "Xem lại hướng dẫn" ở menu.
 
 | Phím | Chức năng |
@@ -74,5 +74,7 @@ Tài liệu thiết kế: `docs/DESIGN.md`. Chuẩn bị phát hành Steam / Goo
 Đo cân bằng nhiều bot song song: `bash tools/probe.sh "ten|-char 0 -kiep 2 -meta 2 -smart" ...` (kết quả trong `Logs/probe/`).
 
 ## Bản quyền asset
-Đồ hoạ và âm thanh từ **Kenney.nl** (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. License nằm ở `Assets/ThirdParty/`.
+- **Nhân vật, yêu ma và boss**: vẽ bằng **PixelLab** (https://www.pixellab.ai), nằm ở `Assets/Resources/PixelLab/`. Công cụ và prompt của từng hình được ghi ở `Assets/ThirdParty/PixelLab-Assets.md`.
+- **Vũ khí, pháp bảo, nền, tường và âm thanh**: từ **Kenney.nl** (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. License nằm ở `Assets/ThirdParty/`.
+- **Chữ Hán** (bản 中文): dùng font có sẵn trong hệ điều hành (Microsoft YaHei / Noto Sans CJK…), game không kèm file font nào.
 Nhạc nền được tổng hợp bằng code (`Synth`).

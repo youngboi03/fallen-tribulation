@@ -69,7 +69,7 @@ namespace VK
         public static Text Txt(Transform p, string s, int size, Color c, TextAnchor a = TextAnchor.MiddleCenter, FontStyle st = FontStyle.Normal, bool shadow = true)
         {
             var rt = R(p, "txt");
-            var t = rt.gameObject.AddComponent<Text>();
+            var t = rt.gameObject.AddComponent<LocText>();
             t.font = Res.Font;
             t.text = s;
             t.fontSize = size;

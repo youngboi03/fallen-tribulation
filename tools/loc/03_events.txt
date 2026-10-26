@@ -1,0 +1,98 @@
+# vi | en | zh   — encounters (Kỳ Ngộ) and their results
+Ma Đạo Truyền Thừa|Demonic Inheritance|魔道传承
+Trong hang tối, một bộ hài cốt ôm cuốn ma công. Huyết khí cuồn cuộn mời gọi.|In a dark cave a skeleton clutches a demonic manual. Blood qi surges, beckoning you.|幽暗洞中，一具骸骨怀抱魔功秘籍。血气翻涌，似在召唤。
+Tu luyện ma công|Practise the demonic art|修炼魔功
+Thiêu hủy ma công|Burn the demonic art|焚毁魔功
+Linh Tuyền|Spirit Spring|灵泉
+Một dòng suối linh khí trong vắt chảy giữa khe đá.|A crystal-clear spring of qi flows between the rocks.|一道清澈的灵气泉水在石缝间流淌。
+Tắm suối|Bathe in the spring|沐浴灵泉
+Uống nước suối|Drink from the spring|饮用泉水
+Đóng bình mang theo|Bottle it to take along|装瓶带走
+Đổ Thạch|Stone Gambling|赌石
+Lão thương nhân bày những khối nguyên thạch:|An old merchant lays out raw ore stones:|老商人摆出一块块原石：
+Mở ra là gì, tùy cơ duyên của đạo hữu.|What lies inside depends on your fortune, fellow Daoist.|开出什么，全凭道友机缘。
+Mua khối nhỏ|Buy a small stone|买小块
+Mua khối lớn|Buy a large stone|买大块
+Không đánh bạc|Don't gamble|不赌
+Đá vụn. Lần sau may mắn hơn.|Rubble. Better luck next time.|碎石。下次好运。
+Chỉ là đá vụn... Đạo tâm ngươi rung động.|Only rubble... your Dao heart trembles.|只是碎石……你的道心动摇了。
+Kiếm Trủng|Sword Tomb|剑冢
+Vạn thanh kiếm cắm trên núi hoang, kiếm ý ngút trời.|Ten thousand swords pierce a barren mountain, their intent soaring to the heavens.|万剑插于荒山，剑意冲天。
+Rút một thanh kiếm|Draw a sword|拔出一把剑
+Lĩnh ngộ kiếm ý|Comprehend the sword intent|领悟剑意
+Bái lạy rồi đi|Bow and leave|拜别离去
+Tâm Ma Kiếp|Inner Demon Tribulation|心魔劫
+Bóng hình của chính ngươi hiện ra, cười lạnh:|Your own shadow appears and sneers:|你自己的身影浮现，冷笑道：
+Ngươi dám đối mặt với ta?|Dare you face me?|你敢面对我吗？
+Chém tâm ma|Slay the inner demon|斩心魔
+Tĩnh tọa|Meditate|静坐
+Tiên Nhân Chỉ Lộ|An Immortal Shows the Way|仙人指路
+Một lão tiên ông cưỡi hạc ghé xuống:|An old immortal riding a crane lands beside you:|一位老仙翁乘鹤而降：
+Tiểu tử có căn cốt, lão phu chỉ cho một đường.|You have good bones, youngster. Let this old man show you a path.|小子有根骨，老夫为你指一条路。
+Thân pháp|Footwork|身法
+Thần thức|Divine sense|神识
+Nhãn lực|Keen eyes|眼力
+Linh Thú Trứng|Spirit Beast Egg|灵兽蛋
+Một quả trứng ấm áp nằm trong tổ chim bỏ hoang, linh khí dao động.|A warm egg lies in an abandoned nest, its qi stirring.|一枚温热的蛋躺在废弃的鸟巢中，灵气波动。
+Ấp trứng|Hatch the egg|孵蛋
+Ăn trứng|Eat the egg|吃掉蛋
+Đem bán|Sell it|拿去卖
+Huyết Tế Đàn|Blood Altar|血祭坛
+Tế đàn cổ đòi hỏi máu tươi. Đổi lại, nó ban phát sức mạnh.|The ancient altar demands fresh blood. In return, it grants power.|古老祭坛索要鲜血，作为回报，它赐予力量。
+Hiến máu|Offer blood|献血
+Hiến linh thạch|Offer Spirit Stones|献灵石
+Lò Luyện Đan|Alchemy Furnace|炼丹炉
+Một lò đan còn ấm, bên trong vương lại vài viên đan dược chưa thành hình.|A still-warm furnace holds a few half-formed pills.|一座尚温的丹炉，里面残留着几颗未成形的丹药。
+Nuốt đan dở|Swallow the half-made pills|吞下半成丹
+Luyện tiếp|Keep refining|继续炼制
+Luyện hoá|Refine|炼化
+Cổ Mộ|Ancient Tomb|古墓
+Một ngôi mộ cổ của tiên nhân. Cấm chế đã yếu, nhưng vẫn còn sát khí.|An immortal's ancient tomb. Its seals are weak, but killing intent lingers.|一座仙人古墓。禁制已弱，但杀气犹存。
+Mở quan tài|Open the coffin|开棺
+Rời đi|Leave|离开
+Không có gì xảy ra.|Nothing happens.|什么也没发生。
+Ngươi lặng lẽ rời đi.|You leave quietly.|你悄然离去。
+Luận Đạo|Discourse on the Dao|论道
+Một lão tăng ngồi dưới gốc bồ đề, mỉm cười mời ngươi luận đạo.|An old monk under a bodhi tree smiles and invites you to discuss the Dao.|一位老僧坐于菩提树下，微笑邀你论道。
+Luận đạo ba ngày|Debate for three days|论道三日
+Xin chút lộ phí|Ask for travel money|讨些盘缠
+Tâm cảnh thăng hoa: +2 cấp!|Your mind ascends: +2 levels!|心境升华：+2级！
+Thiên Tài Địa Bảo|Heavenly Treasure|天材地宝
+Một gốc linh thảo ngàn năm toả hương giữa vách núi.|A thousand-year spirit herb blooms fragrantly on the cliff.|一株千年灵草在崖壁间散发清香。
+Trồng lại|Replant it|移栽
+Linh Mạch|Spirit Vein|灵脉
+Dưới chân núi, một mạch linh thạch lộ thiên toả ánh lam nhạt.|At the foot of the mountain an exposed spirit-stone vein glows pale blue.|山脚下，一条裸露的灵石矿脉泛着淡蓝光芒。
+Hấp thu linh khí|Absorb the qi|吸收灵气
+Khai thác|Mine it|开采
+Ma Tu Phục Kích|Demonic Ambush|魔修伏击
+Ba tà tu chặn đường:|Three rogue cultivators block the road:|三名邪修拦路：
+Để lại bảo vật, tha cho ngươi một mạng!|Leave your treasures and we'll spare your life!|留下宝物，饶你一命！
+Nghênh chiến|Fight|迎战
+Nộp tiền mãi lộ|Pay the toll|交买路钱
+Mất 20 linh thạch|Lose 20 Spirit Stones|失去20灵石
+Thoát thân an toàn.|You escape safely.|安全脱身。
+Bỏ chạy|Flee|逃跑
+Thần Binh Các|Divine Armory|神兵阁
+Lão thợ rèn mù gõ búa:|A blind old smith strikes his hammer:|盲眼老铁匠敲着锤子：
+Đưa ta một món binh khí, ta trả lại ngươi thần binh.|Give me a weapon and I'll return you a divine one.|给我一件兵器，我还你一件神兵。
+Rèn lại|Reforge|重铸
+Nâng 1 vũ khí ngẫu nhiên lên một phẩm|Upgrade 1 random weapon by one grade|随机1把武器提升一品
+Học nghề|Learn the craft|学艺
+Song Tu Đạo Lữ|Dao Companion|双修道侣
+Một nữ tu mời ngươi cùng luận kiếm dưới trăng.|A female cultivator invites you to spar under the moon.|一位女修邀你月下论剑。
+Luận kiếm|Spar|论剑
+Cùng tu luyện|Cultivate together|共同修炼
+Không còn bảo vật — nhận 30 linh thạch.|No treasures left — gain 30 Spirit Stones.|已无宝物——获得30灵石。
+Nhận vũ khí Kiếm phẩm Linh (cần ô trống|Gain a Spirit-grade Sword weapon (needs a free slot|获得灵品剑道武器(需要空栏位
+Nhận pháp bảo Huyền phẩm|Gain a Mystic-grade treasure|获得玄品法宝
+Nhận được|Received|获得
+pháp bảo Huyền phẩm. Còn lại: đá vụn|Mystic-grade treasure. Otherwise: rubble|玄品法宝。否则：碎石
+pháp bảo Linh phẩm|Spirit-grade treasure|灵品法宝
+pháp bảo Tiên phẩm|Immortal-grade treasure|仙品法宝
+Pháp bảo|Treasure|法宝
+nhận pháp bảo Huyền phẩm|gain a Mystic-grade treasure|获得玄品法宝
+đoạt 2 pháp bảo Linh phẩm|seize 2 Spirit-grade treasures|夺得2件灵品法宝
+lần lên cấp|level-ups|次升级
+lên phẩm|rises to grade|提升至
+Còn lại: đá vụn|Otherwise: rubble|否则：碎石
+đá vụn|rubble|碎石

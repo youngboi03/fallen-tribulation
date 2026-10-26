@@ -22,7 +22,7 @@ namespace VK
             hero = new GameObject("body").AddComponent<SpriteRenderer>();
             hero.transform.SetParent(h.transform, false);
             hero.transform.localScale = Vector3.one * 1.6f;
-            int[] pool = { 123, 120, 108, 122, 121, 124, 111, 110 };
+            int[] pool = { Res.Px.HuyetThu, Res.Px.MaBuc, Res.Px.DocTrung, Res.Px.DocChu, Res.Px.OanHon, Res.Px.ThietBoiThu, Res.Px.TaTu, Res.Px.HoaMa, Res.Px.BaoHon };
             for (int i = 0; i < 9; i++)
             {
                 var go = new GameObject("menuWalker");

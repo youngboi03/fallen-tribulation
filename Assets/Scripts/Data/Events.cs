@@ -53,7 +53,7 @@ namespace VK
 
         public static readonly List<EventDef> All = new List<EventDef>
         {
-            new EventDef { id="ma_dao", title="Ma Đạo Truyền Thừa", sprite=111,
+            new EventDef { id="ma_dao", title="Ma Đạo Truyền Thừa", sprite=Res.Px.TaTu,
                 text="Trong hang tối, một bộ hài cốt ôm cuốn ma công. Huyết khí cuồn cuộn mời gọi.",
                 options=new[]{
                     new EventOption{ label="Tu luyện ma công", desc="+20% Sát Thương, -6 Sinh Lực", apply=r=>Perm(r, M(Stat.Damage,20), M(Stat.MaxHP,-6)) },
@@ -80,12 +80,12 @@ namespace VK
                         apply=r=>{ var pool=Content.Weapons.FindAll(w=>w.HasTag(Tag.Kiem)); var w0=pool[UnityEngine.Random.Range(0,pool.Count)]; r.AddWeapon(w0,1); return "Nhận <color=#5BC0FF>"+w0.name+" (Linh)</color>!"; } },
                     new EventOption{ label="Lĩnh ngộ kiếm ý", desc="+12% Cận Chiến, +4% Bạo Kích", apply=r=>Perm(r, M(Stat.Melee,12), M(Stat.Crit,4)) },
                     Leave() } },
-            new EventDef { id="tam_ma", title="Tâm Ma Kiếp", sprite=121,
+            new EventDef { id="tam_ma", title="Tâm Ma Kiếp", sprite=Res.Px.AnhSat,
                 text="Bóng hình của chính ngươi hiện ra, cười lạnh: \"Ngươi dám đối mặt với ta?\"",
                 options=new[]{
                     new EventOption{ label="Chém tâm ma", desc="+2 lần lên cấp, -4 Sinh Lực", apply=r=>{ for (int k=0;k<2;k++){ r.level++; r.pendingLevels++; Game.I.OnLevelUp(r.level); } Perm(r, M(Stat.MaxHP,-4)); return "Tâm cảnh thăng hoa: +2 cấp!"; } },
                     new EventOption{ label="Tĩnh tọa", desc="+2 Hộ Giáp, +5% Né Tránh", apply=r=>Perm(r, M(Stat.Armor,2), M(Stat.Dodge,5)) } } },
-            new EventDef { id="tien_nhan", title="Tiên Nhân Chỉ Lộ", sprite=84,
+            new EventDef { id="tien_nhan", title="Tiên Nhân Chỉ Lộ", sprite=Res.Px.DanTu,
                 text="Một lão tiên ông cưỡi hạc ghé xuống: \"Tiểu tử có căn cốt, lão phu chỉ cho một đường.\"",
                 options=new[]{
                     new EventOption{ label="Thân pháp", desc="+15% Tốc Đánh", apply=r=>Perm(r, M(Stat.AtkSpeed,15)) },
@@ -115,7 +115,7 @@ namespace VK
                     new EventOption{ label="Mở quan tài", desc="50%: pháp bảo Tiên phẩm. 50%: -8 Sinh Lực",
                         apply=r=> UnityEngine.Random.value < 0.5f + r.stats[Stat.Luck]/500f ? GiveItem(r,3) : Perm(r, M(Stat.MaxHP,-8)) },
                     new EventOption{ label="Bái lạy rồi đi", desc="+8 Cơ Duyên", apply=r=>Perm(r, M(Stat.Luck,8)) } } },
-            new EventDef { id="luan_dao", title="Luận Đạo", sprite=86,
+            new EventDef { id="luan_dao", title="Luận Đạo", sprite=Res.Px.TheTu,
                 text="Một lão tăng ngồi dưới gốc bồ đề, mỉm cười mời ngươi luận đạo.",
                 options=new[]{
                     new EventOption{ label="Luận đạo ba ngày", desc="+1 cấp", apply=r=>GainLevel(r,1) },
@@ -131,7 +131,7 @@ namespace VK
                 options=new[]{
                     new EventOption{ label="Hấp thu linh khí", desc="+1 cấp", apply=r=>GainLevel(r,1) },
                     new EventOption{ label="Khai thác", desc="+40 linh thạch", apply=r=>{ r.gold+=40; return "+40 linh thạch"; } } } },
-            new EventDef { id="phuc_kich", title="Ma Tu Phục Kích", sprite=111,
+            new EventDef { id="phuc_kich", title="Ma Tu Phục Kích", sprite=Res.Px.TaTu,
                 text="Ba tà tu chặn đường: \"Để lại bảo vật, tha cho ngươi một mạng!\"",
                 options=new[]{
                     new EventOption{ label="Nghênh chiến", desc="-6 Sinh Lực, đoạt 2 pháp bảo Linh phẩm",
@@ -146,7 +146,7 @@ namespace VK
                                    return w0.def.name+" lên phẩm <color="+Content.TierHex(w0.tier)+">"+Content.TierName[w0.tier]+"</color>!"; } },
                     new EventOption{ label="Học nghề", desc="+10% Tầm Đánh, +5% Bạo Kích", apply=r=>Perm(r, M(Stat.Range,10), M(Stat.Crit,5)) },
                     Leave() } },
-            new EventDef { id="dao_lu", title="Song Tu Đạo Lữ", sprite=99,
+            new EventDef { id="dao_lu", title="Song Tu Đạo Lữ", sprite=Res.Px.PhuTu,
                 text="Một nữ tu mời ngươi cùng luận kiếm dưới trăng.",
                 options=new[]{
                     new EventOption{ label="Luận kiếm", desc="+5% Né Tránh, +6% Tốc Đánh", apply=r=>Perm(r, M(Stat.Dodge,5), M(Stat.AtkSpeed,6)) },
