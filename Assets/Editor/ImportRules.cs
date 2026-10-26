@@ -5,17 +5,18 @@ namespace VK.EditorTools
 {
     /// <summary>
     /// Pixel-art sprites → point-filtered, uncompressed, sized to one world unit:
-    /// Kenney 16px tiles at 16 PPU, PixelLab 48px characters/monsters at 48 PPU, 96px bosses at 96 PPU.
+    /// Kenney 16px tiles at 16 PPU, PixelLab 48px characters/monsters at 48 PPU, 96px bosses at 96 PPU, 40px icons at 40 PPU.
     /// </summary>
     public class ImportRules : AssetPostprocessor
     {
-        public override uint GetVersion() => 3;
+        public override uint GetVersion() => 4;
 
         void OnPreprocessTexture()
         {
             int ppu;
             if (assetPath.StartsWith("Assets/Resources/Tiles")) ppu = 16;
             else if (assetPath.StartsWith("Assets/Resources/PixelLab/Bosses")) ppu = 96;
+            else if (assetPath.StartsWith("Assets/Resources/PixelLab/Icons")) ppu = 40;
             else if (assetPath.StartsWith("Assets/Resources/PixelLab")) ppu = 48;
             else return;
             var ti = (TextureImporter)assetImporter;

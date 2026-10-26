@@ -21,6 +21,15 @@ namespace VK
         public static string TagHex(Tag t) => "#" + ColorUtility.ToHtmlStringRGB(TagColor[(int)t]);
 
         public static readonly string[] RealmName = { "Luyện Khí", "Trúc Cơ", "Kim Đan", "Nguyên Anh", "Hóa Thần", "Luyện Hư" };
+        /// <summary>Swap weapon/treasure icons for the PixelLab redraws (Resources/PixelLab/Icons) where they exist.</summary>
+        public static void ApplyIcons()
+        {
+            for (int i = 0; i < Weapons.Count; i++)
+                if (Res.RegisterPixelLab(400 + i, "Icons/w_" + Weapons[i].id, Weapons[i].sprite)) { Weapons[i].sprite = 400 + i; Weapons[i].tint = Color.white; }
+            for (int i = 0; i < Items.Count; i++)
+                if (Res.RegisterPixelLab(500 + i, "Icons/i_" + Items[i].id, Items[i].sprite)) { Items[i].sprite = 500 + i; Items[i].tint = Color.white; }
+        }
+
         public static string Realm(int level)
         {
             int r = Mathf.Min(level / 10, RealmName.Length - 1);

@@ -81,7 +81,7 @@ namespace VK
         void Orient()
         {
             if (look == ProjLook.Point && !hostile)
-                sr.transform.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(vel.y, vel.x) * Mathf.Rad2Deg - 90f);
+                sr.transform.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(vel.y, vel.x) * Mathf.Rad2Deg - (src != null ? Res.SpriteAngle(src.def.sprite) : 90f));
         }
 
         void Update()

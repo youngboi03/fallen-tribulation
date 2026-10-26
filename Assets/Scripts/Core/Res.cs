@@ -37,6 +37,18 @@ namespace VK
             { Px.Boss4, ("Bosses/b4", 111) }, { Px.Boss1b, ("Bosses/b1b", 120) }, { Px.Boss2b, ("Bosses/b2b", 122) },
         };
 
+        /// <summary>Points sprite id <paramref name="id"/> at a PixelLab file if it exists; true when it does.</summary>
+        public static bool RegisterPixelLab(int id, string path, int fallback)
+        {
+            if (Resources.Load<Sprite>("PixelLab/" + path) == null) return false;
+            pixelLab[id] = (path, fallback);
+            tiles.Remove(id);
+            return true;
+        }
+
+        /// <summary>Direction the art of sprite <paramref name="id"/> points, in degrees: Kenney weapons point up, PixelLab icons (400-599) to the upper right.</summary>
+        public static float SpriteAngle(int id) => id >= 400 && id < 600 ? 45f : 90f;
+
         public static Sprite Tile(int i)
         {
             if (tiles.TryGetValue(i, out var s)) return s;

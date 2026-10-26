@@ -61,6 +61,7 @@ namespace VK
 
             bool auto = Array.IndexOf(Environment.GetCommandLineArgs(), "-autotest") >= 0;
             if (auto) { SaveData.Key = "vk_save_autotest"; PlayerPrefs.DeleteKey(SaveData.Key); }
+            Content.ApplyIcons();
             save = SaveData.Load();
             if (save.lang < 0) { save.lang = save.runs > 0 ? Loc.VI : Loc.SystemDefault(); save.Save(); }   // existing players keep Vietnamese
             Loc.SetLang(save.lang);

@@ -90,7 +90,7 @@ namespace VK
             glowSr.color = Color.clear;
         }
 
-        void SetRot(Vector2 d) => tf.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - 90f);
+        void SetRot(Vector2 d) => tf.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - Res.SpriteAngle(def.sprite));
 
         static float EaseOut(float k) => 1f - (1f - k) * (1f - k);
         static float EaseIn(float k) => k * k;
@@ -149,7 +149,7 @@ namespace VK
                     a0 = pos;
                     a1 = pos + dir * Mathf.Min(d.magnitude, rng);
                     anim = 3; at = 0; adur = 0.15f;
-                    spinBase = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
+                    spinBase = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - Res.SpriteAngle(def.sprite);
                     Sfx.Play("swing", 0.3f, 0.1f, 0.75f);
                     break;
                 }
