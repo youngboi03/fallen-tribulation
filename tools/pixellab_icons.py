@@ -1,5 +1,5 @@
 """Generate one PixelLab icon per weapon/item from tools/icons.json via the REST API (sequential, resumable).
-Tokens come from the environment: PIXELLAB_API_TOKEN first, then PIXELLAB_API_TOKEN_2 once the first runs out.
+Tokens come from the environment: PIXELLAB_API_TOKEN first, then _2, _3 once the previous runs out.
 Output: Assets/Resources/PixelLab/Icons/w_<id>.png / i_<id>.png, provenance appended to Assets/ThirdParty/PixelLab-Assets.md.
 Usage: python -I tools/pixellab_icons.py [size]"""
 import base64, json, os, sys, time, urllib.error, urllib.request
@@ -8,7 +8,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'Assets', 'Resources', 'PixelLab', 'Icons')
 LOG = os.path.join(ROOT, 'Assets', 'ThirdParty', 'PixelLab-Assets.md')
 SIZE = int(sys.argv[1]) if len(sys.argv) > 1 else 40
-tokens = [t for t in (os.environ.get('PIXELLAB_API_TOKEN'), os.environ.get('PIXELLAB_API_TOKEN_2')) if t]
+tokens = [t for t in (os.environ.get(n) for n in ('PIXELLAB_API_TOKEN', 'PIXELLAB_API_TOKEN_2', 'PIXELLAB_API_TOKEN_3')) if t]
 cfg = json.load(open(os.path.join(ROOT, 'tools', 'icons.json'), encoding='utf-8'))
 jobs = [('w_' + k, v + cfg['style_weapon']) for k, v in cfg['weapons'].items()] + \
        [('i_' + k, v + cfg['style_item']) for k, v in cfg['items'].items()]
