@@ -151,6 +151,7 @@ namespace VK
                 var pl = Game.I.player;
                 if (Vector2.Distance(pos, pl.Pos) < radius + pl.radius * 0.8f)
                 {
+                    if (Skills.TryBlockBullet(pos)) { Kill(); return; }
                     bool wasDashing = pl.IsDashing;
                     pl.Hurt(dmg, pos);
                     if (!wasDashing) Kill();

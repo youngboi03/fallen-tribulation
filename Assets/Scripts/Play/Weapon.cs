@@ -273,6 +273,7 @@ namespace VK
             if (w.def.freeze > 0 && Random.value < w.def.freeze) e.Freeze(1.2f);
             Vector2 ePos = e.Pos;
             e.Damage(d, crit, dir, w.def.knock, w);
+            if (crit) Skills.OnWeaponCrit();
             if (Random.value * 100f < run.stats[Stat.Lifesteal] + (run.riteT > 0 ? Skills.RiteLifesteal : 0f)) Game.I.player.Heal(1);
             if (crit && run.Has("loi_linh_chau"))
             {

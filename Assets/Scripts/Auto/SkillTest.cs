@@ -351,6 +351,62 @@ namespace VK
             Check("son_bang", ok, dbg);
         }
 
+        // ---------------------------------------------------------------- signature cards: Phù / Ma / Lôi (Task 10)
+        void Tough(IEnumerable<Enemy> es) { foreach (var e in es) { e.hp = 1e9f; e.maxHp = 1e9f; } }
+
+        IEnumerator T_sig2_phu()
+        {
+            yield return Arena(3, 10, 0, "han_bang"); var p = Game.I.player;
+            var pk = Pack(3, 2f, 3f); Tough(pk); p.SetSkillReady(); p.TryCast(); yield return new WaitForSeconds(3.5f);
+            Check("han_bang", pk[0].Frozen, "");
+            yield return Arena(3, 10, 0, "ho_than"); var r = Game.I.run; p = Game.I.player; p.god = false;
+            yield return new WaitForSeconds(1.2f);   // wave-start grace
+            p.SetSkillReady(); p.TryCast(); float hp0 = r.hp;
+            for (int i = 0; i < 3; i++) { float a = i * 2.0944f; Projectile.FireHostile(p.Pos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 3f, new Vector2(-Mathf.Cos(a), -Mathf.Sin(a)) * 6f, 5f, Color.red); }
+            yield return new WaitForSeconds(1.5f);
+            Check("ho_than", Mathf.Approximately(r.hp, hp0) && Projectile.CountHostile() == 0 && Skills.Talismans == 0, r.hp + "/" + hp0 + " hostile " + Projectile.CountHostile() + " talismans " + Skills.Talismans);
+            yield return Arena(3, 10, 0, "truy_hon"); p = Game.I.player;
+            var two = Pack(2, 2f, 3f); Tough(two); two[0].SkillFreeze(3f, 1.3f); two[0].hp = 1f; two[0].Damage(10f, false, Vector2.zero, 0f, null);
+            yield return new WaitForSeconds(1f);
+            Check("truy_hon", Dmg("phu_truyhon") > 0f && two[1].SkillFrozen, Dmg("phu_truyhon").ToString("0") + " " + two[1].SkillFrozen);
+        }
+
+        IEnumerator T_sig2_ma()
+        {
+            yield return Arena(4, 10, 0, "huyet_hai"); var r = Game.I.run; var p = Game.I.player;
+            float before = r.hp; p.SetSkillReady(); p.TryCast();
+            Check("huyet_hai", Mathf.Abs(r.riteT - 8f) < 0.05f && Mathf.Abs((before - r.hp) - before * 0.25f) <= 1f, r.riteT + " hp " + before + "->" + r.hp);
+            yield return Arena(4, 10, 0, "thi_huyet"); r = Game.I.run; p = Game.I.player;
+            r.hp = r.MaxHP * 0.5f; p.SetSkillReady(); p.TryCast(); float h0 = r.hp;
+            foreach (var e in Pack(3, 2f, 3f)) e.Damage(e.hp + 1f, false, Vector2.zero, 0f, null);
+            Check("thi_huyet", Mathf.Abs(r.hp - (h0 + 0.03f * r.MaxHP)) <= 0.5f, r.hp + " vs " + (h0 + 0.03f * r.MaxHP));
+            yield return Arena(4, 10, 0, "huyet_anh"); p = Game.I.player;
+            var el = Elite(new Vector2(3, 0)); el.hp = 1e9f; el.maxHp = 1e9f; p.SetSkillReady(); p.TryCast(); yield return new WaitForSeconds(2.2f);
+            Check("huyet_anh", Dmg("ma_shadow") > 0f, Dmg("ma_shadow").ToString("0"));
+        }
+
+        IEnumerator T_sig2_loi()
+        {
+            yield return Arena(5, 10, 0, "loi_dinh"); var p = Game.I.player;
+            var pk = Pack(10, 2f, 6f); Tough(pk); p.SetSkillReady(); p.TryCast(); int strikes = Skills.LastStrikes;
+            yield return new WaitForSeconds(1.9f);
+            Check("loi_dinh", strikes == 5 && pk.Exists(e => !e.dead && e.Frozen), strikes + " strikes");
+            yield return Arena(5, 10, 0, "loi_linh"); p = Game.I.player;
+            p.SetSkillReady(); p.TryCast(); yield return new WaitForSeconds(0.4f);   // the bolts have thrown nothing out of range; a crowd then steps into the ring
+            var ring = Pack(6, 0.8f, 1.4f); Tough(ring);
+            for (int i = 0; i < 30; i++)
+            {   // enemies shove each other apart, so hold the crowd inside the ring for 1.5 s
+                foreach (var e in ring) { Vector2 rel = e.Pos - p.Pos; e.transform.position = p.Pos + rel.normalized * Mathf.Min(rel.magnitude, 1.2f); }
+                yield return new WaitForSeconds(0.05f);
+            }
+            Check("loi_linh", Dmg("loi_aura") > 0f, Dmg("loi_aura").ToString("0"));
+            yield return Arena(5, 10, 0, "tich_loi"); p = Game.I.player; p.SetSkillReady(); p.TryCast(); float cd0 = p.SkillCdLeft;
+            for (int i = 0; i < 3; i++) Skills.OnWeaponCrit();
+            Check("tich_loi_3", Mathf.Abs(cd0 - p.SkillCdLeft - 0.9f) < 0.02f, (cd0 - p.SkillCdLeft).ToString("0.00"));
+            for (int i = 0; i < 20; i++) Skills.OnWeaponCrit();
+            Check("tich_loi_cap", Mathf.Abs(cd0 - p.SkillCdLeft - 4f) < 0.02f, (cd0 - p.SkillCdLeft).ToString("0.00"));
+        }
+
         // ---------------------------------------------------------------- Ngộ Đạo (Task 8)
         IEnumerator T_nd_roll()
         {

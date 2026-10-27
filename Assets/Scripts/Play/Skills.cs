@@ -10,7 +10,10 @@ namespace VK
         public static bool LastHitCrit;
         public static int CastCount, LastStrikes;
         public static Enemy LastBigTarget;
-        static float riteExt, tuKhiAcc;
+        static float riteExt, tuKhiAcc, tichLoiAcc;
+        /// <summary>Hộ Thân Phù: talismans left to catch enemy bullets.</summary>
+        public static int Talismans;
+        static int talismanGen;
 
         public static string FormName(CharDef c, int stage) => stage <= 0 || c.forms == null || stage > c.forms.Length ? c.skill : c.forms[stage - 1].name;
 
@@ -149,6 +152,28 @@ namespace VK
         public static void OnWaveStart(RunState r)
         {
             r.guardUsed = false; r.hoMenhUsed = false; r.kiemKhi = 0; r.linhLung = 0;
+            Talismans = 0; talismanGen++;
+        }
+
+        /// <summary>Tích Lôi: every weapon crit shaves 0.3 s off the skill cooldown, 4 s per cooldown cycle.</summary>
+        public static void OnWeaponCrit()
+        {
+            var run = Game.I.run;
+            if (run == null || !run.HasCard("tich_loi") || tichLoiAcc >= 4f || Game.I.player == null) return;
+            float g = Mathf.Min(0.3f, 4f - tichLoiAcc); tichLoiAcc += g;
+            Game.I.player.ReduceSkillCd(g);
+            Fx.Burst(Game.I.player.Pos, new Color(0.75f, 0.85f, 1f), 3, 4f, 0.1f, 0.25f, true);
+        }
+
+        /// <summary>Hộ Thân Phù: an enemy bullet reaching the hero is caught by one of the orbiting talismans.</summary>
+        public static bool TryBlockBullet(Vector2 at)
+        {
+            if (Talismans <= 0) return false;
+            Talismans--;
+            Fx.Burst(at, new Color(0.6f, 0.95f, 1f), 8, 4f, 0.12f, 0.3f, true);
+            Fx.Ring(at, new Color(0.6f, 0.95f, 1f), 0.1f, 0.7f, 0.25f);
+            Sfx.Play("pluck", 0.4f, 0.05f, 1.6f);
+            return true;
         }
 
         /// <summary>Called by Enemy.Die before the enemy goes away.</summary>
@@ -162,6 +187,25 @@ namespace VK
                 Game.I.player.ReduceSkillCd(g);
                 Vector2 from = e.Pos, to = Game.I.player.Pos;
                 Fx.Particle(from, (to - from).normalized * 7f, new Color(0.6f, 1f, 0.9f, 0.9f), new Color(0.6f, 1f, 0.9f, 0f), 0.1f, 0.03f, 0.35f, Res.Glow, true, 0f);
+            }
+            if (run.HasCard("thi_huyet") && run.riteT > 0f && Game.I.player != null)
+            {   // Thị Huyết: every kill during the rite heals 1% max HP
+                Game.I.player.Heal(run.MaxHP * 0.01f);
+                Fx.Particle(e.Pos, (Game.I.player.Pos - e.Pos).normalized * 7f, new Color(1f, 0.2f, 0.3f, 0.9f), new Color(1f, 0.2f, 0.3f, 0f), 0.1f, 0.03f, 0.35f, Res.Glow, true, 0f);
+            }
+            if (run.HasCard("truy_hon") && e.SkillFrozen)
+            {   // Truy Hồn Phù: a skill-frozen enemy that dies sends a talisman after the nearest enemy (it freezes as a skill freeze, so it can chain)
+                var next = Enemy.Nearest(e.Pos, 6f, new HashSet<Enemy> { e });
+                if (next != null)
+                {
+                    var shot = new SkillShot
+                    {
+                        src = "phu_truyhon", coef = SkillNum.PhuHit * 0.6f, speed = 14f, life = 1.5f, radius = 0.3f, homing = true, homingRange = 12f,
+                        freeze = 1f, freezeBonus = run.skillStage >= 3 ? SkillNum.PhuBonus4 : SkillNum.PhuBonus, sprite = Res.Tile(66), spriteAngle = 90f,
+                        col = new Color(0.5f, 0.9f, 1f), tint = Color.white, look = ProjLook.Point
+                    };
+                    Projectile.FireSkill(shot, e.Pos, next.Pos - e.Pos);
+                }
             }
             if (run.skillStage >= 2 && run.ch.id == "ma_tu" && run.riteT > 0f && riteExt < SkillNum.MaExtendMax)
             {
@@ -205,13 +249,13 @@ namespace VK
                 case "kiem_tu": CastKiem(p, r, pos, k, st, rt); break;
                 case "dan_tu": CastDan(p, r, pos, k, st, rt, echo); break;
                 case "the_tu": CastThe(p, r, pos, k, st, rt, echo); break;
-                case "phu_tu": CastPhu(p, r, pos, k, st); break;
+                case "phu_tu": CastPhu(p, r, pos, k, st, rt, echo); break;
                 case "loi_tu": CastLoi(p, r, pos, k, st, rt); break;
                 case "ma_tu": CastMa(p, r, pos, k, st, rt, echo); break;
             }
             if (echo) return;
             SkillFx.Ladder(st, pos, r.ch.skillColor);
-            tuKhiAcc = 0f;   // a new cooldown cycle starts
+            tuKhiAcc = 0f; tichLoiAcc = 0f;   // a new cooldown cycle starts
             Color c = r.ch.skillColor;
             if (rt != null && r.HasCard("du_ba"))
             {   // Dư Ba: weapons glow in the skill color and attack 35% faster for 4 s (WeaponInst.Cooldown / Tick)
@@ -446,15 +490,16 @@ namespace VK
         }
 
         // ---------------------------------------------------------------- Phù Tu
-        static void CastPhu(Player p, RunState r, Vector2 pos, float k, int st)
+        static void CastPhu(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt, bool echo)
         {
+            float chill = r.HasCard("han_bang") ? 1.5f : 0f;   // Hàn Băng Phù: the ice lasts 1.5 s longer
             float rad = st >= 3 ? SkillNum.PhuR4 : SkillNum.PhuR;
             float bonus = st >= 3 ? SkillNum.PhuBonus4 : SkillNum.PhuBonus;
             var list = Enemy.Snapshot();
             foreach (var e in list)
             {
                 if (e.dead || Vector2.Distance(e.Pos, pos) > rad + e.radius) continue;
-                e.SkillFreeze(SkillNum.PhuFreeze, bonus);
+                e.SkillFreeze(SkillNum.PhuFreeze + chill, bonus);
                 Hit(e, SkillNum.PhuHit * k, "phu", e.Pos - pos, 0.01f);
                 Fx.Lightning(pos, e.Pos, new Color(0.6f, 0.9f, 1f, 0.6f), 0.05f, 0.2f, 4, 0.15f);
             }
@@ -470,17 +515,33 @@ namespace VK
                     var s = new SkillShot
                     {
                         src = "phu_flyer", coef = SkillNum.PhuFlyHit * k, speed = 14f, life = 1.5f, radius = 0.3f, homing = true, homingRange = 12f,
-                        freeze = SkillNum.PhuFlyFreeze, freezeBonus = bonus, sprite = Res.Tile(66), spriteAngle = 90f,
+                        freeze = SkillNum.PhuFlyFreeze + chill, freezeBonus = bonus, sprite = Res.Tile(66), spriteAngle = 90f,
                         col = new Color(0.5f, 0.9f, 1f), tint = Color.white, look = ProjLook.Point
                     };
                     Projectile.FireSkill(s, pos, e.Pos - pos);
                 }
+            if (!echo && rt != null && r.HasCard("ho_than"))
+            {   // Hộ Thân Phù: 3 talismans circle the hero for 8 s, each catching one bullet
+                Talismans = 3; int gen = ++talismanGen; float ang = 0f;
+                rt.During(8f, 0.05f, () =>
+                {
+                    if (gen != talismanGen) return;
+                    ang += 0.05f * 3.2f;
+                    for (int i = 0; i < Talismans; i++)
+                    {
+                        float a = ang + i * 6.2832f / 3f;
+                        Vector2 tp = Game.I.player.Pos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 1.2f;
+                        Fx.Particle(tp, Vector2.zero, new Color(0.7f, 0.95f, 1f, 0.95f), new Color(0.5f, 0.9f, 1f, 0f), 0.2f, 0.12f, 0.08f, Res.Glow, true, 0f);
+                    }
+                }, () => { if (gen == talismanGen) Talismans = 0; });
+            }
         }
 
         // ---------------------------------------------------------------- Lôi Tu
         static void CastLoi(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt)
         {
-            int bolts = st >= 3 ? SkillNum.LoiBolts4 : SkillNum.LoiBolts;
+            bool storm = r.HasCard("loi_dinh");   // Lôi Đình Vạn Quân: 3 fewer bolts, each ×2 and stunning for 2 s
+            int bolts = (st >= 3 ? SkillNum.LoiBolts4 : SkillNum.LoiBolts) - (storm ? 3 : 0);
             var list = Nearest(pos, bolts, 0f, SkillNum.LoiRange);
             LastStrikes = list.Count;
             foreach (var e in list)
@@ -489,8 +550,8 @@ namespace VK
                 Fx.Lightning(ep + new Vector2(UnityEngine.Random.Range(-1f, 1f), 12f), ep, new Color(0.75f, 0.85f, 1f), 0.4f, 0.3f, 12, 0.7f);
                 Fx.Lightning(ep + new Vector2(UnityEngine.Random.Range(-1f, 1f), 12f), ep, Color.white, 0.14f, 0.2f, 12, 0.4f);
                 Fx.Ring(ep, new Color(0.7f, 0.85f, 1f), 0.2f, 1.4f, 0.3f);
-                e.Freeze(SkillNum.LoiStun);
-                Hit(e, SkillNum.LoiHit * k, "loi", ep - pos, 0.5f);
+                e.Freeze(storm ? 2f : SkillNum.LoiStun);
+                Hit(e, SkillNum.LoiHit * k * (storm ? 2f : 1f), "loi", ep - pos, 0.5f);
                 if (st >= 1) Chain(ep, e, k);
             }
             Fx.Glow(pos, new Color(0.6f, 0.8f, 1f, 0.6f), 6f, 0.3f);
@@ -498,6 +559,19 @@ namespace VK
             Fx.Hitstop(0.05f);
             Sfx.Play("zap", 1f, 0f, 0.7f, 0f);
             Sfx.Play("heavy", 0.6f, 0f, 0.9f, 0f);
+            if (r.HasCard("loi_linh") && rt != null)
+            {   // Lôi Linh Hộ Thể: for 4 s a 1.6-tile lightning ring zaps everything inside every 0.3 s
+                rt.During(4f, 0.3f, () =>
+                {
+                    Vector2 c = Game.I.player.Pos;
+                    Fx.Ring(c, new Color(0.7f, 0.85f, 1f, 0.7f), 1.3f, 1.6f, 0.3f);
+                    foreach (var e in Nearest(c, 40, 0f, 1.6f))
+                    {
+                        Fx.Lightning(c, e.Pos, new Color(0.8f, 0.9f, 1f), 0.08f, 0.12f, 5, 0.3f);
+                        Hit(e, SkillNum.LoiHit * 0.3f * k, "loi_aura", e.Pos - c, 0.2f);
+                    }
+                });
+            }
             if (st >= 2 && rt != null)
             {
                 rt.During(SkillNum.LoiFieldTime, SkillNum.LoiFieldTick, () =>
@@ -551,14 +625,41 @@ namespace VK
         }
 
         // ---------------------------------------------------------------- Ma Tu
+        /// <summary>Huyết Ảnh: once a second the blood shadow lunges 5 tiles at the nearest enemy, cutting everything on the line (×0.8 of the Ma nova).</summary>
+        static void ShadowDash(Player p, RunState r, float k)
+        {
+            if (r.riteT <= 0f || p == null) return;
+            Vector2 pp = p.Pos;
+            var near = Nearest(pp, 1, 0f, 14f);
+            if (near.Count == 0) return;
+            Vector2 dir = (near[0].Pos - pp).normalized; const float len = 5f;
+            var list = Enemy.Snapshot();
+            foreach (var e in list)
+            {
+                if (e.dead) continue;
+                Vector2 rel = e.Pos - pp;
+                float along = Vector2.Dot(rel, dir), perp = Mathf.Abs(rel.x * dir.y - rel.y * dir.x);
+                if (along < -0.2f || along > len + e.radius || perp > 0.7f + e.radius) continue;
+                Hit(e, SkillNum.MaNovaHit * 0.8f * k, "ma_shadow", dir, 2f);
+            }
+            Enemy.Release(list);
+            Color red = new Color(0.9f, 0.1f, 0.2f, 0.8f);
+            Fx.Streak(pp + dir * len * 0.5f, dir, len, red, 0.5f, 0.3f);
+            Fx.Apparition(Res.Tile(r.ch.sprite), pp + dir * len, red, 5f, 0.4f);
+            Sfx.Play("swing", 0.5f, 0.05f, 0.7f);
+        }
+
         static void CastMa(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt, bool echo)
         {
             if (echo) return;
-            float cost = Mathf.Floor(r.hp * SkillNum.MaCost);
+            bool sea = r.HasCard("huyet_hai");   // Huyết Hải Vô Biên: an 8 s rite for 25% of current HP
+            float cost = Mathf.Floor(r.hp * (sea ? 0.25f : SkillNum.MaCost));
             if (r.hp - cost < 1) cost = Mathf.Max(0, r.hp - 1);
             r.hp -= cost;
-            r.riteT = SkillNum.MaRite;
+            r.riteT = sea ? 8f : SkillNum.MaRite;
             riteExt = 0f;
+            if (r.HasCard("huyet_anh") && rt != null)
+                rt.During(r.riteT + SkillNum.MaExtendMax, 1f, () => ShadowDash(p, r, k));   // Huyết Ảnh Phân Thân
             if (cost > 0) Fx.Text(pos + Vector2.up * 0.7f, "-" + cost, new Color(1f, 0.3f, 0.3f), 1f);
             Fx.Ring(pos, new Color(0.9f, 0.1f, 0.2f), 0.3f, 3f, 0.4f);
             Fx.Burst(pos, new Color(0.9f, 0.1f, 0.2f), 30, 7f, 0.16f, 0.6f, true);
