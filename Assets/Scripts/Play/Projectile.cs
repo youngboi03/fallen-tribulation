@@ -13,6 +13,9 @@ namespace VK
         int pierce;
         WeaponInst src;
         SkillShot ss;
+        int phase;                       // 0 flying, 1 returning to the player, 2 orbiting the player
+        float orbitLeft, orbitAng;
+        Dictionary<Enemy, float> orbitHit;
         public static int SkillFired;
         public static int CountSkill() { int n = 0; foreach (var p in All) if (p != null && !p.dead && p.ss != null) n++; return n; }
         public static int CountHostile() { int n = 0; foreach (var p in All) if (p != null && !p.dead && p.hostile) n++; return n; }
@@ -108,8 +111,16 @@ namespace VK
             if (dead || !Game.I.Playing) return;
             float dt = Game.Dt;
             life -= dt;
-            if (life <= 0) { Kill(); return; }
+            if (life <= 0 && !EndFlight()) return;
             Vector2 pos = transform.position;
+            if (ss != null && phase == 2) { OrbitUpdate(dt); return; }
+            if (ss != null && phase == 1)
+            {
+                var pl2 = Game.I.player;
+                Vector2 to = pl2.Pos - pos;
+                if (to.magnitude < 0.5f) { if (!StartOrbit()) Kill(); return; }
+                vel = to.normalized * (ss.speed * 1.15f);
+            }
 
             if (homing)
             {
@@ -151,7 +162,7 @@ namespace VK
             for (int i = 0; i < list.Count; i++)
             {
                 var e = list[i];
-                if (e.dead || hits.Contains(e)) continue;
+                if (e.dead || hits.Contains(e) || (phase == 1 && pierce < 0)) continue;
                 if (((Vector2)e.transform.position - pos).sqrMagnitude < (radius + e.radius) * (radius + e.radius))
                 {
                     OnHit(e, pos);
@@ -165,10 +176,21 @@ namespace VK
             hits.Add(e);
             if (ss != null)
             {
-                Skills.Hit(e, ss.coef, ss.src, vel.normalized, 1f);
+                if (ss.blastR > 0f)
+                {
+                    Skills.Splash(pos, ss.blastR, ss.blastCoef, ss.src, 1.5f, (en, d) => ss.onHit?.Invoke(en));
+                    Fx.Ring(pos, ss.col, 0.2f, ss.blastR, 0.3f);
+                    Fx.Burst(pos, ss.col, 12, 6f, 0.14f, 0.4f, true);
+                    Sfx.Play("heavy", 0.3f, 0.2f, 1.2f);
+                    Kill();
+                    return;
+                }
+                bool back = phase == 1;
+                Skills.Hit(e, back ? ss.returnCoef : ss.coef, back ? ss.returnSrc : ss.src, vel.normalized, 1f);
                 ss.onHit?.Invoke(e);
+                if (ss.freeze > 0f && !e.dead) e.SkillFreeze(ss.freeze, ss.freezeBonus);
                 pierce--;
-                if (pierce < 0) Kill();
+                if (pierce < 0 && !back && !EndFlight()) return;
                 return;
             }
             Combat.Hit(e, src, vel.normalized);
@@ -184,6 +206,51 @@ namespace VK
             if (pierce < 0) Kill();
         }
 
+        /// <summary>Flight is over: start the return leg if the shot has one. Returns false when the shot was destroyed instead.</summary>
+        bool EndFlight()
+        {
+            if (ss != null && phase == 0 && ss.returnSrc != null)
+            {
+                phase = 1; life = 3f; pierce = 2; homing = false; hits.Clear();
+                return true;
+            }
+            Kill();
+            return false;
+        }
+
+        bool StartOrbit()
+        {
+            if (ss == null || ss.orbitTime <= 0f) return false;
+            phase = 2; orbitLeft = ss.orbitTime; life = 99f;
+            Vector2 rel = (Vector2)transform.position - Game.I.player.Pos;
+            orbitAng = Mathf.Atan2(rel.y, rel.x);
+            orbitHit = new Dictionary<Enemy, float>();
+            return true;
+        }
+
+        void OrbitUpdate(float dt)
+        {
+            orbitLeft -= dt;
+            if (orbitLeft <= 0f) { Kill(); return; }
+            orbitAng += 6.2832f * dt;
+            Vector2 pp = Game.I.player.Pos;
+            Vector2 pos = pp + new Vector2(Mathf.Cos(orbitAng), Mathf.Sin(orbitAng)) * SkillNum.KiemOrbitR;
+            transform.position = pos;
+            vel = new Vector2(-Mathf.Sin(orbitAng), Mathf.Cos(orbitAng)) * ss.speed;
+            Orient();
+            var list = Enemy.All;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var e = list[i];
+                if (e.dead) continue;
+                if (((Vector2)e.transform.position - pos).sqrMagnitude >= (radius + e.radius) * (radius + e.radius)) continue;
+                if (orbitHit.TryGetValue(e, out float last) && Time.time - last < SkillNum.KiemOrbitRehit) continue;
+                orbitHit[e] = Time.time;
+                Skills.Hit(e, ss.orbitCoef, "kiem_orbit", vel, 0.6f);
+                break;
+            }
+        }
+
         void Kill()
         {
             if (dead) return;
@@ -191,6 +258,19 @@ namespace VK
             All.Remove(this);
             Fx.Burst(transform.position, col, hostile ? 3 : 4, 3f, 0.08f, 0.2f, true);
             Destroy(gameObject);
+        }
+
+        /// <summary>Remove enemy bullets inside the circle; returns how many were removed.</summary>
+        public static int ClearHostileWithin(Vector2 p, float r)
+        {
+            int n = 0;
+            foreach (var pr in new List<Projectile>(All))
+            {
+                if (pr == null || pr.dead || !pr.hostile) continue;
+                if (Vector2.Distance(pr.transform.position, p) > r) continue;
+                pr.Kill(); n++;
+            }
+            return n;
         }
 
         public static void ClearAll(bool fx)

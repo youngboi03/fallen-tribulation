@@ -16,6 +16,27 @@ namespace VK
         public const float MaCost = 0.15f, MaRite = 5f;
         public const int LoiBolts = 8;
         public const float LoiRange = 10f, LoiHit = 2.2f, LoiStun = 1f;
+        // Kiếm Tu II-IV
+        public const float KiemReturnHit = 0.6f, KiemOrbitHit = 0.3f, KiemOrbitTime = 2f, KiemOrbitR = 1.4f, KiemOrbitRehit = 0.5f;
+        public const int KiemSwords3 = 16;
+        public const float KiemGiantHit = 4f, KiemGiantR = 3f, KiemGiantRange = 9f, KiemGiantDelay = 0.35f;
+        // Đan Tu II-IV
+        public const int DanPills = 4;
+        public const float DanPillR = 1.2f, DanPillHit = 1f, DanPillRange = 9f, DanR3 = 4.2f, DanGuardMul = 0.7f, DanGuardTime = 3f, DanFollowHit = 1.2f, DanFollowR = 4.2f;
+        // Thể Tu II-IV
+        public const float TheR2 = 3.8f, TheStun = 1f, TheFissureLen = 6f, TheFissureW = 0.9f, TheFissureHit = 1.2f, TheFissureTime = 0.3f;
+        public const float TheInvuln4 = 3f, TheAfterR = 5f, TheAfterHit = 3f;
+        // Phù Tu II-IV
+        public const float PhuBonus = 1.3f, PhuBonus4 = 1.5f, PhuR4 = 8f, PhuFlyHit = 0.5f, PhuFlyFreeze = 2f, PhuFlyRange = 12f, PhuBurstR = 1.2f, PhuBurstHit = 0.8f;
+        public const int PhuFlyers = 6;
+        // Ma Tu II-IV
+        public const float MaNovaR = 3f, MaNovaHit = 1.8f, MaNovaR4 = 4.5f, MaNovaHit4 = 3f, MaGuardTime = 1.5f, MaGuardMul = 0.6f;
+        public const float MaExtend = 0.2f, MaExtendMax = 3f, MaLifesteal = 25f, MaLifesteal4 = 40f;
+        // Lôi Tu II-IV
+        public const int LoiChainHops = 2, LoiBolts4 = 12;
+        public const float LoiChainR = 3.8f, LoiChainHit = 0.8f, LoiChainDecay = 0.85f;
+        public const float LoiFieldR = 2.5f, LoiFieldTime = 4f, LoiFieldTick = 0.4f, LoiFieldHit = 0.8f, LoiFieldStun = 0.3f;
+        public const float LoiBigHit = 5f, LoiBigDelay = 0.4f, LoiBigStun = 1.5f, LoiBigRange = 12f;
     }
 
     public static class Content

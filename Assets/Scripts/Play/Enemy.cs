@@ -33,6 +33,11 @@ namespace VK
         public int skillHits;
         public bool HasStatus => burnT > 0 || poisonT > 0 || frozenT > 0;
         public void Freeze(float t) { frozenT = Mathf.Max(frozenT, boss ? t * 0.4f : t); }
+        /// <summary>Frozen by a Thần Thông (Phù Tu): takes <paramref name="bonus"/>× damage and fires Bạo Phù when the ice ends.</summary>
+        public bool SkillFrozen { get; private set; }
+        float skillBonus = 1.3f;
+        public float FrozenBonus => frozenT > 0 && SkillFrozen ? skillBonus : 1.3f;
+        public void SkillFreeze(float t, float bonus) { Freeze(t); SkillFrozen = true; skillBonus = bonus; }
         bool enraged;
         static readonly int FlashId = Shader.PropertyToID("_Flash");
 
@@ -116,7 +121,11 @@ namespace VK
             var g = Game.I;
             if (!g.Playing || dead) return;
             float rawDt = Game.Dt;
-            if (frozenT > 0) frozenT -= rawDt;
+            if (frozenT > 0)
+            {
+                frozenT -= rawDt;
+                if (frozenT <= 0 && SkillFrozen) { SkillFrozen = false; Skills.OnSkillFreezeEnd(this); if (dead) return; }
+            }
             float dt = frozenT > 0 ? rawDt * (boss ? 0.5f : 0.15f) : rawDt;
             var p = g.player;
             Vector2 pp = p.Pos, pos = Pos, to = pp - pos;
@@ -482,7 +491,7 @@ namespace VK
         {
             if (dead) return;
             var run = Game.I.run;
-            if (frozenT > 0) d *= 1.3f;
+            if (frozenT > 0) d *= FrozenBonus;
             hp -= d;
             if (d < 99999f)   // revive shockwave kills are not real hits
             {
@@ -518,6 +527,7 @@ namespace VK
             var g = Game.I;
             var run = g.run;
             run.kills++;
+            Skills.OnKill(this);
             g.save.See("e:" + def.id);
             Vector2 pos = Pos;
 

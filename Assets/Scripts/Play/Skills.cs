@@ -8,9 +8,21 @@ namespace VK
     public static class Skills
     {
         public static bool LastHitCrit;
-        public static int CastCount;
+        public static int CastCount, LastStrikes;
+        public static Enemy LastBigTarget;
+        static float riteExt;
 
         public static string FormName(CharDef c, int stage) => stage <= 0 || c.forms == null || stage > c.forms.Length ? c.skill : c.forms[stage - 1].name;
+
+        /// <summary>Lifesteal bonus while the Huyết Tế rite runs.</summary>
+        public static float RiteLifesteal => Game.I.run != null && Game.I.run.skillStage >= 3 ? SkillNum.MaLifesteal4 : SkillNum.MaLifesteal;
+
+        /// <summary>Damage the player takes passes through here before armor (skill damage-reduction buffs).</summary>
+        public static float ModifyIncoming(float dmg)
+        {
+            var rt = SkillRuntime.I;
+            return rt != null && rt.drT > 0f ? dmg * rt.drMul : dmg;
+        }
 
         /// <summary>One skill hit: SP · coef · (1 + Thần Lực/100 + Sát Thương/200), crit, ±8%. Bosses take half. Returns the damage dealt.</summary>
         public static float Hit(Enemy e, float coef, string src, Vector2 dir, float knock = 0.5f)
@@ -26,7 +38,7 @@ namespace VK
             LastHitCrit = crit;
             e.skillHits++;
             e.Damage(d, crit, dir, knock, null);
-            if (UnityEngine.Random.value * 100f < st[Stat.Lifesteal] + (run.riteT > 0 ? 25f : 0f)) Game.I.player.Heal(1);
+            if (UnityEngine.Random.value * 100f < st[Stat.Lifesteal] + (run.riteT > 0 ? RiteLifesteal : 0f)) Game.I.player.Heal(1);
             run.skillDmg += d;
             run.skillDmgBy.TryGetValue(src, out var acc);
             run.skillDmgBy[src] = acc + d;
@@ -48,12 +60,51 @@ namespace VK
             return n;
         }
 
-        static SkillShot KiemShot(float k) => new SkillShot
+        /// <summary>Bạo Phù: a skill-frozen enemy whose ice runs out explodes on its neighbours (a frozen enemy that dies does not).</summary>
+        public static void OnSkillFreezeEnd(Enemy e)
         {
-            src = "kiem", coef = SkillNum.KiemHit * k, speed = 13f, life = 1.6f, radius = 0.25f, pierce = SkillNum.KiemPierce,
-            homing = true, homingRange = SkillNum.KiemHomeRange, sprite = Res.Tile(104), spriteAngle = Res.SpriteAngle(104),
-            col = new Color(0.5f, 1f, 1f), tint = new Color(0.7f, 1f, 1f), look = ProjLook.Point
-        };
+            var run = Game.I.run;
+            if (run == null || run.skillStage < 2 || e == null || e.dead) return;
+            Vector2 p = e.Pos;
+            Fx.Ring(p, new Color(0.5f, 0.9f, 1f), 0.2f, SkillNum.PhuBurstR, 0.3f);
+            Fx.Burst(p, new Color(0.7f, 0.95f, 1f), 10, 5f, 0.12f, 0.35f, true);
+            Sfx.Play("heavy", 0.2f, 0.2f, 1.6f);
+            Splash(p, SkillNum.PhuBurstR, SkillNum.PhuBurstHit, "phu_burst", 1f);
+        }
+
+        /// <summary>Called by Enemy.Die before the enemy goes away.</summary>
+        public static void OnKill(Enemy e)
+        {
+            var run = Game.I.run;
+            if (run == null) return;
+            if (run.skillStage >= 2 && run.ch.id == "ma_tu" && run.riteT > 0f && riteExt < SkillNum.MaExtendMax)
+            {
+                run.riteT += SkillNum.MaExtend; riteExt += SkillNum.MaExtend;
+            }
+        }
+
+        static SkillShot KiemShot(RunState r, float k)
+        {
+            var s = new SkillShot
+            {
+                src = "kiem", coef = SkillNum.KiemHit * k, speed = 13f, life = 1.6f, radius = 0.25f, pierce = SkillNum.KiemPierce,
+                homing = true, homingRange = SkillNum.KiemHomeRange, sprite = Res.Tile(104), spriteAngle = Res.SpriteAngle(104),
+                col = new Color(0.5f, 1f, 1f), tint = new Color(0.7f, 1f, 1f), look = ProjLook.Point
+            };
+            if (r.skillStage >= 1) { s.returnSrc = "kiem_return"; s.returnCoef = SkillNum.KiemReturnHit * k; }
+            if (r.skillStage >= 2) { s.orbitTime = SkillNum.KiemOrbitTime; s.orbitCoef = SkillNum.KiemOrbitHit * k; }
+            return s;
+        }
+
+        static List<Enemy> Nearest(Vector2 pos, int n, float minD, float maxD)
+        {
+            var list = Enemy.Snapshot();
+            list.RemoveAll(e => e.dead || Vector2.Distance(e.Pos, pos) < minD || Vector2.Distance(e.Pos, pos) > maxD);
+            list.Sort((a, b) => Vector2.SqrMagnitude(a.Pos - pos).CompareTo(Vector2.SqrMagnitude(b.Pos - pos)));
+            var res = list.Count > n ? list.GetRange(0, n) : new List<Enemy>(list);
+            Enemy.Release(list);
+            return res;
+        }
 
         /// <summary>Cast the skill. <paramref name="echo"/> (Song Thi card) halves every coefficient and skips buffs, invulnerability and the rite.</summary>
         public static void Cast(Player p, RunState r, bool echo = false)
@@ -61,107 +112,313 @@ namespace VK
             CastCount++;
             Vector2 pos = p.Pos;
             float k = echo ? 0.5f : 1f;
+            int st = r.skillStage;
+            var rt = SkillRuntime.I;
             switch (r.ch.id)
             {
-                case "kiem_tu":
+                case "kiem_tu": CastKiem(p, r, pos, k, st, rt); break;
+                case "dan_tu": CastDan(p, r, pos, k, st, rt, echo); break;
+                case "the_tu": CastThe(p, r, pos, k, st, rt, echo); break;
+                case "phu_tu": CastPhu(p, r, pos, k, st); break;
+                case "loi_tu": CastLoi(p, r, pos, k, st, rt); break;
+                case "ma_tu": CastMa(p, r, pos, k, st, rt, echo); break;
+            }
+            if (!echo) SkillFx.Ladder(st, pos, r.ch.skillColor);
+        }
+
+        // ---------------------------------------------------------------- Kiếm Tu
+        static void CastKiem(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt)
+        {
+            int n = st >= 2 ? SkillNum.KiemSwords3 : SkillNum.KiemSwords;
+            for (int i = 0; i < n; i++)
+            {
+                float a = i * Mathf.PI * 2f / n;
+                Projectile.FireSkill(KiemShot(r, k), pos, new Vector2(Mathf.Cos(a), Mathf.Sin(a)));
+            }
+            Fx.Ring(pos, new Color(0.5f, 1f, 1f), 0.3f, 3f, 0.4f);
+            Fx.Shake(0.2f, 0.2f);
+            Sfx.Play("swing", 0.8f, 0f, 1.6f, 0f);
+            Sfx.Play("zap", 0.4f, 0f, 1.8f, 0f);
+            if (st >= 3 && rt != null)
+            {
+                // the giant sword falls where the most enemies stand together
+                Enemy best = null; int bestN = -1;
+                var cand = Nearest(pos, 40, 0f, SkillNum.KiemGiantRange);
+                foreach (var e in cand)
                 {
-                    for (int i = 0; i < SkillNum.KiemSwords; i++)
+                    int c = 0;
+                    foreach (var o in cand) if (Vector2.Distance(o.Pos, e.Pos) < 2.5f) c++;
+                    if (c > bestN) { bestN = c; best = e; }
+                }
+                if (best != null)
+                {
+                    Vector2 tp = best.Pos;
+                    Fx.Ring(tp, new Color(1f, 0.4f, 0.3f), SkillNum.KiemGiantR, SkillNum.KiemGiantR * 0.6f, SkillNum.KiemGiantDelay);
+                    float kk = k;
+                    rt.After(SkillNum.KiemGiantDelay, () =>
                     {
-                        float a = i * Mathf.PI * 2f / SkillNum.KiemSwords;
-                        Projectile.FireSkill(KiemShot(k), pos, new Vector2(Mathf.Cos(a), Mathf.Sin(a)));
-                    }
-                    Fx.Ring(pos, new Color(0.5f, 1f, 1f), 0.3f, 3f, 0.4f);
-                    Fx.Shake(0.2f, 0.2f);
-                    Sfx.Play("swing", 0.8f, 0f, 1.6f, 0f);
-                    Sfx.Play("zap", 0.4f, 0f, 1.8f, 0f);
-                    break;
-                }
-                case "dan_tu":
-                {
-                    float rad = SkillNum.DanR;
-                    Splash(pos, rad, SkillNum.DanHit * k, "dan_nova", 1.8f, (e, d) => e.ApplyBurn(d * 0.3f * r.BurnMul));
-                    Fx.Ring(pos, new Color(1f, 0.5f, 0.15f), 0.3f, rad, 0.4f);
-                    Fx.Glow(pos, new Color(1f, 0.45f, 0.1f, 0.8f), rad * 2.4f, 0.4f);
-                    Fx.Burst(pos, new Color(1f, 0.55f, 0.15f), 40, 10f, 0.2f, 0.6f, true);
-                    p.Heal(Mathf.Round(r.MaxHP * SkillNum.DanHeal * k));
-                    Fx.Shake(0.35f, 0.3f);
-                    Fx.Hitstop(0.05f);
-                    Sfx.Play("heavy", 0.9f, 0f, 0.8f, 0f);
-                    Sfx.Play("shoot", 0.6f, 0f, 0.6f, 0f);
-                    break;
-                }
-                case "the_tu":
-                {
-                    float rad = SkillNum.TheR;
-                    if (!echo) p.Invuln(SkillNum.TheInvuln);
-                    Splash(pos, rad, SkillNum.TheHit * k, "the_wave", 4f);
-                    Fx.Ring(pos, new Color(1f, 0.85f, 0.4f), 0.3f, rad, 0.35f);
-                    Fx.Ring(pos, Color.white, 0.2f, rad * 0.7f, 0.25f);
-                    Fx.Burst(pos, new Color(0.8f, 0.7f, 0.55f), 30, 9f, 0.18f, 0.5f);
-                    Fx.Shake(0.45f, 0.35f);
-                    Fx.Hitstop(0.08f);
-                    Sfx.Play("heavy", 1f, 0f, 0.6f, 0f);
-                    Sfx.Play("bell", 0.5f, 0f, 1.2f, 0f);
-                    break;
-                }
-                case "phu_tu":
-                {
-                    float rad = SkillNum.PhuR;
-                    var list = Enemy.Snapshot();
-                    foreach (var e in list)
-                    {
-                        if (e.dead || Vector2.Distance(e.Pos, pos) > rad + e.radius) continue;
-                        e.Freeze(SkillNum.PhuFreeze);
-                        Hit(e, SkillNum.PhuHit * k, "phu", e.Pos - pos, 0.01f);
-                        Fx.Lightning(pos, e.Pos, new Color(0.6f, 0.9f, 1f, 0.6f), 0.05f, 0.2f, 4, 0.15f);
-                    }
-                    Enemy.Release(list);
-                    Fx.Ring(pos, new Color(0.5f, 0.9f, 1f), 0.5f, rad, 0.5f);
-                    Fx.Glow(pos, new Color(0.5f, 0.9f, 1f, 0.5f), rad * 2f, 0.5f);
-                    Fx.Shake(0.2f, 0.2f);
-                    Sfx.Play("pluck", 0.8f, 0f, 0.8f, 0f);
-                    Sfx.Play("bell", 0.4f, 0f, 1.6f, 0f);
-                    break;
-                }
-                case "loi_tu":
-                {
-                    var list = Enemy.Snapshot();
-                    list.RemoveAll(e => e.dead || Vector2.Distance(e.Pos, pos) > SkillNum.LoiRange);
-                    list.Sort((a, b) => Vector2.SqrMagnitude(a.Pos - pos).CompareTo(Vector2.SqrMagnitude(b.Pos - pos)));
-                    for (int i = 0; i < Mathf.Min(SkillNum.LoiBolts, list.Count); i++)
-                    {
-                        var e = list[i];
-                        Vector2 ep = e.Pos;
-                        Fx.Lightning(ep + new Vector2(UnityEngine.Random.Range(-1f, 1f), 12f), ep, new Color(0.75f, 0.85f, 1f), 0.4f, 0.3f, 12, 0.7f);
-                        Fx.Lightning(ep + new Vector2(UnityEngine.Random.Range(-1f, 1f), 12f), ep, Color.white, 0.14f, 0.2f, 12, 0.4f);
-                        Fx.Ring(ep, new Color(0.7f, 0.85f, 1f), 0.2f, 1.4f, 0.3f);
-                        e.Freeze(SkillNum.LoiStun);
-                        Hit(e, SkillNum.LoiHit * k, "loi", ep - pos, 0.5f);
-                    }
-                    Enemy.Release(list);
-                    Fx.Glow(pos, new Color(0.6f, 0.8f, 1f, 0.6f), 6f, 0.3f);
-                    Fx.Shake(0.35f, 0.3f);
-                    Fx.Hitstop(0.05f);
-                    Sfx.Play("zap", 1f, 0f, 0.7f, 0f);
-                    Sfx.Play("heavy", 0.6f, 0f, 0.9f, 0f);
-                    break;
-                }
-                case "ma_tu":
-                {
-                    if (echo) break;
-                    float cost = Mathf.Floor(r.hp * SkillNum.MaCost);
-                    if (r.hp - cost < 1) cost = Mathf.Max(0, r.hp - 1);
-                    r.hp -= cost;
-                    r.riteT = SkillNum.MaRite;
-                    if (cost > 0) Fx.Text(pos + Vector2.up * 0.7f, "-" + cost, new Color(1f, 0.3f, 0.3f), 1f);
-                    Fx.Ring(pos, new Color(0.9f, 0.1f, 0.2f), 0.3f, 3f, 0.4f);
-                    Fx.Burst(pos, new Color(0.9f, 0.1f, 0.2f), 30, 7f, 0.16f, 0.6f, true);
-                    Fx.Shake(0.25f, 0.2f);
-                    Sfx.Play("hurt", 0.6f, 0f, 0.7f, 0f);
-                    Sfx.Play("breakthrough", 0.5f, 0f, 0.7f, 0f);
-                    break;
+                        Splash(tp, SkillNum.KiemGiantR, SkillNum.KiemGiantHit * kk, "kiem_giant", 7f);
+                        Fx.Pillar(tp, new Color(0.7f, 1f, 1f), 10f, 0.4f);
+                        Fx.Ring(tp, new Color(0.5f, 1f, 1f), 0.4f, SkillNum.KiemGiantR, 0.4f);
+                        Fx.Burst(tp, new Color(0.7f, 1f, 1f), 30, 9f, 0.16f, 0.5f, true);
+                        Fx.Shake(0.5f, 0.35f);
+                        Sfx.Play("heavy", 1f, 0f, 0.7f, 0f);
+                    });
                 }
             }
+        }
+
+        // ---------------------------------------------------------------- Đan Tu
+        static void CastDan(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt, bool echo)
+        {
+            float rad = st >= 2 ? SkillNum.DanR3 : SkillNum.DanR;
+            Action<Enemy, float> burn = (e, d) => e.ApplyBurn(d * 0.3f * r.BurnMul);
+            Splash(pos, rad, SkillNum.DanHit * k, "dan_nova", 1.8f, burn);
+            Fx.Ring(pos, new Color(1f, 0.5f, 0.15f), 0.3f, rad, 0.4f);
+            Fx.Glow(pos, new Color(1f, 0.45f, 0.1f, 0.8f), rad * 2.4f, 0.4f);
+            Fx.Burst(pos, new Color(1f, 0.55f, 0.15f), 40, 10f, 0.2f, 0.6f, true);
+            p.Heal(Mathf.Round(r.MaxHP * SkillNum.DanHeal * k));
+            Fx.Shake(0.35f, 0.3f);
+            Fx.Hitstop(0.05f);
+            Sfx.Play("heavy", 0.9f, 0f, 0.8f, 0f);
+            Sfx.Play("shoot", 0.6f, 0f, 0.6f, 0f);
+            if (st >= 1)
+            {
+                foreach (var e in Nearest(pos, SkillNum.DanPills, rad, SkillNum.DanPillRange))
+                {
+                    var s = new SkillShot
+                    {
+                        src = "dan_pill", coef = 0f, speed = 12f, life = 1.5f, radius = 0.3f, homing = true, homingRange = 12f,
+                        blastR = SkillNum.DanPillR, blastCoef = SkillNum.DanPillHit * k, col = new Color(1f, 0.5f, 0.15f), tint = new Color(1f, 0.7f, 0.3f), look = ProjLook.Glow,
+                        onHit = en => en.ApplyBurn(r.SP * 0.3f * r.BurnMul)
+                    };
+                    Projectile.FireSkill(s, pos, e.Pos - pos);
+                }
+            }
+            if (st >= 2 && !echo && rt != null)
+            {
+                Projectile.ClearHostileWithin(pos, rad);
+                rt.Guard(SkillNum.DanGuardTime, SkillNum.DanGuardMul);
+            }
+            if (st >= 3 && rt != null)
+            {
+                for (int i = 1; i <= 2; i++)
+                    rt.After(0.6f * i, () =>
+                    {
+                        Vector2 c = Game.I.player.Pos;
+                        Splash(c, SkillNum.DanFollowR, SkillNum.DanFollowHit * k, "dan_followup", 1.5f, burn);
+                        Fx.Ring(c, new Color(1f, 0.55f, 0.2f), 0.3f, SkillNum.DanFollowR, 0.4f);
+                        Fx.Glow(c, new Color(1f, 0.45f, 0.1f, 0.7f), SkillNum.DanFollowR * 2.2f, 0.4f);
+                        Fx.Burst(c, new Color(1f, 0.55f, 0.15f), 24, 9f, 0.16f, 0.5f, true);
+                        Fx.Shake(0.3f, 0.25f);
+                        Sfx.Play("heavy", 0.6f, 0f, 0.9f, 0f);
+                    });
+            }
+        }
+
+        // ---------------------------------------------------------------- Thể Tu
+        static void CastThe(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt, bool echo)
+        {
+            float rad = st >= 1 ? SkillNum.TheR2 : SkillNum.TheR;
+            float inv = st >= 3 ? SkillNum.TheInvuln4 : SkillNum.TheInvuln;
+            if (!echo) p.Invuln(inv);
+            Action<Enemy, float> stun = null;
+            if (st >= 1) stun = (e, d) => { if (!e.dead) e.Freeze(SkillNum.TheStun); };
+            Splash(pos, rad, SkillNum.TheHit * k, "the_wave", 4f, stun);
+            Fx.Ring(pos, new Color(1f, 0.85f, 0.4f), 0.3f, rad, 0.35f);
+            Fx.Ring(pos, Color.white, 0.2f, rad * 0.7f, 0.25f);
+            Fx.Burst(pos, new Color(0.8f, 0.7f, 0.55f), 30, 9f, 0.18f, 0.5f);
+            Fx.Shake(0.45f, 0.35f);
+            Fx.Hitstop(0.08f);
+            Sfx.Play("heavy", 1f, 0f, 0.6f, 0f);
+            Sfx.Play("bell", 0.5f, 0f, 1.2f, 0f);
+            if (st >= 2 && rt != null) Fissures(pos, k, rt);
+            if (st >= 3 && !echo && rt != null)
+            {
+                rt.After(inv, () =>
+                {
+                    Vector2 c = Game.I.player.Pos;
+                    Splash(c, SkillNum.TheAfterR, SkillNum.TheAfterHit * k, "the_after", 9f);
+                    Fx.Ring(c, new Color(1f, 0.85f, 0.4f), 0.4f, SkillNum.TheAfterR, 0.5f);
+                    Fx.Ring(c, Color.white, 0.3f, SkillNum.TheAfterR * 0.7f, 0.35f);
+                    Fx.Burst(c, new Color(1f, 0.85f, 0.4f), 50, 12f, 0.2f, 0.6f, true);
+                    Fx.Shake(0.7f, 0.45f);
+                    Fx.Hitstop(0.1f);
+                    Sfx.Play("heavy", 1f, 0f, 0.5f, 0f);
+                });
+            }
+        }
+
+        /// <summary>Four cracks across the ground, the first aimed at the nearest enemy; they spread outward for 0.3 s.</summary>
+        static void Fissures(Vector2 pos, float k, SkillRuntime rt)
+        {
+            var near = Nearest(pos, 1, 0f, 30f);
+            float a0 = near.Count > 0 ? Mathf.Atan2(near[0].Pos.y - pos.y, near[0].Pos.x - pos.x) : 0f;
+            var dirs = new Vector2[4];
+            for (int i = 0; i < 4; i++) { float a = a0 + i * Mathf.PI / 2f; dirs[i] = new Vector2(Mathf.Cos(a), Mathf.Sin(a)); }
+            var hit = new HashSet<Enemy>();
+            float t = 0f;
+            const float tick = 0.05f;
+            rt.During(SkillNum.TheFissureTime, tick, () =>
+            {
+                t += tick;
+                float reach = SkillNum.TheFissureLen * Mathf.Clamp01(t / SkillNum.TheFissureTime);
+                var list = Enemy.Snapshot();
+                foreach (var e in list)
+                {
+                    if (e.dead || hit.Contains(e)) continue;
+                    Vector2 rel = e.Pos - pos;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        float along = Vector2.Dot(rel, dirs[i]);
+                        float perp = Mathf.Abs(rel.x * dirs[i].y - rel.y * dirs[i].x);
+                        if (along < 0f || along > reach + e.radius || perp > SkillNum.TheFissureW * 0.5f + e.radius) continue;
+                        hit.Add(e);
+                        Hit(e, SkillNum.TheFissureHit * k, "the_fissure", dirs[i], 2f);
+                        if (!e.dead) e.Freeze(SkillNum.TheStun);
+                        break;
+                    }
+                }
+                Enemy.Release(list);
+                for (int i = 0; i < 4; i++)
+                {
+                    Fx.Streak(pos + dirs[i] * reach * 0.5f, dirs[i], reach, new Color(0.9f, 0.75f, 0.35f, 0.8f), SkillNum.TheFissureW * 0.4f, 0.25f);
+                    Fx.Burst(pos + dirs[i] * reach, new Color(0.8f, 0.65f, 0.4f), 3, 5f, 0.12f, 0.35f);
+                }
+            });
+            Fx.Shake(0.4f, 0.3f);
+        }
+
+        // ---------------------------------------------------------------- Phù Tu
+        static void CastPhu(Player p, RunState r, Vector2 pos, float k, int st)
+        {
+            float rad = st >= 3 ? SkillNum.PhuR4 : SkillNum.PhuR;
+            float bonus = st >= 3 ? SkillNum.PhuBonus4 : SkillNum.PhuBonus;
+            var list = Enemy.Snapshot();
+            foreach (var e in list)
+            {
+                if (e.dead || Vector2.Distance(e.Pos, pos) > rad + e.radius) continue;
+                e.SkillFreeze(SkillNum.PhuFreeze, bonus);
+                Hit(e, SkillNum.PhuHit * k, "phu", e.Pos - pos, 0.01f);
+                Fx.Lightning(pos, e.Pos, new Color(0.6f, 0.9f, 1f, 0.6f), 0.05f, 0.2f, 4, 0.15f);
+            }
+            Enemy.Release(list);
+            Fx.Ring(pos, new Color(0.5f, 0.9f, 1f), 0.5f, rad, 0.5f);
+            Fx.Glow(pos, new Color(0.5f, 0.9f, 1f, 0.5f), rad * 2f, 0.5f);
+            Fx.Shake(0.2f, 0.2f);
+            Sfx.Play("pluck", 0.8f, 0f, 0.8f, 0f);
+            Sfx.Play("bell", 0.4f, 0f, 1.6f, 0f);
+            if (st >= 1)
+                foreach (var e in Nearest(pos, SkillNum.PhuFlyers, rad, SkillNum.PhuFlyRange))
+                {
+                    var s = new SkillShot
+                    {
+                        src = "phu_flyer", coef = SkillNum.PhuFlyHit * k, speed = 14f, life = 1.5f, radius = 0.3f, homing = true, homingRange = 12f,
+                        freeze = SkillNum.PhuFlyFreeze, freezeBonus = bonus, sprite = Res.Tile(66), spriteAngle = 90f,
+                        col = new Color(0.5f, 0.9f, 1f), tint = Color.white, look = ProjLook.Point
+                    };
+                    Projectile.FireSkill(s, pos, e.Pos - pos);
+                }
+        }
+
+        // ---------------------------------------------------------------- Lôi Tu
+        static void CastLoi(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt)
+        {
+            int bolts = st >= 3 ? SkillNum.LoiBolts4 : SkillNum.LoiBolts;
+            var list = Nearest(pos, bolts, 0f, SkillNum.LoiRange);
+            LastStrikes = list.Count;
+            foreach (var e in list)
+            {
+                Vector2 ep = e.Pos;
+                Fx.Lightning(ep + new Vector2(UnityEngine.Random.Range(-1f, 1f), 12f), ep, new Color(0.75f, 0.85f, 1f), 0.4f, 0.3f, 12, 0.7f);
+                Fx.Lightning(ep + new Vector2(UnityEngine.Random.Range(-1f, 1f), 12f), ep, Color.white, 0.14f, 0.2f, 12, 0.4f);
+                Fx.Ring(ep, new Color(0.7f, 0.85f, 1f), 0.2f, 1.4f, 0.3f);
+                e.Freeze(SkillNum.LoiStun);
+                Hit(e, SkillNum.LoiHit * k, "loi", ep - pos, 0.5f);
+                if (st >= 1) Chain(ep, e, k);
+            }
+            Fx.Glow(pos, new Color(0.6f, 0.8f, 1f, 0.6f), 6f, 0.3f);
+            Fx.Shake(0.35f, 0.3f);
+            Fx.Hitstop(0.05f);
+            Sfx.Play("zap", 1f, 0f, 0.7f, 0f);
+            Sfx.Play("heavy", 0.6f, 0f, 0.9f, 0f);
+            if (st >= 2 && rt != null)
+            {
+                rt.During(SkillNum.LoiFieldTime, SkillNum.LoiFieldTick, () =>
+                {
+                    Vector2 c = Game.I.player.Pos;
+                    Fx.Ring(c, new Color(0.7f, 0.85f, 1f, 0.5f), SkillNum.LoiFieldR * 1.6f, SkillNum.LoiFieldR * 2f, 0.4f);
+                    var inside = Nearest(c, 40, 0f, SkillNum.LoiFieldR);
+                    if (inside.Count == 0) return;
+                    var e = inside[UnityEngine.Random.Range(0, inside.Count)];
+                    Fx.Lightning(c, e.Pos, new Color(0.8f, 0.9f, 1f), 0.1f, 0.15f, 6, 0.4f);
+                    Hit(e, SkillNum.LoiFieldHit * k, "loi_field", e.Pos - c, 0.3f);
+                    if (!e.dead) e.Freeze(SkillNum.LoiFieldStun);
+                    Sfx.Play("zap", 0.25f, 0.2f, 1.3f);
+                });
+            }
+            if (st >= 3 && rt != null)
+                rt.After(SkillNum.LoiBigDelay, () =>
+                {
+                    Vector2 c = Game.I.player.Pos;
+                    Enemy big = null;
+                    foreach (var e in Nearest(c, 200, 0f, SkillNum.LoiBigRange)) if (big == null || e.maxHp > big.maxHp) big = e;
+                    if (big == null) return;
+                    LastBigTarget = big;
+                    Vector2 bp = big.Pos;
+                    Fx.Pillar(bp, new Color(0.75f, 0.85f, 1f), 14f, 0.5f);
+                    Fx.Lightning(bp + Vector2.up * 14f, bp, Color.white, 0.6f, 0.4f, 14, 0.9f);
+                    Fx.Ring(bp, new Color(0.8f, 0.9f, 1f), 0.4f, 3f, 0.4f);
+                    Fx.Shake(0.55f, 0.4f);
+                    Hit(big, SkillNum.LoiBigHit * k, "loi_big", Vector2.zero, 0.5f);
+                    if (!big.dead) big.Freeze(SkillNum.LoiBigStun);
+                    Sfx.Play("zap", 1f, 0f, 0.5f, 0f);
+                    Sfx.Play("heavy", 0.9f, 0f, 0.6f, 0f);
+                });
+        }
+
+        /// <summary>Lôi Liên: the bolt jumps on to nearby enemies, losing power each step.</summary>
+        static void Chain(Vector2 from, Enemy first, float k)
+        {
+            var skip = new HashSet<Enemy> { first };
+            float mul = 1f; Vector2 a = from;
+            for (int i = 0; i < SkillNum.LoiChainHops; i++)
+            {
+                var n = Enemy.Nearest(a, SkillNum.LoiChainR, skip);
+                if (n == null) break;
+                skip.Add(n);
+                mul *= SkillNum.LoiChainDecay;
+                Fx.Lightning(a, n.Pos, new Color(0.7f, 0.85f, 1f), 0.12f, 0.2f, 6, 0.4f);
+                Hit(n, SkillNum.LoiChainHit * mul * k, "loi_chain", n.Pos - a, 0.3f);
+                a = n.Pos;
+            }
+        }
+
+        // ---------------------------------------------------------------- Ma Tu
+        static void CastMa(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt, bool echo)
+        {
+            if (echo) return;
+            float cost = Mathf.Floor(r.hp * SkillNum.MaCost);
+            if (r.hp - cost < 1) cost = Mathf.Max(0, r.hp - 1);
+            r.hp -= cost;
+            r.riteT = SkillNum.MaRite;
+            riteExt = 0f;
+            if (cost > 0) Fx.Text(pos + Vector2.up * 0.7f, "-" + cost, new Color(1f, 0.3f, 0.3f), 1f);
+            Fx.Ring(pos, new Color(0.9f, 0.1f, 0.2f), 0.3f, 3f, 0.4f);
+            Fx.Burst(pos, new Color(0.9f, 0.1f, 0.2f), 30, 7f, 0.16f, 0.6f, true);
+            Fx.Shake(0.25f, 0.2f);
+            Sfx.Play("hurt", 0.6f, 0f, 0.7f, 0f);
+            Sfx.Play("breakthrough", 0.5f, 0f, 0.7f, 0f);
+            if (st >= 1)
+            {
+                float rad = st >= 3 ? SkillNum.MaNovaR4 : SkillNum.MaNovaR;
+                float hit = st >= 3 ? SkillNum.MaNovaHit4 : SkillNum.MaNovaHit;
+                Splash(pos, rad, hit, "ma_nova", 3f);
+                Fx.Ring(pos, new Color(0.9f, 0.1f, 0.2f), 0.4f, rad, 0.4f);
+                Fx.Glow(pos, new Color(0.9f, 0.1f, 0.2f, 0.6f), rad * 2f, 0.4f);
+                Fx.Burst(pos, new Color(0.9f, 0.1f, 0.2f), 30, 9f, 0.18f, 0.5f, true);
+            }
+            if (st >= 2 && rt != null) rt.Guard(SkillNum.MaGuardTime, SkillNum.MaGuardMul);
         }
     }
 

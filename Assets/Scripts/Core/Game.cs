@@ -92,6 +92,7 @@ namespace VK
             player.gameObject.SetActive(false);
             ui = gameObject.AddComponent<UIRoot>();
             ui.Init();
+            gameObject.AddComponent<SkillRuntime>();
             if (auto) bot = gameObject.AddComponent<AutoTest>();
             GoMenu();
         }
@@ -195,6 +196,7 @@ namespace VK
 
         void ClearWorld()
         {
+            if (SkillRuntime.I != null) SkillRuntime.I.ClearAll();
             dir.ClearAll();
             foreach (var e in new List<Enemy>(Enemy.All)) if (e) Destroy(e.gameObject);
             Enemy.All.Clear();
@@ -253,6 +255,7 @@ namespace VK
             if (state != GState.Playing) return;
             state = GState.Between;
             run.riteT = 0;
+            if (SkillRuntime.I != null) SkillRuntime.I.ClearAll();
             dir.EndWave();
             Orb.CollectAll();
             int harvest = Mathf.RoundToInt(Mathf.Max(0, run.stats[Stat.Harvest]));
@@ -394,6 +397,7 @@ namespace VK
         public void OnPlayerDeath()
         {
             if (state != GState.Playing) return;
+            if (SkillRuntime.I != null) SkillRuntime.I.ClearAll();
             if (run.Has("bat_tu_phu") && !run.reviveUsed)
             {
                 run.reviveUsed = true;

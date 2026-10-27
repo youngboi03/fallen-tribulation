@@ -204,6 +204,7 @@ namespace VK
                 Sfx.Play("tick", 0.6f);
                 return;
             }
+            dmg = Skills.ModifyIncoming(dmg);
             float armor = run.stats[Stat.Armor];
             float mul = armor >= 0 ? 1f / (1f + armor / 15f) : 2f - 1f / (1f - armor / 15f);
             float d = Mathf.Max(1f, Mathf.Round(dmg * mul));

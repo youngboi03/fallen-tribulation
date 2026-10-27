@@ -177,5 +177,125 @@ namespace VK
             yield return new WaitForSeconds(0.25f); Game.I.bot.Shot("fx_ladder");
             Check("fx_no_errors", AutoTest.Errors == e0, "");
         }
+        // ---------------------------------------------------------------- Kiếm / Đan II-IV (Task 4)
+        IEnumerator T_kd_kiem()
+        {
+            yield return Arena(0, 8, 1); Pack(20, 1.5f, 4.5f); Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            yield return new WaitForSeconds(3f); Check("kiem2_return", Dmg("kiem_return") > 0, "");
+            yield return Arena(0, 13, 2); Pack(20, 1.5f, 4.5f); int f0 = Projectile.SkillFired; Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            Check("kiem3_16", Projectile.SkillFired - f0 == 16, ""); yield return new WaitForSeconds(4.5f);
+            Check("kiem3_orbit", Dmg("kiem_orbit") > 0, "");
+            yield return Arena(0, 18, 3); Pack(20, 1.5f, 4.5f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(3f);
+            Check("kiem4_giant", Dmg("kiem_giant") > 0 && Dmg("kiem_return") > 0, "keeps stage II");
+        }
+
+        IEnumerator T_kd_dan()
+        {
+            yield return Arena(1, 8, 1); Pack(12, 5f, 8f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(2f);
+            Check("dan2_pills", Dmg("dan_pill") > 0, "");
+            yield return Arena(1, 13, 2); var pp = Game.I.player.Pos;
+            for (int i = 0; i < 10; i++) Projectile.FireHostile(pp + Random.insideUnitCircle * 3f, Vector2.zero, 1f, Color.red);
+            Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            Check("dan3_bullets", Projectile.CountHostile() == 0, Projectile.CountHostile() + "");
+            Check("dan3_guard", Mathf.Abs(Skills.ModifyIncoming(10f) - 7f) < 0.01f, "");
+            yield return new WaitForSeconds(3.2f); Check("dan3_guard_ends", Mathf.Abs(Skills.ModifyIncoming(10f) - 10f) < 0.01f, "");
+            yield return Arena(1, 18, 3); Pack(20, 1.5f, 4.5f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(2f);
+            Check("dan4_followup", Dmg("dan_followup") > 0, "");
+        }
+
+        IEnumerator T_kd_cleared()   // Review Focus 2
+        {
+            yield return Arena(1, 18, 3); Pack(20, 1.5f, 4.5f); var r = Game.I.run; int e0 = AutoTest.Errors;
+            Game.I.player.SetSkillReady(); Game.I.player.TryCast(); Check("runtime_has_pending", SkillRuntime.I != null && SkillRuntime.I.PendingCount > 0, "");
+            Game.I.EndWave(); float d0 = r.skillDmg;
+            yield return new WaitForSeconds(1.5f);
+            Check("runtime_cleared", r.skillDmg == d0 && AutoTest.Errors == e0, (r.skillDmg - d0).ToString("0"));
+        }
+
+        IEnumerator T_kd_paused()   // Review Focus 3
+        {
+            yield return Arena(0, 13, 2); Pack(20, 1.5f, 4.5f); var r = Game.I.run;
+            Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(0.3f);
+            Check("paused_has_pending", Projectile.CountSkill() > 0, "");
+            Game.I.SetPause(true); float d0 = r.skillDmg; yield return new WaitForSecondsRealtime(2f);
+            Check("runtime_paused", r.skillDmg == d0, (r.skillDmg - d0).ToString("0")); Game.I.SetPause(false);
+        }
+
+        // ---------------------------------------------------------------- Thể / Phù II-IV (Task 5)
+        IEnumerator T_tp_the()
+        {
+            yield return Arena(2, 8, 1); Pack(16, 1.5f, 3.6f); Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            Check("the2_stun", Enemy.All.FindAll(e => e.Frozen).Count >= 3, "");
+            yield return Arena(2, 13, 2); Pack(16, 4.2f, 5.8f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(1f);
+            Check("the3_fissure", Dmg("the_fissure") > 0, "");
+            yield return Arena(2, 18, 3); Pack(16, 1.5f, 4.5f); Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            Check("the4_invuln", Game.I.player.InvulnLeft >= 2.9f, ""); yield return new WaitForSeconds(3.3f);
+            Check("the4_after", Dmg("the_after") > 0, "");
+        }
+
+        IEnumerator T_tp_phu()
+        {
+            yield return Arena(3, 3, 0); Pack(10, 1.5f, 4f); var w = Elite(new Vector2(9, 0)); w.Freeze(1f);
+            Game.I.player.SetSkillReady(); Game.I.player.TryCast(); var f = Enemy.All.Find(e => e.SkillFrozen);
+            Check("phu_flag", f != null && Mathf.Approximately(f.FrozenBonus, 1.3f) && !w.SkillFrozen, "");
+            yield return Arena(3, 8, 1); Pack(12, 7f, 11f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(1.5f);
+            Check("phu2_flyer", Dmg("phu_flyer") > 0, "");
+            yield return Arena(3, 13, 2); Pack(16, 1.5f, 4f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(3f);
+            Check("phu3_burst", Dmg("phu_burst") > 0, "");
+            yield return Arena(3, 18, 3); var far = Elite(new Vector2(7.5f, 0)); Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            Check("phu4_wide", far.SkillFrozen && Mathf.Approximately(far.FrozenBonus, 1.5f), "");
+        }
+
+        IEnumerator T_tp_chain()   // Review Focus 4
+        {
+            yield return Arena(3, 13, 2); var r = Game.I.run; r.levelStats[Stat.Crit] -= 1000; r.Recalc();
+            r.items.Add(Content.It("hoa_long_chau"));
+            foreach (var e in Pack(30, 1f, 3f)) e.hp = r.SP * SkillNum.PhuHit * 1.6f;   // survives the first hit (frozen +30%), not the bursts
+            int e0 = AutoTest.Errors; Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(4f);
+            Check("phu_chain", Dmg("phu_burst") > 0 && AutoTest.Errors == e0 && Enemy.All.Count < 30, Enemy.All.Count + " left");
+        }
+
+        // ---------------------------------------------------------------- Ma / Lôi II-IV (Task 6)
+        IEnumerator T_ml_ma()
+        {
+            yield return Arena(4, 8, 1); Pack(12, 1.5f, 2.8f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return null;
+            Check("ma2_nova", Dmg("ma_nova") > 0, "");
+            yield return Arena(4, 13, 2); Pack(12, 1.5f, 4f); var r = Game.I.run; Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            Check("ma3_guard", Mathf.Abs(Skills.ModifyIncoming(10f) - 6f) < 0.01f, "");
+            var far = Pack(6, 6.5f, 8f); float t0 = r.riteT; for (int i = 0; i < 5; i++) far[i].Damage(far[i].hp + 1f, false, Vector2.zero, 0f, null);   // outside the nova
+            Check("ma3_extend", r.riteT >= t0 + 0.99f, (r.riteT - t0).ToString("0.00"));
+            yield return Arena(4, 18, 3); Elite(new Vector2(4.2f, 0)); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return null;
+            Check("ma4_nova", Dmg("ma_nova") > 0 && Mathf.Approximately(Skills.RiteLifesteal, 40f), "");
+        }
+
+        IEnumerator T_ml_loi()
+        {
+            yield return Arena(5, 8, 1); Pack(16, 1.5f, 5f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(0.5f);
+            Check("loi2_chain", Dmg("loi_chain") > 0, "");
+            yield return Arena(5, 13, 2); Pack(16, 0.8f, 2.3f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(2f);
+            Check("loi3_field", Dmg("loi_field") > 0, "");
+            yield return Arena(5, 18, 3); Pack(16, 1.5f, 6f); var el = Elite(new Vector2(6, 0)); Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            Check("loi4_12", Skills.LastStrikes == 12, Skills.LastStrikes + ""); yield return new WaitForSeconds(1f);
+            Check("loi4_big", Dmg("loi_big") > 0 && Skills.LastBigTarget == el, "");
+        }
+
+        IEnumerator T_ml_paused()   // Review Focus 3
+        {
+            yield return Arena(5, 13, 2); Pack(16, 0.8f, 2.3f); var r = Game.I.run; Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            yield return new WaitForSeconds(0.5f); Check("field_has_pending", SkillRuntime.I.PendingCount > 0, "");
+            Game.I.SetPause(true); float d0 = r.skillDmg;
+            yield return new WaitForSecondsRealtime(2f);
+            Check("field_paused", r.skillDmg == d0, ""); Game.I.SetPause(false);
+        }
+
+        IEnumerator T_ml_shots()   // all 24 forms for visual review; stage IV also in a 100-enemy crowd (spec section 13)
+        {
+            for (int ci = 0; ci < 6; ci++) for (int st = 0; st < 4; st++)
+            {
+                yield return Arena(ci, 3 + st * 5, st); Pack(st == 3 ? 100 : 20, 1f, st == 3 ? 8f : 4.5f);
+                Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(0.35f);
+                Game.I.bot.Shot("form_" + ci + "_" + st);
+            }
+        }
     }
 }
