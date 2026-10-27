@@ -40,7 +40,7 @@ namespace VK
             ItemDef pick = null;
             for (int t = tier; t >= 0 && pick == null; t--)
             {
-                var pool = Content.Items.FindAll(i => i.tier == t && (i.max == 0 || r.Count(i.id) < i.max));
+                var pool = Content.Items.FindAll(i => i.tier == t && r.Count(i.id) < i.Cap);
                 if (pool.Count > 0) pick = pool[UnityEngine.Random.Range(0, pool.Count)];
             }
             if (pick == null) { r.gold += 30; return "Không còn bảo vật — nhận 30 linh thạch."; }

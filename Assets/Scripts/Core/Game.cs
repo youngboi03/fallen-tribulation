@@ -227,7 +227,7 @@ namespace VK
             run.wave = n;
             combo = 0;
             run.riteT = 0;
-            run.hitsThisWave = 0; run.rerolls = 0; run.levelRerolls = 0; run.shopRolled = false;
+            run.hitsThisWave = 0; run.eliteChests = 0; run.rerolls = 0; run.levelRerolls = 0; run.shopRolled = false;
             Skills.OnWaveStart(run);
             run.Recalc();
             run.hp = run.MaxHP;

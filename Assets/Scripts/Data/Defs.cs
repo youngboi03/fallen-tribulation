@@ -23,8 +23,10 @@ namespace VK
     {
         public string id, name, desc;
         public int sprite; public Color tint = Color.white;
-        public int tier, price, max;   // max 0 = unlimited
+        public int tier, price, max;   // max 0 = the tier's stack cap (Content.StackCap)
         public Mod[] mods;
+        /// <summary>How many copies one run may hold.</summary>
+        public int Cap => max > 0 ? max : Content.StackCap[tier];
     }
 
     public class EnemyDef

@@ -298,6 +298,7 @@ namespace VK
         public static readonly List<Orb> All = new List<Orb>();
         int value;
         bool heal, chest, magnet;
+        public bool IsChest => chest;
         Vector2 vel;
         float t, mt;
         SpriteRenderer sr, glow;

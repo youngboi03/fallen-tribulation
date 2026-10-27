@@ -16,6 +16,8 @@ namespace VK
         static int talismanGen;
 
         static readonly string[] Roman = { "I", "II", "III", "IV" };
+        /// <summary>True while a Thần Thông hit is being applied (Enemy.Damage counts it as skill damage).</summary>
+        public static bool InHit;
         public static string StageLabel(int stage) => "Giai " + Roman[Mathf.Clamp(stage, 0, 3)];
         public static string FormDesc(CharDef c, int stage) => stage <= 0 || c.forms == null || stage > c.forms.Length ? c.skillDesc : c.forms[stage - 1].desc;
         public static string FormName(CharDef c, int stage) => stage <= 0 || c.forms == null || stage > c.forms.Length ? c.skill : c.forms[stage - 1].name;
@@ -52,7 +54,7 @@ namespace VK
             LastHitCrit = crit;
             e.skillHits++;
             Vector2 ep = e.Pos;
-            e.Damage(d, crit, dir, knock, null);
+            InHit = true; e.Damage(d, crit, dir, knock, null); InHit = false;
             Seals(run, e, ep, d, crit, coef);
             if (run.HasCard("kiem_khi") && (src == "kiem" || src == "kiem_return" || src == "kiem_orbit") && run.kiemKhi < 12)
             {   // Kiếm Khí Hộ Thể: each sword hit stores a tier; the 12th arms a full block

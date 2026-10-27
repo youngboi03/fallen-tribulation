@@ -55,6 +55,7 @@ namespace VK
         public int skillStage;
         public List<string> skillCards = new List<string>();
         public float skillDmg;
+        public float dmgEff, skillEff;   // damage capped at the target's remaining HP (no overkill): all hits / Thần Thông hits
         public Dictionary<string, float> skillDmgBy = new Dictionary<string, float>();
         public int stageUpWave = -1;
         public bool stageCallout;
@@ -62,6 +63,9 @@ namespace VK
         public int kiemKhi, linhLung;        // Kiếm Khí Hộ Thể tiers / Linh Lung Bảo Tháp stacks, both reset each wave
         public bool HasCard(string id) => skillCards.Contains(id);
         /// <summary>A run built around Thần Thông: at least one Ngộ Đạo card or Thần Lực ≥ 20 (shop bias, spec section 7).</summary>
+        /// <summary>Elite chests dropped this wave; each one divides the chance of the next (Brotato-style falloff).</summary>
+        public int eliteChests;
+        public float EliteChestChance => (activeRoute == 2 ? 0.6f : 0.3f) / (1f + eliteChests);
         public bool SkillBuild => skillCards.Count > 0 || stats[Stat.SkillPower] >= 20f;
         public float SPAt(int w) => Content.SkillR(w) * WaveDirector.ExpectedTrashHp(w);
         public float SP => SPAt(wave);
@@ -180,13 +184,13 @@ namespace VK
                 bool skillSlot = SkillBuild && Random.value < 0.15f;   // a Thần Thông build sees its items more often
                 for (int tt = t; tt >= 0 && pick == null; tt--)
                 {
-                    var pool = Content.Items.FindAll(i => i.tier == tt && (i.max == 0 || Count(i.id) < i.max) && (!skillSlot || System.Array.IndexOf(Content.SkillItemIds, i.id) >= 0));
+                    var pool = Content.Items.FindAll(i => i.tier == tt && Count(i.id) < i.Cap && (!skillSlot || System.Array.IndexOf(Content.SkillItemIds, i.id) >= 0));
                     if (pool.Count > 0) pick = pool[Random.Range(0, pool.Count)];
                 }
                 if (pick == null && skillSlot)
                     for (int tt = t; tt >= 0 && pick == null; tt--)
                     {
-                        var pool = Content.Items.FindAll(i => i.tier == tt && (i.max == 0 || Count(i.id) < i.max));
+                        var pool = Content.Items.FindAll(i => i.tier == tt && Count(i.id) < i.Cap);
                         if (pool.Count > 0) pick = pool[Random.Range(0, pool.Count)];
                     }
                 if (pick == null) pick = Content.Items[0];
@@ -225,7 +229,7 @@ namespace VK
             if (s == null || s.sold) return "Đã bán";
             if (gold < s.price) return "Thiếu linh thạch";
             if (s.w != null && weapons.Count >= maxWeapons && MergeTarget(s.w, s.tier) == null) return "Hết ô vũ khí";
-            if (s.it != null && s.it.max > 0 && Count(s.it.id) >= s.it.max) return "Đã đạt giới hạn";
+            if (s.it != null && Count(s.it.id) >= s.it.Cap) return "Đã đạt giới hạn";
             return null;
         }
 
@@ -290,7 +294,7 @@ namespace VK
             int t = Mathf.Min(3, RollTier() + 1);
             for (int tt = t; tt >= 0; tt--)
             {
-                var pool = Content.Items.FindAll(i => i.tier == tt && (i.max == 0 || Count(i.id) < i.max));
+                var pool = Content.Items.FindAll(i => i.tier == tt && Count(i.id) < i.Cap);
                 if (pool.Count > 0) return pool[Random.Range(0, pool.Count)];
             }
             return Content.Items[0];
@@ -303,8 +307,8 @@ namespace VK
             for (int k = 0; k < 3; k++)
             {
                 int minTier = k == 0 && wave >= 10 ? 3 : 2;
-                var pool = Content.Items.FindAll(i => i.tier >= minTier && (i.max == 0 || Count(i.id) < i.max) && !res.Contains(i));
-                if (pool.Count == 0) pool = Content.Items.FindAll(i => i.tier >= 1 && (i.max == 0 || Count(i.id) < i.max) && !res.Contains(i));
+                var pool = Content.Items.FindAll(i => i.tier >= minTier && Count(i.id) < i.Cap && !res.Contains(i));
+                if (pool.Count == 0) pool = Content.Items.FindAll(i => i.tier >= 1 && Count(i.id) < i.Cap && !res.Contains(i));
                 if (pool.Count > 0) res.Add(pool[Random.Range(0, pool.Count)]);
             }
             return res.ToArray();

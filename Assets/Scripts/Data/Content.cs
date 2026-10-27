@@ -9,17 +9,17 @@ namespace VK
         public const float BossMul = 0.5f, MinCd = 3f;
         // stage I (spec section 4)
         public const int KiemSwords = 12, KiemPierce = 2;
-        public const float KiemHit = 1f, KiemHomeRange = 7f;
+        public const float KiemHit = 0.25f, KiemHomeRange = 7f;
         public const float DanR = 3.5f, DanHit = 2f, DanHeal = 0.25f;
         public const float TheR = 3.2f, TheHit = 2f, TheInvuln = 2f;
         public const float PhuR = 5.5f, PhuHit = 0.8f, PhuFreeze = 2.5f;
         public const float MaCost = 0.15f, MaRite = 5f;
         public const int LoiBolts = 8;
-        public const float LoiRange = 10f, LoiHit = 2.2f, LoiStun = 1f;
+        public const float LoiRange = 10f, LoiHit = 1.4f, LoiStun = 1f;
         // Kiếm Tu II-IV
-        public const float KiemReturnHit = 0.6f, KiemOrbitHit = 0.3f, KiemOrbitTime = 2f, KiemOrbitR = 1.4f, KiemOrbitRehit = 0.5f;
+        public const float KiemReturnHit = 0.15f, KiemOrbitHit = 0.08f, KiemOrbitTime = 2f, KiemOrbitR = 1.4f, KiemOrbitRehit = 0.5f;
         public const int KiemSwords3 = 16;
-        public const float KiemGiantHit = 4f, KiemGiantR = 3f, KiemGiantRange = 9f, KiemGiantDelay = 0.35f;
+        public const float KiemGiantHit = 1.25f, KiemGiantR = 3f, KiemGiantRange = 9f, KiemGiantDelay = 0.35f;
         // Đan Tu II-IV
         public const int DanPills = 4;
         public const float DanPillR = 1.2f, DanPillHit = 1f, DanPillRange = 9f, DanR3 = 4.2f, DanGuardMul = 0.7f, DanGuardTime = 3f, DanFollowHit = 1.2f, DanFollowR = 4.2f;
@@ -34,19 +34,21 @@ namespace VK
         public const float MaExtend = 0.2f, MaExtendMax = 3f, MaLifesteal = 25f, MaLifesteal4 = 40f;
         // Lôi Tu II-IV
         public const int LoiChainHops = 2, LoiBolts4 = 12;
-        public const float LoiChainR = 3.8f, LoiChainHit = 0.8f, LoiChainDecay = 0.85f;
-        public const float LoiFieldR = 2.5f, LoiFieldTime = 4f, LoiFieldTick = 0.4f, LoiFieldHit = 0.8f, LoiFieldStun = 0.3f;
-        public const float LoiBigHit = 5f, LoiBigDelay = 0.4f, LoiBigStun = 1.5f, LoiBigRange = 12f;
+        public const float LoiChainR = 3.8f, LoiChainHit = 0.5f, LoiChainDecay = 0.85f;
+        public const float LoiFieldR = 2.5f, LoiFieldTime = 4f, LoiFieldTick = 0.4f, LoiFieldHit = 0.5f, LoiFieldStun = 0.3f;
+        public const float LoiBigHit = 3f, LoiBigDelay = 0.4f, LoiBigStun = 1.5f, LoiBigRange = 12f;
     }
 
     public static class Content
     {
-        /// <summary>Skill power ratio vs. the average trash HP: 1.5 at wave 1 falling to 0.5 at wave 20.</summary>
-        public static float SkillR(int w) => 1.5f - (Mathf.Clamp(w, 1, 20) - 1) / 19f;
+        /// <summary>Skill power ratio vs. the average trash HP: 1.5 at wave 1 falling to 0.15 at wave 20 (balance pass 2026-10-27, docs/balance).</summary>
+        public static float SkillR(int w) => 1.5f - 1.35f * (Mathf.Clamp(w, 1, 20) - 1) / 19f;
 
         public static readonly float[] TierMul = { 1f, 1.7f, 2.8f, 4.5f };
         public static readonly float[] TierCd = { 1f, 0.92f, 0.85f, 0.78f };
         public static readonly int[] TierPrice = { 1, 2, 4, 7 };
+        /// <summary>Copies of one item a run may hold, by tier (Phàm/Linh/Huyền/Tiên); an item's own max overrides it.</summary>
+        public static readonly int[] StackCap = { 6, 4, 3, 2 };
         public static readonly string[] TierName = { "Phàm", "Linh", "Huyền", "Tiên" };
         public static readonly Color[] TierColor = {
             new Color(0.92f, 0.92f, 0.92f), new Color(0.36f, 0.75f, 1f), new Color(0.78f, 0.49f, 1f), new Color(1f, 0.66f, 0.2f) };
@@ -255,9 +257,9 @@ namespace VK
             new ItemDef { id="thien_dao_chi_tam", name="Thiên Đạo Chi Tâm", sprite=29, tier=3, price=100, max=1,
                 mods=new[]{M(Stat.Damage,20), M(Stat.AtkSpeed,10), M(Stat.Crit,8), M(Stat.MaxHP,15)} },
             // Thần Thông items (spec section 7); icons are placeholders until the PixelLab redraw (tools/icons.json)
-            new ItemDef { id="ngung_than_huong", name="Ngưng Thần Hương", sprite=126, tint=new Color(0.85f,0.7f,1f), tier=0, price=13, mods=new[]{M(Stat.SkillPower,12)} },
+            new ItemDef { id="ngung_than_huong", name="Ngưng Thần Hương", sprite=126, tint=new Color(0.85f,0.7f,1f), tier=0, price=13, mods=new[]{M(Stat.SkillPower,15)} },
             new ItemDef { id="thanh_tam_phu", name="Thanh Tâm Phù", sprite=Res.TalismanId, tint=new Color(0.7f,0.9f,1f), tier=0, price=12, mods=new[]{M(Stat.SkillHaste,5)} },
-            new ItemDef { id="than_thong_ngoc_gian", name="Thần Thông Ngọc Giản", sprite=66, tint=new Color(0.6f,1f,0.75f), tier=1, price=30, mods=new[]{M(Stat.SkillPower,25), M(Stat.AtkSpeed,-5)} },
+            new ItemDef { id="than_thong_ngoc_gian", name="Thần Thông Ngọc Giản", sprite=66, tint=new Color(0.6f,1f,0.75f), tier=1, price=30, mods=new[]{M(Stat.SkillPower,30), M(Stat.AtkSpeed,-5)} },
             new ItemDef { id="tinh_toa_bo_doan", name="Tĩnh Tọa Bồ Đoàn", sprite=56, tint=new Color(1f,0.7f,0.4f), tier=1, price=32, max=1, mods=new[]{M(Stat.SkillHaste,12)},
                 desc="Mỗi lần thi triển Thần Thông hồi 3% máu tối đa." },
             new ItemDef { id="linh_lung_bao_thap", name="Linh Lung Bảo Tháp", sprite=90, tint=new Color(1f,0.9f,0.5f), tier=2, price=52, max=1,
@@ -395,7 +397,7 @@ namespace VK
                 case Stat.Speed: return new[] { 3, 6, 9, 12 }[tier];
                 case Stat.Luck: return new[] { 5, 10, 15, 20 }[tier];
                 case Stat.Harvest: return new[] { 5, 8, 12, 16 }[tier];
-                case Stat.SkillPower: return new[] { 8, 12, 18, 25 }[tier];
+                case Stat.SkillPower: return new[] { 15, 23, 34, 48 }[tier];
                 case Stat.SkillHaste: return new[] { 4, 6, 9, 12 }[tier];
             }
             return 1;

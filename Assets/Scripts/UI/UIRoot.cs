@@ -968,7 +968,7 @@ namespace VK
         {
             string s = StatInfo.Fmt(it.mods);
             if (!string.IsNullOrEmpty(it.desc)) s += (s.Length > 0 ? "\n" : "") + "<color=#FFE7A8>" + it.desc + "</color>";
-            if (it.max > 0) s += "\n<color=#8A8499>Giới hạn: " + it.max + "</color>";
+            s += "\n<color=#8A8499>Giới hạn: " + it.Cap + "</color>";
             return s;
         }
 
@@ -1045,7 +1045,7 @@ namespace VK
             UIK.Txt(card.transform, ItemText(it), 24, Color.white);
             var row = UIK.R(o, "btns").Place(0.5f, 0, 760, 80, 0, 110);
             UIK.HL(row.gameObject, 20, 0, TextAnchor.MiddleCenter, true);
-            bool full = it.max > 0 && run.Count(it.id) >= it.max;
+            bool full = run.Count(it.id) >= it.Cap;
             var take = UIK.Btn(row, full ? "Đã đạt giới hạn" : "Nhận", () => Game.I.TakeChest(false), full ? UIK.BtnGrey : UIK.BtnGold, 30, 340, 76);
             take.interactable = !full;
             UIK.Btn(row, "Bán  +" + run.ChestSellValue, () => Game.I.TakeChest(true), UIK.BtnRed, 26, 340, 76);

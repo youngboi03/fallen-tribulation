@@ -27,7 +27,7 @@ Chọn nhân vật + Kiếp → [Đợt quái (auto-attack, bạn di chuyển + 
 
 ## 4. Chỉ số
 Sinh Lực, Hồi Phục, Hút Máu, Sát Thương%, Cận Chiến%, Pháp Thuật%, Tốc Đánh%, Bạo Kích%, ST Bạo Kích%,
-Tầm Đánh%, Hộ Giáp, Né Tránh%, Thân Pháp%, Cơ Duyên, Thu Hoạch, Thu Linh%.
+Tầm Đánh%, Hộ Giáp, Né Tránh%, Thân Pháp%, Cơ Duyên, Thu Hoạch, Thu Linh%, Thần Lực% (sát thương Thần Thông), Tĩnh Tâm% (giảm hồi chiêu, tối thiểu 3 giây).
 - Giáp: nhận × 1/(1+giáp/15) (giáp âm thì ngược lại). Né tối đa 60%.
 - Hút máu = % cơ hội hồi 1 HP mỗi đòn trúng. Hồi phục: HP/s = 0.12 × Hồi Phục.
 
@@ -52,6 +52,8 @@ Phẩm: Phàm (trắng) → Linh (xanh) → Huyền (tím) → Tiên (cam). Sát
 - **Độc**: độc +50% → độc lây khi chết → độc ×2
 
 ## 7. Pháp bảo (28) — 4 phẩm
+- Mỗi lượt chơi giữ tối đa **6 / 4 / 3 / 2** bản của cùng một pháp bảo Phàm / Linh / Huyền / Tiên (`Content.StackCap`; món có giới hạn riêng giữ giới hạn đó). Món đã đạt giới hạn không còn hiện ở shop, rương, Kỳ Ngộ.
+- Rương tinh anh: 30% (Tinh Anh Tụ Tập 60%), chia cho (1 + số rương tinh anh đã rơi trong đợt). Boss luôn rơi rương.
 Chỉ số thuần (Phàm/Linh) và hiệu ứng đặc biệt kiểu Joker (Huyền/Tiên): Bát Quái Kính (mỗi đòn thứ 8 chắc chắn bạo),
 Tụ Bảo Bồn (lãi 10% linh thạch cuối đợt — kiểu interest Balatro), Lôi Linh Châu (bạo kích gọi sét), Hỏa Long Châu
 (quái chết phát nổ), Huyết Kiếm Tâm (mỗi 25 mạng +1% ST vĩnh viễn trong lượt), Cuồng Chiến Ý (thiếu máu càng mạnh),
@@ -83,7 +85,13 @@ Mỗi lần lên cảnh giới: hồi đầy máu, lựa chọn nâng cấp ph�
 - Save: JSON trong PlayerPrefs.
 
 ## 12. Hệ thống bổ sung (sau review 16:05)
-- **Thần Thông**: mỗi nhân vật có 1 chiêu chủ động (phím E hoặc chuột trái).
+- **Thần Thông** (làm lại 27/10): mỗi nhân vật có 1 chiêu chủ động (phím E hoặc chuột trái), tự tìm mục tiêu.
+  - Sức mạnh gốc `SP(w) = r(w) × máu trung bình quái thường ở đợt w`, `r` giảm từ 1.5 (đợt 1) xuống 0.15 (đợt 20): đầu game mạnh, cuối game chỉ mạnh nếu đầu tư. Boss nhận 50%.
+  - **Tiến Giai**: mỗi boss hạ gục nâng chiêu lên giai II → III → IV (đổi dạng, thêm khống chế/phòng thủ, hình ảnh lớn dần). Nhãn thanh chiêu ghi "[E] <tên dạng> · Giai N".
+  - **Uy Áp Cảnh Giới**: đột phá cấp 10 / 20 / 30 thưởng chỉ số vĩnh viễn, hào quang theo cảnh giới, Nguyên Anh hộ chủ đỡ 1 đòn chí mạng mỗi đợt.
+  - **Ngộ Đạo**: lúc đột phá chọn 1 trong 4 thẻ (2 thẻ chỉ số phẩm Tiên, 1 thẻ Thần Thông đặc trưng của nhân vật, 1 thẻ chung); 18 thẻ đặc trưng + 8 thẻ chung.
+  - **Đầu tư**: chỉ số Thần Lực / Tĩnh Tâm khi lên cấp (trọng số 0.5) và 6 pháp bảo Thần Thông; shop ưu tiên pháp bảo Thần Thông khi build đã nghiêng về chiêu.
+  - Cân bằng: `docs/balance/2026-10-27-than-thong.md`.
 - **Liên Sát**: combo diệt quái liên tục, cứ mỗi 25 mạng thưởng linh thạch.
 - **Bảo Rương**: tinh anh và boss rơi rương; giữa các đợt mở rương, chọn nhận hoặc bán.
 - **Kỳ Ngộ**: 9 sự kiện lựa chọn kiểu Slay the Spire, xuất hiện sau đợt 3, 7, 12, 17.

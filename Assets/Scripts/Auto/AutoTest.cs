@@ -16,7 +16,7 @@ namespace VK
         string shotDir;
         int maxWaves = 6, charIdx, kiep;
         public static int Errors;
-        bool god, smart;
+        bool god, smart, skillBuild;   // -skillbuild: invests in Thần Thông (cards, Thần Lực / Tĩnh Tâm, skill items)
         int metaLv, langArg = -1;
         float speed = 2f;
 
@@ -38,6 +38,7 @@ namespace VK
             }
             god = System.Array.IndexOf(args, "-god") >= 0;
             smart = System.Array.IndexOf(args, "-smart") >= 0;
+            skillBuild = System.Array.IndexOf(args, "-skillbuild") >= 0;
             ux = System.Array.IndexOf(args, "-uxtest") >= 0;
             if (string.IsNullOrEmpty(shotDir)) shotDir = Path.Combine(Application.persistentDataPath, "shots");
             Directory.CreateDirectory(shotDir);
@@ -77,6 +78,7 @@ namespace VK
             float waveStart = Time.realtimeSinceStartup;
             int peak = 0;
             float lowHp = 1f;
+            float skill0 = 0f, dmg0 = 0f, skillRaw0 = 0f, dmgRaw0 = 0f; int casts0 = 0;   // skill / total damage at wave start, for the per-wave skill share
             while (true)
             {
                 if (g.state == GState.Playing)
@@ -87,7 +89,7 @@ namespace VK
                     {
                         seenWave = g.run.wave;
                         waveStart = Time.realtimeSinceStartup;
-                        peak = 0; lowHp = 1f;
+                        peak = 0; lowHp = 1f; casts0 = Skills.CastCount; skill0 = g.run.skillEff; dmg0 = g.run.dmgEff; skillRaw0 = g.run.skillDmg; dmgRaw0 = g.run.dmgDealt;
                         StartCoroutine(MidShot(seenWave));
                     }
                     if (g.dir.bossWave && Time.realtimeSinceStartup - waveStart > 240f)
@@ -110,7 +112,7 @@ namespace VK
                     if (g.ui.screen == UIScreen.Chest)
                     {
                         Shot("w" + g.run.wave.ToString("00") + "_chest"); yield return Real(0.3f);
-                        bool full = g.run.chestItem.max > 0 && g.run.Count(g.run.chestItem.id) >= g.run.chestItem.max;
+                        bool full = g.run.Count(g.run.chestItem.id) >= g.run.chestItem.Cap;
                         g.TakeChest(full);
                         yield return Real(0.15f);
                         continue;
@@ -133,7 +135,7 @@ namespace VK
                     if (g.ui.screen == UIScreen.Shop)
                     {
                         var r = g.run;
-                        Debug.Log($"[AUTOTEST] wave {r.wave} done: lvl {r.level} gold {r.gold} kills {r.kills} hp {r.hp:0}/{r.MaxHP:0} dmg {r.dmgDealt:0} peakEnemies {peak} weapons {r.weapons.Count} items {r.items.Count} low {lowHp * 100:0}% hits {r.hitsThisWave} realTime {Time.realtimeSinceStartup - waveStart:0.0}s build {string.Join(",", r.weapons.ConvertAll(w => w.def.id + w.tier))}");
+                        Debug.Log($"[AUTOTEST] wave {r.wave} done: lvl {r.level} gold {r.gold} kills {r.kills} hp {r.hp:0}/{r.MaxHP:0} dmg {r.dmgDealt:0} peakEnemies {peak} weapons {r.weapons.Count} items {r.items.Count} low {lowHp * 100:0}% hits {r.hitsThisWave} realTime {Time.realtimeSinceStartup - waveStart:0.0}s skill {100f * (r.skillEff - skill0) / Mathf.Max(1f, r.dmgEff - dmg0):0.0}% skillRaw {100f * (r.skillDmg - skillRaw0) / Mathf.Max(1f, r.dmgDealt - dmgRaw0):0.0}% casts {Skills.CastCount - casts0} sp {r.stats[Stat.SkillPower]:0} haste {r.stats[Stat.SkillHaste]:0} cards {r.skillCards.Count} build {string.Join(",", r.weapons.ConvertAll(w => w.def.id + w.tier))}");
                         Shot("w" + r.wave.ToString("00") + "_shop_a"); yield return Real(0.3f);
                         if (ux && r.wave == 1) yield return ShopFocusChecks();
                         BuyStuff();
@@ -184,9 +186,19 @@ namespace VK
                 int bi = 0; float bs = -1;
                 for (int i = 0; i < o.Length; i++)
                 {
+                    if (o[i].card != null)
+                    {   // Ngộ Đạo: the plain bot never takes a card; the skill bot takes the signature one, else the shared one
+                        if (!skillBuild) continue;
+                        float cs = o[i].card.charId != null ? 1000f : 900f;
+                        if (cs > bs) { bs = cs; bi = i; }
+                        continue;
+                    }
+                    bool skillOnly = o[i].mods.Length > 0 && System.Array.TrueForAll(o[i].mods, m => m.s == Stat.SkillPower || m.s == Stat.SkillHaste);
+                    if (skillOnly && !skillBuild) continue;   // the plain bot treats Thần Lực / Tĩnh Tâm as worthless
                     float sc = o[i].tier * 4;
                     foreach (var m in o[i].mods)
                     {
+                        if (m.s == Stat.SkillPower || m.s == Stat.SkillHaste) { if (skillBuild) sc += 6; continue; }
                         if (m.s == Stat.Damage || m.s == Stat.AtkSpeed) sc += 5;
                         else if ((m.s == Stat.Melee && isMelee) || (m.s == Stat.Spell && !isMelee)) sc += 5;
                         else if (m.s == Stat.MaxHP || m.s == Stat.Armor) sc += r.MaxHP < 60 ? 4 : 2;
@@ -194,6 +206,7 @@ namespace VK
                     }
                     if (sc > bs) { bs = sc; bi = i; }
                 }
+                if (o[bi].card != null) Debug.Log("[AUTOTEST] ngodao pick " + o[bi].card.id);
                 return bi;
             }
             int best = 0; int bt = -1;
@@ -250,7 +263,9 @@ namespace VK
                         bool hurts = false; float pos = 0;
                         if (s.it.mods != null) foreach (var m in s.it.mods) { if (m.s == Stat.MaxHP && m.v < 0) hurts = true; if (m.v > 0) pos += 1; }
                         if (hurts && r.MaxHP < 80) continue;
-                        sc = 2 + s.it.tier * 3 + pos + (string.IsNullOrEmpty(s.it.desc) ? 0 : 2);
+                        bool skillItem = System.Array.IndexOf(Content.SkillItemIds, s.it.id) >= 0;
+                        if (skillItem && !skillBuild) continue;   // the plain bot ignores Thần Thông items
+                        sc = 2 + s.it.tier * 3 + pos + (string.IsNullOrEmpty(s.it.desc) ? 0 : 2) + (skillItem ? 6 : 0);
                     }
                     sc /= Mathf.Max(1f, s.price / 30f);
                     if (sc > bs) { bs = sc; best = i; }
@@ -422,17 +437,35 @@ namespace VK
             return f.sqrMagnitude > 0.0001f ? f.normalized : Vector2.zero;
         }
 
+        /// <summary>Casts like a player who presses E whenever it is ready and worth it: a boss or elite in reach, or 3 enemies inside the skill's own reach.</summary>
         public bool WantSkill(Player p)
         {
+            var r = Game.I.run;
+            if (r.ch.id == "ma_tu" && r.hp < r.MaxHP * 0.5f) return false;   // the rite costs HP: a player keeps it for when there is HP to spend
+            float reach = SkillReach(r);
             int n = 0;
             foreach (var e in Enemy.All)
             {
+                if (e == null || e.dead) continue;
                 float d = Vector2.Distance(e.Pos, p.Pos);
-                if (e.boss && d < 6f) return true;
-                if (d < 4f) n++;
+                if ((e.boss || e.elite) && d < reach + 2f) return true;
+                if (d < reach) n++;
             }
             if (n >= 6 && !skillShot) { skillShot = true; StartCoroutine(SkillShot()); }
-            return n >= 6;
+            return n >= 3;
+        }
+
+        static float SkillReach(RunState r)
+        {
+            switch (r.ch.id)
+            {
+                case "kiem_tu": return SkillNum.KiemHomeRange;
+                case "dan_tu": return (r.skillStage >= 2 ? SkillNum.DanR3 : SkillNum.DanR) + 0.5f;
+                case "the_tu": return (r.skillStage >= 1 ? SkillNum.TheR2 : SkillNum.TheR) + 0.5f;
+                case "phu_tu": return SkillNum.PhuR;
+                case "loi_tu": return SkillNum.LoiRange * 0.8f;
+                default: return 5f;   // Ma Tu: the rite pays off when a crowd is close
+            }
         }
         bool skillShot;
         IEnumerator SkillShot()

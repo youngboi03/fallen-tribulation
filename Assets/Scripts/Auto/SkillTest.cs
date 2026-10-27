@@ -85,7 +85,7 @@ namespace VK
         IEnumerator T_core_sp()
         {
             yield return Arena(0, 1, 0); var r = Game.I.run;
-            int[] w = { 1, 5, 10, 15, 20 }; float[] sp = { 6, 31, 122, 271, 377 };   // spec §3.1
+            int[] w = { 1, 5, 10, 15, 20 }; float[] sp = { 6, 29, 102, 179, 113 };   // spec §3.1 after the 27/10 balance pass (r: 1.5 -> 0.15)
             for (int i = 0; i < 5; i++)
             {
                 Check("sp_ratio_" + w[i], Mathf.Abs(r.SPAt(w[i]) / WaveDirector.ExpectedTrashHp(w[i]) - Content.SkillR(w[i])) < 0.01f, r.SPAt(w[i]).ToString("0.0"));
@@ -413,7 +413,7 @@ namespace VK
         IEnumerator T_item_stats()
         {
             yield return Arena(0, 5, 0); var r = Game.I.run; r.Recalc();
-            var want = new[] { ("ngung_than_huong", Stat.SkillPower, 12f), ("thanh_tam_phu", Stat.SkillHaste, 5f), ("than_thong_ngoc_gian", Stat.SkillPower, 25f) };
+            var want = new[] { ("ngung_than_huong", Stat.SkillPower, 15f), ("thanh_tam_phu", Stat.SkillHaste, 5f), ("than_thong_ngoc_gian", Stat.SkillPower, 30f) };
             foreach (var (id, st, v) in want)
             {
                 float b = r.stats[st]; GiveItem(id);
@@ -517,6 +517,42 @@ namespace VK
             yield return new WaitForSecondsRealtime(0.4f);
             Check("ui_synergy", UiCount("THẦN THÔNG") >= 1 && UiCount(Content.SkillCard("bach_kiem").name) >= 1, "");
             Game.I.bot.Shot("ui_synergy"); yield return new WaitForSecondsRealtime(0.6f);
+        }
+
+        // ---------------------------------------------------------------- item economy (balance pass)
+        IEnumerator T_eco_chest()
+        {
+            yield return Arena(0, 15, 0); var r = Game.I.run;
+            r.activeRoute = 0; r.eliteChests = 0; bool ok = Mathf.Approximately(r.EliteChestChance, 0.3f);
+            r.eliteChests = 2; ok &= Mathf.Approximately(r.EliteChestChance, 0.1f);
+            r.activeRoute = 2; r.eliteChests = 0; ok &= Mathf.Approximately(r.EliteChestChance, 0.6f);
+            Check("chest_chance", ok, "");
+            int before = Orb.All.FindAll(o => o != null && o.IsChest).Count;
+            for (int i = 0; i < 40; i++) { var e = Elite(new Vector2(6 + (i % 5), 3 + i / 5)); e.Damage(e.hp + 1f, false, Vector2.zero, 0f, null); }
+            yield return null;
+            int dropped = Orb.All.FindAll(o => o != null && o.IsChest).Count - before;
+            Check("chest_falloff", dropped >= 1 && dropped <= 10 && dropped == r.eliteChests, dropped + " chests from 40 elites on Tinh Anh Tu Tap");
+            Game.I.BeginWave(r.wave); Game.I.dir.enabled = false; Game.I.dir.EndWave(); Check("chest_reset", r.eliteChests == 0, "");
+        }
+
+        IEnumerator T_eco_cap()
+        {
+            yield return Arena(0, 8, 0); var r = Game.I.run;
+            var common = Content.Items.Find(i => i.tier == 0 && i.max == 0);
+            var tien = Content.Items.Find(i => i.tier == 3 && i.max == 0);
+            Check("cap_values", common.Cap == 6 && Content.Items.TrueForAll(i => i.max > 0 || i.Cap == Content.StackCap[i.tier]) && Content.StackCap[1] == 4
+                && Content.StackCap[2] == 3 && Content.StackCap[3] == 2 && (tien == null || tien.Cap == 2), "");
+            for (int i = 0; i < 6; i++) r.items.Add(common);
+            r.Recalc();
+            bool seen = false;
+            for (int k = 0; k < 300; k++)
+            {
+                r.RollShop(); foreach (var sl in r.shop) { if (sl != null && sl.it == common) seen = true; if (sl != null) sl.sold = true; }
+                if (r.RollChestItem() == common) seen = true;
+            }
+            Check("cap_offer", !seen, "");
+            r.shop[0].it = common; r.shop[0].w = null; r.shop[0].sold = false; r.shop[0].price = 1; r.gold = 999;
+            Check("cap_buy", r.CantBuy(0) != null, r.CantBuy(0) ?? "buyable");
         }
 
         // ---------------------------------------------------------------- Ngộ Đạo (Task 8)

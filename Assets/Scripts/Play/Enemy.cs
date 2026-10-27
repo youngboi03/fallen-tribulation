@@ -493,10 +493,14 @@ namespace VK
             if (dead) return;
             var run = Game.I.run;
             if (frozenT > 0) d *= FrozenBonus;
+            float hp0 = hp;
             hp -= d;
             if (d < 99999f)   // revive shockwave kills are not real hits
             {
                 run.dmgDealt += d;
+                float eff = Mathf.Min(d, Mathf.Max(0f, hp0));
+                run.dmgEff += eff;
+                if (Skills.InHit) run.skillEff += eff;
                 if (d > run.bestHit) run.bestHit = d;
                 if (d >= 500) Ach.Unlock("bighit");
             }
@@ -537,7 +541,8 @@ namespace VK
             Sfx.Play("kill", boss ? 1f : 0.35f, 0.15f, boss ? 0.6f : 1f);
 
             g.OnKill(pos);
-            if (boss || (elite && (run.activeRoute == 2 || Random.value < 0.3f))) Orb.DropChest(pos + Vector2.right * 0.5f);
+            if (boss) Orb.DropChest(pos + Vector2.right * 0.5f);
+            else if (elite && Random.value < run.EliteChestChance) { run.eliteChests++; Orb.DropChest(pos + Vector2.right * 0.5f); }
             int orbs = def.orbs;
             if (run.activeRoute == 1 && Random.value < 0.4f) orbs++;
             if ((elite || boss) && run.Has("thon_thien"))

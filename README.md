@@ -13,7 +13,7 @@ Lần chơi đầu có **hướng dẫn** tự hiện đúng lúc; muốn xem l�
 |---|---|
 | WASD / phím mũi tên | Di chuyển (vũ khí tự nhắm và tự đánh) |
 | Space / Shift / chuột phải | Lướt (không nhận sát thương trong lúc lướt, hồi chiêu 1.2s) |
-| **E / J / chuột trái** | **Thần Thông**: chiêu riêng của từng nhân vật |
+| **E / J / chuột trái** | **Thần Thông**: chiêu riêng của từng nhân vật, tự tìm mục tiêu; mạnh lên theo boss (Tiến Giai) và thẻ Ngộ Đạo |
 | Esc / P | Tạm dừng (trong menu: quay lại) |
 | 1–4 | Chọn nâng cấp khi lên cấp, chọn phương án ở Kỳ Ngộ |
 | R | Làm mới shop |
@@ -68,10 +68,10 @@ Tất cả gộp lại thành **% Hoàn thành** hiển thị ở menu chính.
 | `Play/` | `Player`, `Enemy`, `Weapon` + `Combat`, `Projectile` + `Orb`, `WaveDirector`, `Skills`, `Arena` |
 | `UI/` | Toàn bộ màn hình uGUI dựng bằng code |
 | `Data/` | Chỉ số, định nghĩa, nội dung game, sự kiện, lưu game |
-| `Auto/` | Bot tự chơi, chạy bằng tham số `-autotest` (thêm `-smart`, `-kiep k`, `-meta n`, `-char i`) |
+| `Auto/` | Bot tự chơi, chạy bằng tham số `-autotest` (thêm `-smart`, `-skillbuild`, `-kiep k`, `-meta n`, `-char i`); kiểm thử kịch bản Thần Thông `-skilltest [-only <tiền tố>]`, kiểm thử giao diện `-uxtest` |
 
 Tài liệu thiết kế: `docs/DESIGN.md`. Chuẩn bị phát hành Steam / Google Play: `docs/PORTING.md`.
-Đo cân bằng nhiều bot song song: `bash tools/probe.sh "ten|-char 0 -kiep 2 -meta 2 -smart" ...` (kết quả trong `Logs/probe/`).
+Đo cân bằng nhiều bot song song: `bash tools/probe.sh "ten|-char 0 -kiep 2 -meta 2 -smart" ...` (kết quả trong `Logs/probe/`). Tỉ lệ sát thương Thần Thông theo dải đợt: `python -I tools/skill_share.py Logs/probe/*.log` (bot `-smart -skillbuild` là người chơi đầu tư vào chiêu). Kiểm thử Thần Thông: `bash tools/build_and_test.sh 1 -skilltest -only ""`.
 
 ## Bản quyền asset
 - **Nhân vật, yêu ma và boss**: vẽ bằng **PixelLab** (https://www.pixellab.ai), nằm ở `Assets/Resources/PixelLab/`. Công cụ và prompt của từng hình được ghi ở `Assets/ThirdParty/PixelLab-Assets.md`.
