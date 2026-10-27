@@ -182,9 +182,11 @@ namespace VK
         {
             yield return Arena(0, 8, 1); Pack(20, 1.5f, 4.5f); Game.I.player.SetSkillReady(); Game.I.player.TryCast();
             yield return new WaitForSeconds(3f); Check("kiem2_return", Dmg("kiem_return") > 0, "");
-            yield return Arena(0, 13, 2); Pack(20, 1.5f, 4.5f); int f0 = Projectile.SkillFired; Game.I.player.SetSkillReady(); Game.I.player.TryCast();
-            Check("kiem3_16", Projectile.SkillFired - f0 == 16, ""); yield return new WaitForSeconds(4.5f);
-            Check("kiem3_orbit", Dmg("kiem_orbit") > 0, "");
+            yield return Arena(0, 13, 2); Pack(20, 1.5f, 4.5f); BossAt(Game.I.player.Pos + new Vector2(2.5f, 0), 1);   // the boss outlives the swords' first pass so the orbit has a target
+            int f0 = Projectile.SkillFired; Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            Check("kiem3_16", Projectile.SkillFired - f0 == 16, "");
+            for (float t = 0f; t < 7f && Dmg("kiem_orbit") <= 0f; t += 0.25f) yield return new WaitForSeconds(0.25f);
+            Check("kiem3_orbit", Dmg("kiem_orbit") > 0, "kiem " + Dmg("kiem").ToString("0") + " return " + Dmg("kiem_return").ToString("0") + " orbit " + Dmg("kiem_orbit").ToString("0") + " enemies " + Enemy.All.Count + " skillProj " + Projectile.CountSkill());
             yield return Arena(0, 18, 3); Pack(20, 1.5f, 4.5f); Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(3f);
             Check("kiem4_giant", Dmg("kiem_giant") > 0 && Dmg("kiem_return") > 0, "keeps stage II");
         }
@@ -295,6 +297,7 @@ namespace VK
                 yield return Arena(ci, 3 + st * 5, st); Pack(st == 3 ? 100 : 20, 1f, st == 3 ? 8f : 4.5f);
                 Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(0.35f);
                 Game.I.bot.Shot("form_" + ci + "_" + st);
+                yield return new WaitForSecondsRealtime(0.6f);   // the capture is written at end of frame: do not rebuild the arena before it lands
             }
         }
     }
