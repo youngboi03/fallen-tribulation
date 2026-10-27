@@ -745,5 +745,83 @@ namespace VK
             Check("boss_cd", Mathf.Approximately(KiepNum.BossCd[0], 1f) && Mathf.Approximately(KiepNum.BossCd[5], 0.85f) && Mathf.Approximately(KiepNum.BossShot[3], 1.06f), "");
             Check("tele_floor", Mathf.Approximately(KiepNum.TeleFloor(2), 0.6f) && Mathf.Approximately(KiepNum.TeleFloor(3), 0.5f), "");
         }
+
+        // ---------------------------------------------------------------- boss hazards (part C, task 2)
+        BossHazard Hz(Enemy owner, HShape sh, Vector2 pos, float tele, float active, float tick = 0f)
+        {
+            var h = BossHazard.Spawn(owner, sh, pos, tele, active, 10f, new Color(1f, 0.3f, 0.2f), tick);
+            h.radius = 2f;
+            return h;
+        }
+
+        IEnumerator T_boss_hz_once()
+        {
+            yield return Arena(0, 1, 0); Tank(); BossHazard.ClearAll();
+            Hz(null, HShape.Circle, Vector2.zero, 0.6f, 1f);
+            yield return Sec(0.5f);
+            Check("hz_once_early", BossHazard.PlayerHits == 0, BossHazard.PlayerHits.ToString());
+            yield return Sec(1.5f);
+            Check("hz_once_total", BossHazard.PlayerHits == 1, BossHazard.PlayerHits.ToString());
+            Check("hz_once_expired", BossHazard.All.Count == 0, BossHazard.All.Count.ToString());
+        }
+
+        IEnumerator T_boss_hz_tick()
+        {
+            yield return Arena(0, 1, 0); Tank(); BossHazard.ClearAll();
+            Hz(null, HShape.Circle, Vector2.zero, 0.6f, 3f, 0.25f);
+            yield return Sec(4f);
+            Check("hz_tick_cap", BossHazard.PlayerHits >= 5 && BossHazard.PlayerHits <= 7, BossHazard.PlayerHits.ToString());
+        }
+
+        IEnumerator T_boss_hz_forming()
+        {
+            yield return Arena(0, 1, 0); Tank(); BossHazard.ClearAll();
+            Hz(null, HShape.Circle, Vector2.zero, 0f, 1f);
+            yield return Sec(0.4f);
+            Check("hz_forming_early", BossHazard.PlayerHits == 0, BossHazard.PlayerHits.ToString());
+            yield return Sec(0.6f);
+            Check("hz_forming_hit", BossHazard.PlayerHits == 1, BossHazard.PlayerHits.ToString());
+        }
+
+        IEnumerator T_boss_hz_shapes()
+        {
+            yield return Arena(0, 1, 0); BossHazard.ClearAll();
+            var bar = Hz(null, HShape.Bar, Vector2.zero, 1f, 1f); bar.len = 9f; bar.width = 1f; bar.angleDeg = 0f;
+            Check("hz_bar", bar.Contains(new Vector2(4, 0), 0.3f) && !bar.Contains(new Vector2(0, 2), 0.3f), "");
+            var ring = Hz(null, HShape.Ring, Vector2.zero, 1f, 1f); ring.radius = 3f; ring.radius2 = 2f;
+            Check("hz_ring", ring.Contains(new Vector2(2.5f, 0), 0.3f) && !ring.Contains(new Vector2(1, 0), 0.3f), "");
+            var cone = Hz(null, HShape.Cone, Vector2.zero, 1f, 1f); cone.radius = 5f; cone.arcDeg = 70f; cone.angleDeg = 0f;
+            Check("hz_cone", cone.Contains(new Vector2(3, 0.5f), 0.3f) && !cone.Contains(new Vector2(0, 3), 0.3f), "");
+            var ann = Hz(null, HShape.Annulus, Vector2.zero, 1f, 1f); ann.radius = 30f; ann.radius2 = 6f;
+            Check("hz_annulus", ann.Contains(new Vector2(10, 0), 0.3f) && !ann.Contains(new Vector2(3, 0), 0.3f), "");
+            var gap = Hz(null, HShape.Ring, Vector2.zero, 1f, 1f); gap.radius = 3f; gap.radius2 = 2f; gap.gapDirsDeg = new List<float> { 0f }; gap.gapWidthDeg = 40f;
+            Check("hz_gap", !gap.Contains(new Vector2(2.5f, 0), 0.3f) && gap.Contains(new Vector2(0, 2.5f), 0.3f), "");
+            BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_hz_clear()
+        {
+            yield return Arena(0, 1, 0); BossHazard.ClearAll();
+            var a = BossAt(new Vector2(6, 6), 1); var b = BossAt(new Vector2(-6, 6), 2);
+            for (int i = 0; i < 3; i++) Hz(a, HShape.Circle, new Vector2(8, 0), 1f, 5f);
+            Hz(b, HShape.Circle, new Vector2(-8, 0), 1f, 5f);
+            Check("hz_clear_pre", BossHazard.All.Count == 4, BossHazard.All.Count.ToString());
+            BossHazard.ClearOwner(a);
+            Check("hz_clear_owner", BossHazard.All.Count == 1 && BossHazard.All[0].owner == b, BossHazard.All.Count.ToString());
+            Game.I.dir.EndWave();
+            Check("hz_clear_wave", BossHazard.All.Count == 0, BossHazard.All.Count.ToString());
+            yield return null;
+        }
+
+        IEnumerator T_boss_hz_danger()
+        {
+            yield return Arena(0, 1, 0); BossHazard.ClearAll();
+            var h = Hz(null, HShape.Circle, new Vector2(5, 0), 1f, 2f);
+            yield return Sec(0.7f);   // about 0.3 s before it goes live
+            Check("hz_danger_near", BossHazard.DangerAt(new Vector2(5, 0), 0.5f) > 0.5f, "");
+            Check("hz_danger_far", BossHazard.DangerAt(new Vector2(-8, 0), 0.5f) < 0.5f, "");
+            Check("hz_danger_early", BossHazard.DangerAt(new Vector2(5, 0), 0.1f) < 0.5f, "");
+            BossHazard.ClearAll();
+        }
     }
 }

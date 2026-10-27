@@ -30,6 +30,7 @@ namespace VK
         SpriteRenderer sr, shadow, aura;
         MaterialPropertyBlock mpb;
         Vector2 vel, lastMove = Vector2.right, dashDir;
+        public float slowT, slowMul = 1f;   // BossHazard slow: movement multiplier while slowT > 0
         float dashT, dashCd, iframe, flash, animT, ghostT, dead;
         static readonly int FlashId = Shader.PropertyToID("_Flash");
         static readonly int FlashColId = Shader.PropertyToID("_FlashColor");
@@ -121,6 +122,7 @@ namespace VK
             Vector2 input = ReadMove();
             bool dashPressed = ReadDash();
             float spd = 5f * Mathf.Max(0.35f, 1f + run.stats[Stat.Speed] / 100f);
+            if (slowT > 0f) slowT -= dt;
             dashCd -= dt; iframe -= dt; skillCd -= dt; goldT -= dt;
             if (run.riteT > 0) run.riteT -= dt;
             if (Game.T > 4f && run.wave == 1) g.ui.Hint("dash", GameInput.K("Nhấn <color=#FFD266>SPACE</color>", "Chạm nút <color=#FFD266>Lướt</color>") + " để lướt: bất tử trong lúc lướt, xuyên qua quái và đạn.");
@@ -148,7 +150,7 @@ namespace VK
                     Sfx.Play("dash", 0.6f, 0.1f, 1.3f);
                     Fx.Burst(Pos + Vector2.down * 0.35f, new Color(0.8f, 0.7f, 0.6f, 0.7f), 6, 3f, 0.12f, 0.35f);
                 }
-                Vector2 target = input * spd;
+                Vector2 target = input * spd * (slowT > 0f ? slowMul : 1f);
                 vel = Vector2.MoveTowards(vel, target, dt * spd * 12f);
             }
             if (input.sqrMagnitude > 0.01f) lastMove = input.normalized;

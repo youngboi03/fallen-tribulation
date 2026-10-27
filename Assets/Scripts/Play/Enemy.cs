@@ -30,6 +30,8 @@ namespace VK
         float burnDps, burnT, poisonDps, poisonT, dotTick, frozenT;
         bool poisonSkill;   // poisoned by Độc Đạo Ấn: spreads on death even without the Đạo Độc synergy
         public bool Frozen => frozenT > 0;
+        /// <summary>Time factor while frozen (matches the dt Update uses); BossHazard timers follow it.</summary>
+        public float TimeScale => frozenT > 0 ? (boss ? 0.5f : 0.15f) : 1f;
         public bool Burning => burnT > 0;
         public int skillHits;
         public bool HasStatus => burnT > 0 || poisonT > 0 || frozenT > 0;

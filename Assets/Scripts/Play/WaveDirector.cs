@@ -280,6 +280,7 @@ namespace VK
             foreach (var e in Enemy.Snapshot()) if (e) e.Vanish();
             Enemy.All.Clear();
             Projectile.ClearAll(true);
+            BossHazard.ClearAll();
             ClearTeles();
         }
 

@@ -205,6 +205,7 @@ namespace VK
             foreach (var o in new List<Orb>(Orb.All)) if (o) Destroy(o.gameObject);
             Orb.All.Clear();
             if (run != null) foreach (var w in run.weapons) w.DestroyView();
+            BossHazard.ClearAll();
             Fx.ClearAll();
         }
 
