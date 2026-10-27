@@ -40,7 +40,12 @@ namespace VK
             s.Play();
         }
 
-        public static void Preload() { Get("menu"); Get("battle"); Get("boss"); }
+        public static void Preload()
+        {
+            Get("menu"); Get("battle"); Get("boss");
+            Res.RegisterClip("sk_chime", Synth.Chime()); Res.RegisterClip("sk_boom", Synth.Boom());
+            Res.RegisterClip("sk_whoosh", Synth.Whoosh()); Res.RegisterClip("sk_choir", Synth.Choir());
+        }
 
         static AudioClip Get(string track)
         {
@@ -86,6 +91,66 @@ namespace VK
     public static class Synth
     {
         const int SR = 22050;
+
+        static AudioClip Clip(string name, float[] buf)
+        {
+            var c = AudioClip.Create(name, buf.Length, 1, SR, false);
+            c.SetData(buf, 0);
+            return c;
+        }
+
+        /// <summary>Pentatonic bell: three partials with an exponential tail.</summary>
+        public static AudioClip Chime()
+        {
+            var b = new float[SR];
+            float[] notes = { 659.3f, 783.99f, 987.77f };
+            for (int n = 0; n < notes.Length; n++)
+                for (int i = 0; i < SR / 2; i++)
+                {
+                    int k = i + n * SR / 14; if (k >= b.Length) break;
+                    float t = i / (float)SR;
+                    b[k] += (Mathf.Sin(6.2832f * notes[n] * t) + 0.4f * Mathf.Sin(6.2832f * notes[n] * 2.76f * t)) * Mathf.Exp(-t * 7f) * 0.25f;
+                }
+            return Clip("sk_chime", b);
+        }
+
+        /// <summary>Low explosion: falling sine plus a decaying noise burst.</summary>
+        public static AudioClip Boom()
+        {
+            var b = new float[SR * 3 / 4]; var rng = new System.Random(5); float ph = 0;
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)SR; ph += 6.2832f * (110f * Mathf.Exp(-t * 4f) + 30f) / SR;
+                b[i] = (Mathf.Sin(ph) * 0.7f + ((float)rng.NextDouble() * 2f - 1f) * 0.35f * Mathf.Exp(-t * 14f)) * Mathf.Exp(-t * 5f);
+            }
+            return Clip("sk_boom", b);
+        }
+
+        /// <summary>Rising filtered-noise sweep.</summary>
+        public static AudioClip Whoosh()
+        {
+            var b = new float[SR / 2]; var rng = new System.Random(9); float lp = 0;
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)b.Length; float a = Mathf.Lerp(0.05f, 0.5f, t);
+                lp += a * (((float)rng.NextDouble() * 2f - 1f) - lp);
+                b[i] = lp * Mathf.Sin(t * Mathf.PI) * 1.6f;
+            }
+            return Clip("sk_whoosh", b);
+        }
+
+        /// <summary>Long sustained fifth with slow vibrato.</summary>
+        public static AudioClip Choir()
+        {
+            var b = new float[SR * 2];
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)SR; float env = Mathf.Clamp01(t / 0.4f) * Mathf.Exp(-Mathf.Max(0, t - 0.8f) * 2.2f);
+                float vib = 1f + 0.006f * Mathf.Sin(6.2832f * 5.2f * t);
+                b[i] = (Mathf.Sin(6.2832f * 220f * vib * t) + 0.6f * Mathf.Sin(6.2832f * 330f * vib * t) + 0.3f * Mathf.Sin(6.2832f * 440f * vib * t)) * env * 0.22f;
+            }
+            return Clip("sk_choir", b);
+        }
 
         public static AudioClip Track(int seed, float bpm, int intensity)
         {

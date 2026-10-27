@@ -70,6 +70,8 @@ namespace VK
             return s;
         }
 
+        public static void RegisterClip(string name, AudioClip c) { clips[name] = new[] { c }; }
+
         public static AudioClip Clip(string name)
         {
             if (!clips.TryGetValue(name, out var arr))
@@ -174,6 +176,24 @@ namespace VK
             tex.SetPixels32(px); tex.Apply();
             return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), ppu > 0 ? ppu : size);
         }
+
+        static Sprite sigil;
+        /// <summary>Code-drawn magic circle: outer ring, 24 ticks, inner hexagram, inner ring.</summary>
+        public static Sprite Sigil => sigil ??= Make(256, (u, v) =>
+        {
+            float d = Mathf.Sqrt(u * u + v * v);
+            float a = Mathf.Max(1f - Mathf.Abs(d - 0.95f) * 55f, 1f - Mathf.Abs(d - 0.45f) * 55f);
+            float seg = Mathf.PI * 2f / 24f;
+            float t = Mathf.Repeat(Mathf.Atan2(v, u), seg) / seg - 0.5f;
+            if (d > 0.76f && d < 0.9f && Mathf.Abs(t) < 0.07f) a = 1f;
+            if (d < 0.7f)
+                for (int i = 0; i < 6; i++)
+                {
+                    float an = (30f + 60f * i) * Mathf.Deg2Rad;
+                    a = Mathf.Max(a, 1f - Mathf.Abs(u * Mathf.Cos(an) + v * Mathf.Sin(an) - 0.35f) * 60f);
+                }
+            return a;
+        });
 
         /// <summary>1x1 world unit solid square.</summary>
         public static Sprite White => white ??= Make(4, (u, v) => 1f, FilterMode.Point);

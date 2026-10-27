@@ -173,6 +173,37 @@ namespace VK
             bo.lr.startColor = c; bo.lr.endColor = c;
         }
 
+        /// <summary>Active pooled particles (for tests).</summary>
+        public static int ActiveCount { get { int n = 0; foreach (var p in ps) if (p.active) n++; return n; } }
+
+        /// <summary>Spinning magic circle lying under the feet, fading out.</summary>
+        public static void Sigil(Vector2 pos, Color c, float radius, float life, float spin = 40f)
+        {
+            var c1 = c; c1.a = 0;
+            Particle(pos, Vector2.zero, c, c1, radius * 2f, radius * 2.3f, life, Res.Sigil, true, 0, 106, spin);
+            var p = ps.FindLast(x => x.active);
+            if (p != null) p.aspect = 1f;
+        }
+
+        /// <summary>Full-screen colour wash (alpha clamped to 0.12 by the UI).</summary>
+        public static void ScreenTint(Color c, float alpha, float life) => Game.I.ui.Tint(c, alpha, life);
+
+        /// <summary>Enlarged additive copy of a sprite that rises behind the hero and fades (Dharma form).</summary>
+        public static void Apparition(Sprite s, Vector2 pos, Color c, float scale, float life)
+        {
+            var c0 = new Color(c.r, c.g, c.b, 0.55f); var c1 = new Color(c.r, c.g, c.b, 0f);
+            Particle(pos + Vector2.up * 0.6f, new Vector2(0, 1.2f), c0, c1, scale, scale * 1.15f, life, s, true, 1f, 101);
+        }
+
+        /// <summary>Vertical column of light.</summary>
+        public static void Pillar(Vector2 pos, Color c, float height, float life)
+        {
+            var c0 = new Color(c.r, c.g, c.b, 0.8f); var c1 = new Color(c.r, c.g, c.b, 0f);
+            Particle(pos + Vector2.up * height * 0.5f, Vector2.zero, c0, c1, height, height, life, Res.Glow, true, 0, 107);
+            var p = ps.FindLast(x => x.active);
+            if (p != null) p.aspect = 0.18f;
+        }
+
         public static void Shake(float mag, float dur = 0.15f) => Game.I.AddShake(mag, dur);
         public static void Hitstop(float t) => Game.I.Hitstop(t);
 

@@ -164,5 +164,18 @@ namespace VK
                 Check("empty_" + ci + "_" + st, cast && p.SkillCdLeft > 0f && AutoTest.Errors == e0, AutoTest.Errors - e0 + " errors");
             }
         }
+        // ---------------------------------------------------------------- fx (Task 3)
+        IEnumerator T_fx_all()
+        {
+            yield return Arena(0, 1, 0); int e0 = AutoTest.Errors, n0 = Fx.ActiveCount; Vector2 p = Game.I.player.Pos;
+            Fx.Sigil(p, Color.cyan, 2f, 1f); Fx.Apparition(Res.Tile(Content.Chars[0].sprite), p, Color.cyan, 6f, 0.9f);
+            Fx.Pillar(p, Color.white, 8f, 0.6f); Fx.ScreenTint(Color.red, 0.5f, 0.3f);
+            Check("fx_spawned", Fx.ActiveCount >= n0 + 3, Fx.ActiveCount + "");
+            Check("tint_clamped", Game.I.ui.TintAlpha <= 0.1201f, Game.I.ui.TintAlpha.ToString("0.000"));
+            for (int s = 0; s < 4; s++) SkillFx.Ladder(s, p, Color.cyan);
+            foreach (var c in new[] { "sk_chime", "sk_boom", "sk_whoosh", "sk_choir" }) Check("sfx_" + c, Res.Clip(c) != null, "");
+            yield return new WaitForSeconds(0.25f); Game.I.bot.Shot("fx_ladder");
+            Check("fx_no_errors", AutoTest.Errors == e0, "");
+        }
     }
 }

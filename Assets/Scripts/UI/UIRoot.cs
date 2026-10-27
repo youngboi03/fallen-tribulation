@@ -12,7 +12,15 @@ namespace VK
     {
         public UIScreen screen;
         RectTransform root, hud, scr, top;
-        Image hurtFlash;
+        Image hurtFlash, tintImg;
+        float tintLife, tintMax, tintA;
+        public float TintAlpha => tintA;
+        public void Tint(Color c, float alpha, float life)
+        {
+            if (tintImg == null) return;
+            tintA = Mathf.Min(alpha, 0.12f); tintLife = tintMax = Mathf.Max(0.05f, life);
+            tintImg.color = new Color(c.r, c.g, c.b, tintA);
+        }
         float hurtA;
 
         // HUD
@@ -59,6 +67,9 @@ namespace VK
             hurtFlash = UIK.Img(root, new Color(0.8f, 0f, 0.05f, 0f), "hurt");
             hurtFlash.rectTransform.Fill();
             hurtFlash.raycastTarget = false;
+            tintImg = UIK.Img(root, new Color(1, 1, 1, 0), "tint");
+            tintImg.rectTransform.Fill();
+            tintImg.raycastTarget = false;
             scr = UIK.R(root, "screen").Fill();
             top = UIK.R(root, "top").Fill();
             BuildBanner();
@@ -219,6 +230,12 @@ namespace VK
             float lowHp = 0;
             if (Run != null && Game.I.state == GState.Playing) { float k = Run.hp / Run.MaxHP; if (k < 0.3f) lowHp = 0.08f + Mathf.Sin(Time.unscaledTime * 6f) * 0.05f; }
             hurtFlash.color = new Color(0.8f, 0f, 0.05f, Mathf.Max(hurtA, lowHp));
+
+            if (tintLife > 0)
+            {
+                tintLife -= dt;
+                var tc = tintImg.color; tc.a = tintLife > 0 ? tintA * tintLife / tintMax : 0f; tintImg.color = tc;
+            }
 
             UpdateHUD();
             UpdateHint(dt);
