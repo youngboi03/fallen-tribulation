@@ -379,7 +379,7 @@ namespace VK
 
             var col = UIK.R(o, "menu").Place(0.5f, 0.5f, 420, 640, 0, -115);
             UIK.VL(col.gameObject, 7, 0, TextAnchor.MiddleCenter);
-            UIK.Btn(col, "Nhập Đạo", ShowCharSelect, UIK.BtnGold, 34, -1, 74);
+            PadDefault.Mark(UIK.Btn(col, "Nhập Đạo", ShowCharSelect, UIK.BtnGold, 34, -1, 74));
             UIK.Btn(col, "Tàng Kinh Các", ShowMeta, UIK.BtnBlue, 28, -1, 60);
             UIK.Btn(col, "Thành Tựu", ShowAchievements, UIK.BtnBlue, 28, -1, 60);
             UIK.Btn(col, "Đồ Giám", ShowCodex, UIK.BtnBlue, 28, -1, 60);
@@ -497,6 +497,7 @@ namespace VK
                 btn.transition = Selectable.Transition.None;
                 btn.navigation = new Navigation { mode = Navigation.Mode.None };
                 btn.onClick.AddListener(() => { if (Content.CharUnlocked(ci, Save)) { selChar = ci; Sfx.Play("card", 0.6f); ShowCharSelect(); } else Sfx.Play("error", 0.5f); });
+                if (sel) PadDefault.Mark(btn);
                 card.gameObject.AddComponent<UIHover>().hoverScale = 1.03f;
             }
 
@@ -1084,7 +1085,7 @@ namespace VK
             Title(o, "TẠM DỪNG", 200, 72);
             var col = UIK.R(o, "col").Place(0.5f, 0.5f, 420, 440, 0, -60);
             UIK.VL(col.gameObject, 14, 0, TextAnchor.MiddleCenter);
-            UIK.Btn(col, "Tiếp Tục", () => Game.I.SetPause(false), UIK.BtnGold, 30, -1, 70);
+            PadDefault.Mark(UIK.Btn(col, "Tiếp Tục", () => Game.I.SetPause(false), UIK.BtnGold, 30, -1, 70));
             Button sfxB = null, musB = null;
             sfxB = UIK.Btn(col, VolLabel("Âm hiệu", Save.sfxVol), () => { Save.sfxVol = Cycle(Save.sfxVol); Save.Save(); sfxB.SetLabel(VolLabel("Âm hiệu", Save.sfxVol)); }, UIK.BtnGrey, 24, -1, 52);
             musB = UIK.Btn(col, VolLabel("Nhạc", Save.musicVol), () => { Save.musicVol = Cycle(Save.musicVol); Save.Save(); musB.SetLabel(VolLabel("Nhạc", Save.musicVol)); }, UIK.BtnGrey, 24, -1, 52);
@@ -1151,7 +1152,7 @@ namespace VK
             var row = UIK.R(o, "btns").Place(0.5f, 0, 1100, 80, 0, 90);
             UIK.HL(row.gameObject, 20, 0, TextAnchor.MiddleCenter, true);
             int ci = Game.I.run.charIndex, k = Game.I.run.kiep;
-            UIK.Btn(row, "Tái Chiến", () => Game.I.StartRun(ci, k), UIK.BtnGold, 30, 320, 76);
+            PadDefault.Mark(UIK.Btn(row, "Tái Chiến", () => Game.I.StartRun(ci, k), UIK.BtnGold, 30, 320, 76));
             UIK.Btn(row, "Tàng Kinh Các", () => { Game.I.GoMenu(); ShowMeta(); }, UIK.BtnBlue, 26, 320, 76);
             UIK.Btn(row, "Về Sơn Môn", () => Game.I.GoMenu(), UIK.BtnGrey, 26, 320, 76);
         }

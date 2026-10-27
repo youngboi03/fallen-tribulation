@@ -113,15 +113,22 @@ namespace VK
             Sfx.Tick(Time.unscaledDeltaTime);
         }
 
-        void LateUpdate()
+        /// <summary>Where the camera wants to be: on the player, clamped so the view stays inside the arena walls.</summary>
+        Vector3 CamTarget()
         {
             Vector2 target = player != null && player.gameObject.activeSelf && state != GState.Menu ? player.Pos : Vector2.zero;
             float halfH = cam.orthographicSize, halfW = halfH * cam.aspect;
             float limX = Mathf.Max(0, Arena.HalfW + 1f - halfW), limY = Mathf.Max(0, Arena.HalfH + 1.2f - halfH);
-            target.x = Mathf.Clamp(target.x, -limX, limX);
-            target.y = Mathf.Clamp(target.y, -limY, limY);
+            return new Vector3(Mathf.Clamp(target.x, -limX, limX), Mathf.Clamp(target.y, -limY, limY), -10);
+        }
+
+        /// <summary>Jump onto the target instead of sliding there (wave start: the player was just moved to the centre).</summary>
+        void SnapCamera() { camPos = CamTarget(); cam.transform.position = camPos; }
+
+        void LateUpdate()
+        {
             float k = 1f - Mathf.Exp(-8f * Time.unscaledDeltaTime);
-            camPos = Vector3.Lerp(camPos, new Vector3(target.x, target.y, -10), k);
+            camPos = Vector3.Lerp(camPos, CamTarget(), k);
             shakeAmp = Mathf.MoveTowards(shakeAmp, 0, shakeDecay * Time.unscaledDeltaTime);
             Vector3 shake = shakeAmp > 0 && !paused ? (Vector3)(UnityEngine.Random.insideUnitCircle * shakeAmp) : Vector3.zero;
             cam.transform.position = camPos + shake;
@@ -223,6 +230,7 @@ namespace VK
             run.hp = run.MaxHP;
             save.bestWave = Mathf.Max(save.bestWave, n);
             player.ResetForWave();
+            SnapCamera();
             foreach (var w in run.weapons) w.cd = UnityEngine.Random.Range(0.1f, 0.4f);
             int region = (n - 1) / 5;
             bool newRegion = region != arena.Theme;

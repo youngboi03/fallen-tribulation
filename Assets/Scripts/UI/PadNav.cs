@@ -6,6 +6,7 @@ namespace VK
     /// <summary>
     /// Gamepad / arrow-key navigation for every menu screen: D-pad or stick moves a gold frame to the
     /// nearest button in that direction, A / Enter presses it, B goes back. The frame hides again when the mouse moves.
+    /// Screens are rebuilt after every press, so the frame remembers where it was and comes back to the nearest button.
     /// </summary>
     public class PadNav : MonoBehaviour
     {
@@ -14,6 +15,19 @@ namespace VK
         Vector2 lastMouse;
         float repeatT;
         bool active;
+        // last framed spot, valid while the same screen stays up
+        bool hasMem; Vector2 memPos; UIScreen memScreen;
+        static Button hovered;
+
+        /// <summary>Called by <see cref="UIHover"/>: the button under the mouse, where the keys take over.</summary>
+        public static void NoteHover(Button b, bool on)
+        {
+            if (on) hovered = b;
+            else if (hovered == b) hovered = null;
+        }
+
+        /// <summary>The button the gold frame is on, or null while the frame is hidden.</summary>
+        public Button Selected => active && sel != null && sel.isActiveAndEnabled ? sel : null;
 
         public void Init(RectTransform screenRoot, Transform overlayParent)
         {
@@ -39,7 +53,7 @@ namespace VK
             var g = Game.I;
             if (g == null || g.ui == null || scr == null) return;
             bool menu = g.ui.screen != UIScreen.None && !(g.state == GState.Playing && !g.paused);
-            if (!menu) { Hide(); return; }
+            if (!menu) { Hide(); hasMem = false; return; }
 
             Vector2 mouse = Input.mousePosition;
             if ((mouse - lastMouse).sqrMagnitude > 25f) { lastMouse = mouse; Hide(); }
@@ -52,32 +66,67 @@ namespace VK
             else if (repeatT <= 0)
             {
                 repeatT = 0.22f;
-                if (!active || sel == null || !sel.isActiveAndEnabled) Pick(null, Vector2.zero);
-                else Pick(sel, dir);
-                active = true;
+                Navigate(dir);
             }
 
-            if (active && sel != null && sel.isActiveAndEnabled)
+            if (active && Selected == null) Restore();   // the screen was rebuilt under the frame
+            if (Selected != null)
             {
+                memPos = Center(sel); memScreen = g.ui.screen; hasMem = true;
                 var rt = (RectTransform)sel.transform;
                 frame.gameObject.SetActive(true);
                 frame.position = rt.TransformPoint(rt.rect.center);
                 frame.sizeDelta = rt.rect.size * rt.lossyScale.x / frame.lossyScale.x + new Vector2(14, 14);
                 frame.SetAsLastSibling();
-                if ((Input.GetKeyDown(KeyCode.JoystickButton0) || Input.GetKeyDown(KeyCode.Return)) && sel.interactable)
-                {
-                    var b = sel; sel = null;
-                    b.onClick.Invoke();   // the screen is usually rebuilt; the next move picks a fresh button
-                    active = Input.GetJoystickNames().Length > 0;
-                    if (active) Pick(null, Vector2.zero);
-                }
+                if (Input.GetKeyDown(KeyCode.JoystickButton0) || Input.GetKeyDown(KeyCode.Return)) Submit();
             }
-            else if (active) { Pick(null, Vector2.zero); if (sel == null) Hide(); }
+            else if (active) Hide();
 
             if (Input.GetKeyDown(KeyCode.JoystickButton1)) Back(g);
         }
 
-        void Hide() { active = false; if (frame) frame.gameObject.SetActive(false); }
+        /// <summary>A D-pad / arrow press: the first one shows the frame (on the hovered button, the remembered spot or the
+        /// screen's main button), later ones move it to the nearest button in <paramref name="dir"/>.</summary>
+        public void Navigate(Vector2 dir)
+        {
+            if (Selected != null) { Pick(sel, dir); return; }
+            if (Usable(hovered)) sel = hovered;
+            else Restore();
+            active = sel != null;
+        }
+
+        /// <summary>A / Enter: presses the framed button; the frame stays and returns next to that spot if the screen is rebuilt.</summary>
+        public void Submit()
+        {
+            var b = Selected;
+            if (b == null || !b.interactable) return;
+            memPos = Center(b); memScreen = Game.I.ui.screen; hasMem = true;
+            b.onClick.Invoke();
+        }
+
+        /// <summary>Nearest button to the remembered spot on the same screen, otherwise the screen's main button.</summary>
+        void Restore()
+        {
+            sel = null;
+            if (hasMem && memScreen == Game.I.ui.screen)
+            {
+                float bd = float.MaxValue;
+                foreach (var b in scr.GetComponentsInChildren<Button>(false))
+                {
+                    if (!Usable(b)) continue;
+                    float d = (Center(b) - memPos).sqrMagnitude;
+                    if (d < bd) { bd = d; sel = b; }
+                }
+            }
+            if (sel == null) Pick(null, Vector2.zero);
+        }
+
+        bool Usable(Button b) => b != null && b.isActiveAndEnabled && b.interactable && b.transform.IsChildOf(scr);
+
+        /// <summary>Puts the frame on <paramref name="b"/>.</summary>
+        public void Select(Button b) { sel = b; active = b != null; }
+
+        public void Hide() { active = false; if (frame) frame.gameObject.SetActive(false); }
 
         static void Back(Game g)
         {
@@ -97,7 +146,7 @@ namespace VK
                 if (b == from || !b.interactable || !b.isActiveAndEnabled) continue;
                 Vector2 p = Center(b);
                 float score;
-                if (from == null) score = -p.y * 4f + p.x;   // top first, then left
+                if (from == null) score = (b.GetComponent<PadDefault>() != null ? -1e6f : 0f) - p.y * 4f + p.x;   // the main button, else top first, then left
                 else
                 {
                     Vector2 d = p - c;
@@ -117,5 +166,11 @@ namespace VK
             var rt = (RectTransform)b.transform;
             return rt.TransformPoint(rt.rect.center);
         }
+    }
+
+    /// <summary>Marks a screen's main button: the frame starts there when the screen opens.</summary>
+    public class PadDefault : MonoBehaviour
+    {
+        public static Button Mark(Button b) { b.gameObject.AddComponent<PadDefault>(); return b; }
     }
 }

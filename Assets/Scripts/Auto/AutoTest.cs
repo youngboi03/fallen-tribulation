@@ -1,6 +1,9 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace VK
 {
@@ -34,6 +37,7 @@ namespace VK
             }
             god = System.Array.IndexOf(args, "-god") >= 0;
             smart = System.Array.IndexOf(args, "-smart") >= 0;
+            ux = System.Array.IndexOf(args, "-uxtest") >= 0;
             if (string.IsNullOrEmpty(shotDir)) shotDir = Path.Combine(Application.persistentDataPath, "shots");
             Directory.CreateDirectory(shotDir);
             Application.logMessageReceived += (msg, st, type) =>
@@ -61,6 +65,7 @@ namespace VK
             g.ui.ShowAchievements(); yield return Real(0.6f); Shot("04_achievements"); yield return Real(0.3f);
             g.ui.ShowCodex(); yield return Real(0.6f); Shot("05_codex"); yield return Real(0.3f);
             g.ui.ShowMenu(); yield return Real(0.3f);
+            if (ux) yield return MenuFocusCheck();
 
             Time.timeScale = speed;
             g.StartRun(charIdx, kiep);
@@ -127,13 +132,16 @@ namespace VK
                         var r = g.run;
                         Debug.Log($"[AUTOTEST] wave {r.wave} done: lvl {r.level} gold {r.gold} kills {r.kills} hp {r.hp:0}/{r.MaxHP:0} dmg {r.dmgDealt:0} peakEnemies {peak} weapons {r.weapons.Count} items {r.items.Count} low {lowHp * 100:0}% hits {r.hitsThisWave} realTime {Time.realtimeSinceStartup - waveStart:0.0}s build {string.Join(",", r.weapons.ConvertAll(w => w.def.id + w.tier))}");
                         Shot("w" + r.wave.ToString("00") + "_shop_a"); yield return Real(0.3f);
+                        if (ux && r.wave == 1) yield return ShopFocusChecks();
                         BuyStuff();
                         g.ui.ShowShop();
                         yield return Real(0.3f);
                         Shot("w" + r.wave.ToString("00") + "_shop_b"); yield return Real(0.3f);
                         if (r.wave >= maxWaves) { Finish(); yield break; }
                         bool risky = smart ? lowHp > 0.75f : Random.value < 0.5f;   // a sensible player only gambles when the last wave went well
-                        g.NextWave(r.routeOffer > 0 && (r.wave + 1) % 5 != 0 && risky ? r.routeOffer : 0);
+                        int route = r.routeOffer > 0 && (r.wave + 1) % 5 != 0 && risky ? r.routeOffer : 0;
+                        if (ux && r.wave == 1) { yield return CameraCheck(route); continue; }
+                        g.NextWave(route);
                     }
                 }
                 else if (g.state == GState.Over)
@@ -259,6 +267,7 @@ namespace VK
         void Finish()
         {
             var r = Game.I.run;
+            if (ux) Debug.Log($"[AUTOTEST] UX CHECKS passed={uxPass} failed={uxFail}");
             Debug.Log($"[AUTOTEST] DONE errors={errors} wave={(r != null ? r.wave : 0)} level={(r != null ? r.level : 0)}");
             Time.timeScale = 1f;
             StartCoroutine(Quit());
@@ -268,6 +277,110 @@ namespace VK
         {
             yield return Real(1.5f);
             Application.Quit();
+        }
+
+        // ---------------------------------------------------------------- UX checks (-uxtest)
+        bool ux;
+        int uxPass, uxFail;
+
+        void Check(string name, bool ok, string detail)
+        {
+            if (ok) uxPass++; else uxFail++;
+            Debug.Log("[AUTOTEST] CHECK " + name + " " + (ok ? "PASS" : "FAIL") + " " + detail);
+        }
+
+        static Vector2 Center(Button b) { var rt = (RectTransform)b.transform; return rt.TransformPoint(rt.rect.center); }
+
+        static string Label(Button b)
+        {
+            var t = b != null ? b.transform.Find("label") : null;
+            var tx = t != null ? t.GetComponent<Text>() : null;
+            return tx != null ? tx.text : "";
+        }
+
+        /// <summary>Visible buttons whose label contains <paramref name="label"/>, left to right.</summary>
+        static List<Button> Buttons(string label)
+        {
+            var res = new List<Button>();
+            foreach (var b in FindObjectsByType<Button>(FindObjectsSortMode.None))
+                if (b.isActiveAndEnabled && Label(b).Contains(label)) res.Add(b);
+            res.Sort((a, c) => Center(a).x.CompareTo(Center(c).x));
+            return res;
+        }
+
+        /// <summary>The real mouse cursor is over a button (that would legitimately take the focus).</summary>
+        static bool MouseOverButton()
+        {
+            var es = EventSystem.current;
+            if (es == null) return false;
+            var hits = new List<RaycastResult>();
+            es.RaycastAll(new PointerEventData(es) { position = Input.mousePosition }, hits);
+            foreach (var h in hits) if (h.gameObject.GetComponentInParent<Button>() != null) return true;
+            return false;
+        }
+
+        /// <summary>Main menu: the first arrow press puts the frame on "Nhập Đạo".</summary>
+        IEnumerator MenuFocusCheck()
+        {
+            var nav = Game.I.GetComponent<PadNav>();
+            nav.Hide();
+            yield return null;
+            if (MouseOverButton()) { Debug.Log("[AUTOTEST] CHECK menu_default SKIP (mouse over a button)"); yield break; }
+            nav.Navigate(Vector2.down);
+            var play = Buttons("Nhập Đạo");
+            Check("menu_default", play.Count == 1 && nav.Selected == play[0], "selected='" + Label(nav.Selected) + "'");
+            nav.Hide();
+            yield return null;
+        }
+
+        /// <summary>Shop: a pressed button keeps the frame after the rebuild, arrows continue from there, and a hovered button takes the focus.</summary>
+        IEnumerator ShopFocusChecks()
+        {
+            var g = Game.I;
+            var nav = g.GetComponent<PadNav>();
+            var locks = Buttons("Khóa");
+            if (locks.Count >= 2)
+            {
+                nav.Select(locks[1]);
+                yield return null;
+                Vector2 p = Center(locks[1]);
+                nav.Submit();   // locks card 2: the whole shop is rebuilt
+                yield return null;
+                var s = nav.Selected;
+                Check("keep_after_press", s != null && Vector2.Distance(Center(s), p) < 20f,
+                    s != null ? "moved " + Vector2.Distance(Center(s), p).ToString("0") + "px" : "nothing selected");
+                nav.Navigate(Vector2.right);
+                s = nav.Selected;
+                Check("move_from_kept", s != null && Center(s).x > p.x + 50f && Mathf.Abs(Center(s).y - p.y) < 80f,
+                    s != null ? "now '" + Label(s) + "' dx " + (Center(s).x - p.x).ToString("0") : "nothing selected");
+                foreach (var slot in g.run.shop) if (slot != null) slot.locked = false;
+                g.ui.ShowShop();
+                yield return null;
+            }
+            else Debug.Log("[AUTOTEST] CHECK keep_after_press SKIP (" + locks.Count + " lock buttons)");
+
+            var target = Buttons("Đường Bằng");
+            if (target.Count == 0) target = Buttons("BẮT ĐẦU ĐỢT");
+            nav.Hide();
+            var pd = new PointerEventData(EventSystem.current);
+            ExecuteEvents.Execute(target[0].gameObject, pd, ExecuteEvents.pointerEnterHandler);
+            nav.Navigate(Vector2.up);
+            Check("hover_then_keys", nav.Selected == target[0], "selected='" + Label(nav.Selected) + "'");
+            ExecuteEvents.Execute(target[0].gameObject, pd, ExecuteEvents.pointerExitHandler);
+            nav.Hide();
+            yield return null;
+        }
+
+        /// <summary>Ends wave 1 far from the centre; the camera must already be on the player in the first frame of wave 2.</summary>
+        IEnumerator CameraCheck(int route)
+        {
+            var g = Game.I;
+            g.player.transform.position = new Vector3(15f, 8.5f, 0f);
+            yield return Real(1.5f);   // the camera settles on the corner
+            g.NextWave(route);
+            yield return new WaitForEndOfFrame();
+            Vector2 cam = g.cam.transform.position, pl = g.player.Pos;
+            Check("camera_snap", Vector2.Distance(cam, pl) < 0.05f, "camera " + cam.ToString("0.00") + " player " + pl.ToString("0.00"));
         }
 
         // ---------------------------------------------------------------- bot input

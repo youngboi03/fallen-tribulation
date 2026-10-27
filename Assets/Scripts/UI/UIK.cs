@@ -209,10 +209,17 @@ namespace VK
         {
             var b = GetComponent<Button>();
             if (b == null || b.interactable) { target = hoverScale; Sfx.Play("tick", 0.25f, 0.05f, 1.2f); }
+            if (b != null) PadNav.NoteHover(b, true);
             onEnter?.Invoke();
         }
 
-        public void OnPointerExit(PointerEventData e) { target = 1f; onExit?.Invoke(); }
+        public void OnPointerExit(PointerEventData e)
+        {
+            target = 1f;
+            var b = GetComponent<Button>();
+            if (b != null) PadNav.NoteHover(b, false);
+            onExit?.Invoke();
+        }
 
         void OnDisable() { target = 1f; transform.localScale = Vector3.one; }
 
