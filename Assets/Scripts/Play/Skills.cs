@@ -17,9 +17,14 @@ namespace VK
         /// <summary>Lifesteal bonus while the Huyết Tế rite runs.</summary>
         public static float RiteLifesteal => Game.I.run != null && Game.I.run.skillStage >= 3 ? SkillNum.MaLifesteal4 : SkillNum.MaLifesteal;
 
+        /// <summary>Thiết Bố Sam: +5 Armor for 5 s after a cast (added in Player.Hurt).</summary>
+        public static float TempArmor => SkillRuntime.I != null && SkillRuntime.I.armorT > 0f ? 5f : 0f;
+
         /// <summary>Damage the player takes passes through here before armor (skill damage-reduction buffs).</summary>
         public static float ModifyIncoming(float dmg)
         {
+            var run = Game.I.run;
+            if (run != null && run.kiemKhi >= 12 && run.HasCard("kiem_khi")) { run.kiemKhi = 0; return 0f; }   // Kiếm Khí Hộ Thể: the hit is blocked outright
             var rt = SkillRuntime.I;
             return rt != null && rt.drT > 0f ? dmg * rt.drMul : dmg;
         }
@@ -36,11 +41,21 @@ namespace VK
             if (crit) d *= 1.5f + (st[Stat.CritDmg] + (eye ? 50f : 0f)) / 100f;
             d *= UnityEngine.Random.Range(0.92f, 1.08f);
             if (e.boss) d *= SkillNum.BossMul;
+            if (e.Burning && run.HasCard("bao_viem")) d *= 1.5f;   // Bạo Viêm Đan
             LastHitCrit = crit;
             e.skillHits++;
             Vector2 ep = e.Pos;
             e.Damage(d, crit, dir, knock, null);
             Seals(run, e, ep, d, crit, coef);
+            if (run.HasCard("kiem_khi") && (src == "kiem" || src == "kiem_return" || src == "kiem_orbit") && run.kiemKhi < 12)
+            {   // Kiếm Khí Hộ Thể: each sword hit stores a tier; the 12th arms a full block
+                run.kiemKhi++;
+                if (run.kiemKhi == 12)
+                {
+                    Fx.Ring(Game.I.player.Pos, new Color(0.5f, 1f, 1f), 0.4f, 1.8f, 0.5f);
+                    Sfx.Play("bell", 0.5f, 0f, 1.5f, 0f);
+                }
+            }
             if (UnityEngine.Random.value * 100f < st[Stat.Lifesteal] + (run.riteT > 0 ? RiteLifesteal : 0f)) Game.I.player.Heal(1);
             run.skillDmg += d;
             run.skillDmgBy.TryGetValue(src, out var acc);
@@ -217,13 +232,17 @@ namespace VK
         // ---------------------------------------------------------------- Kiếm Tu
         static void CastKiem(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt)
         {
-            int n = st >= 2 ? SkillNum.KiemSwords3 : SkillNum.KiemSwords;
+            bool hundred = r.HasCard("bach_kiem"), clever = r.HasCard("kiem_tam");
+            int n = (st >= 2 ? SkillNum.KiemSwords3 : SkillNum.KiemSwords) + (hundred ? 8 : 0);   // Bách Kiếm Triều: +8 swords at ×0.7
+            var cut = clever ? new Dictionary<Enemy, int>() : null;
             for (int i = 0; i < n; i++)
             {
                 float a = i * Mathf.PI * 2f / n;
-                Projectile.FireSkill(KiemShot(r, k), pos, new Vector2(Mathf.Cos(a), Mathf.Sin(a)));
+                var shot = KiemShot(r, hundred ? k * 0.7f : k);
+                if (clever) { shot.preferBig = true; shot.stackHits = cut; }   // Kiếm Tâm Thông Minh
+                Projectile.FireSkill(shot, pos, new Vector2(Mathf.Cos(a), Mathf.Sin(a)));
             }
-            Fx.Ring(pos, new Color(0.5f, 1f, 1f), 0.3f, 3f, 0.4f);
+            Fx.Ring(pos, new Color(0.5f, 1f, 1f), 0.3f, hundred ? 4.5f : 3f, 0.4f);
             Fx.Shake(0.2f, 0.2f);
             Sfx.Play("swing", 0.8f, 0f, 1.6f, 0f);
             Sfx.Play("zap", 0.4f, 0f, 1.8f, 0f);
@@ -260,12 +279,15 @@ namespace VK
         static void CastDan(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt, bool echo)
         {
             float rad = st >= 2 ? SkillNum.DanR3 : SkillNum.DanR;
+            if (r.HasCard("bao_viem")) rad += Mathf.Min(1.5f, 0.15f * Nearest(pos, 200, 0f, rad).Count);   // Bạo Viêm Đan: the blast grows with the crowd
             Action<Enemy, float> burn = (e, d) => e.ApplyBurn(d * 0.3f * r.BurnMul);
-            Splash(pos, rad, SkillNum.DanHit * k, "dan_nova", 1.8f, burn);
+            int caught = Splash(pos, rad, SkillNum.DanHit * k, "dan_nova", 1.8f, burn);
+            float extraHeal = r.HasCard("cuu_chuyen") ? Mathf.Min(0.2f, 0.02f * caught) : 0f;   // Cửu Chuyển Hoàn Đan
+            if (extraHeal > 0f) Fx.Burst(pos, new Color(0.5f, 1f, 0.6f), 14, 5f, 0.14f, 0.5f, true);
             Fx.Ring(pos, new Color(1f, 0.5f, 0.15f), 0.3f, rad, 0.4f);
             Fx.Glow(pos, new Color(1f, 0.45f, 0.1f, 0.8f), rad * 2.4f, 0.4f);
             Fx.Burst(pos, new Color(1f, 0.55f, 0.15f), 40, 10f, 0.2f, 0.6f, true);
-            p.Heal(Mathf.Round(r.MaxHP * SkillNum.DanHeal * k));
+            p.Heal(Mathf.Round(r.MaxHP * (SkillNum.DanHeal + extraHeal) * k));
             Fx.Shake(0.35f, 0.3f);
             Fx.Hitstop(0.05f);
             Sfx.Play("heavy", 0.9f, 0f, 0.8f, 0f);
@@ -312,15 +334,61 @@ namespace VK
             if (!echo) p.Invuln(inv);
             Action<Enemy, float> stun = null;
             if (st >= 1) stun = (e, d) => { if (!e.dead) e.Freeze(SkillNum.TheStun); };
-            Splash(pos, rad, SkillNum.TheHit * k, "the_wave", 4f, stun);
-            Fx.Ring(pos, new Color(1f, 0.85f, 0.4f), 0.3f, rad, 0.35f);
-            Fx.Ring(pos, Color.white, 0.2f, rad * 0.7f, 0.25f);
-            Fx.Burst(pos, new Color(0.8f, 0.7f, 0.55f), 30, 9f, 0.18f, 0.5f);
-            Fx.Shake(0.45f, 0.35f);
-            Fx.Hitstop(0.08f);
-            Sfx.Play("heavy", 1f, 0f, 0.6f, 0f);
-            Sfx.Play("bell", 0.5f, 0f, 1.2f, 0f);
-            if (st >= 2 && rt != null) Fissures(pos, k, rt);
+            Action wave = () =>
+            {
+                Splash(pos, rad, SkillNum.TheHit * k, "the_wave", 4f, stun);
+                Fx.Ring(pos, new Color(1f, 0.85f, 0.4f), 0.3f, rad, 0.35f);
+                Fx.Ring(pos, Color.white, 0.2f, rad * 0.7f, 0.25f);
+                Fx.Burst(pos, new Color(0.8f, 0.7f, 0.55f), 30, 9f, 0.18f, 0.5f);
+                Fx.Shake(0.45f, 0.35f);
+                Fx.Hitstop(0.08f);
+                Sfx.Play("heavy", 1f, 0f, 0.6f, 0f);
+                Sfx.Play("bell", 0.5f, 0f, 1.2f, 0f);
+                if (st >= 2 && rt != null) Fissures(pos, k, rt);
+            };
+            if (r.HasCard("son_bang") && rt != null)
+            {   // Sơn Băng Địa Hãm: for 0.25 s before the wave, everything within 5 tiles is dragged in
+                Fx.Ring(pos, new Color(0.8f, 0.65f, 0.4f), 5f, 0.6f, 0.25f);
+                rt.During(0.25f, 0.025f, () =>
+                {
+                    var list = Enemy.Snapshot();
+                    foreach (var e in list)
+                    {
+                        if (e.dead || e.boss) continue;
+                        Vector2 rel = pos - e.Pos; float dist = rel.magnitude;
+                        if (dist > 5.2f || dist < 1f) continue;
+                        e.transform.position = e.Pos + rel / dist * Mathf.Min(14f * 0.025f, dist - 1f);
+                    }
+                    Enemy.Release(list);
+                }, wave);
+            }
+            else wave();
+            if (!echo && rt != null)
+            {
+                if (r.HasCard("thiet_bo_sam"))
+                {   // Thiết Bố Sam
+                    rt.armorT = 5f; Fx.Ring(pos, new Color(1f, 0.85f, 0.4f), 1.6f, 0.7f, 0.4f);
+                }
+                if (r.HasCard("bat_dong"))
+                {   // Bất Động Minh Vương: while invulnerable, enemies that touch the hero are struck and thrown back
+                    var last = new Dictionary<Enemy, float>(); float clock = 0f;
+                    rt.During(inv, 0.1f, () =>
+                    {
+                        clock += 0.1f;
+                        var pp = Game.I.player.Pos;
+                        var list = Enemy.Snapshot();
+                        foreach (var e in list)
+                        {
+                            if (e.dead || Vector2.Distance(e.Pos, pp) > p.radius + e.radius + 0.15f) continue;
+                            if (last.TryGetValue(e, out float t) && clock - t < 0.5f) continue;
+                            last[e] = clock;
+                            Hit(e, SkillNum.TheHit * 0.5f * k, "the_thorns", e.Pos - pp, 6f);
+                            Fx.Burst(e.Pos, new Color(1f, 0.85f, 0.4f), 5, 4f, 0.12f, 0.3f, true);
+                        }
+                        Enemy.Release(list);
+                    });
+                }
+            }
             if (st >= 3 && !echo && rt != null)
             {
                 rt.After(inv, () =>
@@ -515,6 +583,7 @@ namespace VK
     {
         public string src; public float coef = 1, speed = 13, life = 1.2f, radius = 0.25f; public int pierce;
         public bool homing; public float homingRange = 7; public bool preferBig;
+        public Dictionary<Enemy, int> stackHits;   // Kiếm Tâm: hits already landed on each target by this cast
         public string returnSrc; public float returnCoef;
         public float orbitTime, orbitCoef;
         public float blastR, blastCoef;

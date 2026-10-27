@@ -290,6 +290,67 @@ namespace VK
             Check("field_paused", r.skillDmg == d0, ""); Game.I.SetPause(false);
         }
 
+        // ---------------------------------------------------------------- signature cards: Kiếm / Đan / Thể (Task 9)
+        IEnumerator T_sig1_kiem()
+        {
+            float per0 = 0f;
+            for (int pass = 0; pass < 2; pass++)
+            {   // pass 0 without Bách Kiếm Triều, pass 1 with it: damage per sword hit must drop to 0.7
+                yield return pass == 0 ? Arena(0, 10, 0) : Arena(0, 10, 0, "bach_kiem");
+                var r = Game.I.run; r.levelStats[Stat.Crit] -= 1000; r.Recalc();
+                var el = Elite(new Vector2(5, 0)); el.hp = 1e9f; el.maxHp = 1e9f;
+                int f0 = Projectile.SkillFired; Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+                if (pass == 1) Check("bach_20", Projectile.SkillFired - f0 == 20, (Projectile.SkillFired - f0) + "");
+                yield return new WaitForSeconds(2.5f);
+                float per = Dmg("kiem") / Mathf.Max(1, el.skillHits);
+                if (pass == 0) per0 = per; else Check("bach_07", Mathf.Abs(per / per0 - 0.7f) < 0.06f, (per / per0).ToString("0.00"));
+            }
+            yield return Arena(0, 10, 0, "kiem_tam"); var r2 = Game.I.run;
+            var big = Elite(new Vector2(6, 0)); big.hp = 1e9f; big.maxHp = 1e9f; Pack(20, 2f, 4f);
+            Game.I.player.SetSkillReady(); Game.I.player.TryCast(); yield return new WaitForSeconds(2.5f);
+            Check("kiem_tam", big.skillHits >= 6, big.skillHits + "");
+            yield return Arena(0, 10, 0, "kiem_khi"); r2 = Game.I.run; r2.kiemKhi = 11;
+            Skills.Hit(Elite(new Vector2(3, 0)), 0.01f, "kiem", Vector2.right);
+            Check("kiem_khi_12", r2.kiemKhi == 12, r2.kiemKhi + "");
+            Check("kiem_khi_block", Skills.ModifyIncoming(10f) == 0f && r2.kiemKhi == 0, r2.kiemKhi + "");
+        }
+
+        IEnumerator T_sig1_dan()
+        {
+            yield return Arena(1, 10, 0, "cuu_chuyen"); var r = Game.I.run; var p = Game.I.player;
+            r.hp = r.MaxHP * 0.5f; float hp0 = r.hp; Pack(10, 1.5f, 3f); p.SetSkillReady(); p.TryCast();
+            Check("cuu_chuyen", r.hp >= hp0 + 0.45f * r.MaxHP - 0.5f, r.hp + " / " + (hp0 + 0.45f * r.MaxHP));
+            yield return Arena(1, 10, 0, "bao_viem"); r = Game.I.run; p = Game.I.player;
+            Pack(10, 2f, 3f); var far = Pack(1, 4.8f, 4.8f)[0]; p.SetSkillReady(); p.TryCast();
+            Check("bao_viem_radius", far.skillHits >= 1, far.skillHits + "");
+            r.levelStats[Stat.Crit] -= 1000; r.Recalc();
+            var a = Elite(new Vector2(8, 3)); var b = Elite(new Vector2(-8, 3)); a.ApplyBurn(1f);
+            Random.InitState(7); float da = Skills.Hit(a, 1f, "t", Vector2.right); Random.InitState(7); float db = Skills.Hit(b, 1f, "t", Vector2.right);
+            Check("bao_viem_burning", Mathf.Abs(da / db - 1.5f) < 0.01f, (da / db).ToString("0.000"));
+            yield return Arena(1, 10, 0, "ho_menh"); r = Game.I.run; p = Game.I.player; p.god = false;
+            yield return new WaitForSeconds(1.2f);   // wave-start grace
+            r.hp = r.MaxHP * 0.35f; p.SetSkillReady(); int c0 = Skills.CastCount; p.Hurt(0.1f * r.MaxHP, p.Pos + Vector2.right);
+            Check("ho_menh_cast", Skills.CastCount == c0 + 1 && r.hoMenhUsed, (Skills.CastCount - c0) + "");
+            yield return new WaitForSeconds(0.6f); p.SetSkillReady(); c0 = Skills.CastCount; p.Hurt(0.02f * r.MaxHP, p.Pos + Vector2.right);
+            Check("ho_menh_once", Skills.CastCount == c0, (Skills.CastCount - c0) + "");
+        }
+
+        IEnumerator T_sig1_the()
+        {
+            yield return Arena(2, 10, 0, "bat_dong"); var p = Game.I.player;
+            p.SetSkillReady(); p.TryCast(); yield return new WaitForSeconds(0.4f);   // the wave has thrown the first crowd out; a second one steps in while the hero is still invulnerable
+            Pack(8, 0.5f, 0.9f); yield return new WaitForSeconds(0.6f);
+            Check("bat_dong", Dmg("the_thorns") > 0f, Dmg("the_thorns").ToString("0"));
+            yield return Arena(2, 10, 0, "thiet_bo_sam"); p = Game.I.player; p.SetSkillReady(); p.TryCast();
+            Check("armor_on", Skills.TempArmor == 5f, Skills.TempArmor + "");
+            yield return new WaitForSeconds(5.1f); Check("armor_off", Skills.TempArmor == 0f, Skills.TempArmor + "");
+            yield return Arena(2, 10, 0, "son_bang"); p = Game.I.player; var pk = Pack(8, 4.5f, 4.5f); foreach (var e in pk) { e.hp = 1e9f; e.maxHp = 1e9f; }   // survive the wave so the pull can be measured
+            p.SetSkillReady(); p.TryCast(); yield return new WaitForSeconds(0.3f);
+            bool ok = true; string dbg = "";
+            foreach (var e in pk) { bool good = e != null && !e.dead && Vector2.Distance(e.Pos, p.Pos) < 3.2f && e.skillHits >= 1; ok &= good; dbg += e == null || e.dead ? "x " : Vector2.Distance(e.Pos, p.Pos).ToString("0.0") + "/" + e.skillHits + " "; }
+            Check("son_bang", ok, dbg);
+        }
+
         // ---------------------------------------------------------------- Ngộ Đạo (Task 8)
         IEnumerator T_nd_roll()
         {

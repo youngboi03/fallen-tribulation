@@ -179,6 +179,7 @@ namespace VK
 
             float hpk = run.hp / run.MaxHP;
             aura.color = run.riteT > 0 ? new Color(1f, 0.1f, 0.15f, 0.35f + Mathf.Sin(Time.time * 10f) * 0.1f) : goldT > 0 ? new Color(1f, 0.8f, 0.3f, 0.35f) : hpk < 0.3f ? new Color(1f, 0.25f, 0.25f, 0.18f + Mathf.Sin(Time.time * 8f) * 0.08f) : RealmAura(run.level);
+            if (run.kiemKhi >= 12 && run.HasCard("kiem_khi")) aura.color = new Color(0.5f, 1f, 1f, 0.5f);   // Kiếm Khí full: the block is armed
             aura.transform.localScale = Vector3.one * (2.1f + Mathf.Sin(Time.time * 2f) * 0.1f) * (1f + 0.15f * Mathf.Min(3, run.level / 10));
             if (run.level >= 20 && g.state == GState.Playing)
             {   // Kim Đan and above: motes of light circle the hero
@@ -215,7 +216,15 @@ namespace VK
                 return;
             }
             dmg = Skills.ModifyIncoming(dmg);
-            float armor = run.stats[Stat.Armor];
+            if (dmg <= 0f)
+            {   // Kiếm Khí Hộ Thể: blocked outright
+                iframe = 0.4f;
+                Fx.Text(Pos + Vector2.up * 0.6f, "Chặn!", new Color(0.5f, 1f, 1f), 1.1f);
+                Fx.Ring(Pos, new Color(0.5f, 1f, 1f), 0.4f, 2.4f, 0.4f);
+                Sfx.Play("bell", 0.6f, 0f, 1.4f, 0f);
+                return;
+            }
+            float armor = run.stats[Stat.Armor] + Skills.TempArmor;
             float mul = armor >= 0 ? 1f / (1f + armor / 15f) : 2f - 1f / (1f - armor / 15f);
             float d = Mathf.Max(1f, Mathf.Round(dmg * mul));
             run.hp -= d;
@@ -236,7 +245,13 @@ namespace VK
                 Fx.Text(Pos + Vector2.up * 1.1f, "Nguyên Anh hộ chủ!", new Color(0.85f, 0.7f, 1f), 1.2f, 1.4f);
                 Sfx.Play("breakthrough", 0.6f, 0f);
             }
-            if (run.hp <= 0) { run.hp = 0; g.OnPlayerDeath(); }
+            if (run.hp <= 0) { run.hp = 0; g.OnPlayerDeath(); return; }
+            if (run.HasCard("ho_menh") && !run.hoMenhUsed && run.hp < run.MaxHP * 0.3f && skillCd <= 0f)
+            {   // Hộ Mệnh Đan: below 30% HP with the skill ready, it casts itself (once per wave)
+                run.hoMenhUsed = true;
+                Fx.Text(Pos + Vector2.up * 1.1f, "Hộ Mệnh!", new Color(1f, 0.6f, 0.3f), 1.2f, 1.2f);
+                TryCast();
+            }
         }
 
         float moteT;

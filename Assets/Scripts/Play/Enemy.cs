@@ -603,6 +603,21 @@ namespace VK
         }
 
         // ---------------------------------------------------------------- queries
+        /// <summary>Nearest elite or boss within <paramref name="maxDist"/> (Kiếm Tâm homing); null when there is none.</summary>
+        public static Enemy NearestBig(Vector2 p, float maxDist, HashSet<Enemy> skip = null)
+        {
+            Enemy best = null;
+            float bd = maxDist * maxDist;
+            for (int i = 0; i < All.Count; i++)
+            {
+                var e = All[i];
+                if (e.dead || !(e.elite || e.boss) || (skip != null && skip.Contains(e))) continue;
+                float d = ((Vector2)e.transform.position - p).sqrMagnitude;
+                if (d < bd) { bd = d; best = e; }
+            }
+            return best;
+        }
+
         public static Enemy Nearest(Vector2 p, float maxDist, HashSet<Enemy> skip = null)
         {
             Enemy best = null;

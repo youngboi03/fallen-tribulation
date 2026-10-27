@@ -124,7 +124,7 @@ namespace VK
 
             if (homing)
             {
-                var t = Enemy.Nearest(pos, ss != null ? ss.homingRange : 7f, hits);
+                var t = (ss != null && ss.preferBig ? Enemy.NearestBig(pos, 9f, hits) : null) ?? Enemy.Nearest(pos, ss != null ? ss.homingRange : 7f, hits);
                 if (t != null)
                 {
                     Vector2 want = (t.Pos - pos).normalized * vel.magnitude;
@@ -186,7 +186,15 @@ namespace VK
                     return;
                 }
                 bool back = phase == 1;
-                Skills.Hit(e, back ? ss.returnCoef : ss.coef, back ? ss.returnSrc : ss.src, vel.normalized, 1f);
+                float cf = back ? ss.returnCoef : ss.coef;
+                if (ss.stackHits != null && !back)
+                {   // Kiếm Tâm: every earlier sword of this cast on the same target adds 15% (max +150%)
+                    ss.stackHits.TryGetValue(e, out int prior);
+                    cf *= 1f + Mathf.Min(1.5f, 0.15f * prior);
+                    ss.stackHits[e] = prior + 1;
+                    if (prior >= 2) Fx.Burst(e.Pos, new Color(1f, 0.9f, 0.4f), 3, 3f, 0.1f, 0.25f, true);
+                }
+                Skills.Hit(e, cf, back ? ss.returnSrc : ss.src, vel.normalized, 1f);
                 ss.onHit?.Invoke(e);
                 if (ss.freeze > 0f && !e.dead) e.SkillFreeze(ss.freeze, ss.freezeBonus);
                 pierce--;
