@@ -178,8 +178,18 @@ namespace VK
             var c = sr.color; c.a = iframe > 0 && dashT <= 0 && goldT <= 0 && Mathf.Repeat(Time.time * 16f, 1f) < 0.5f ? 0.45f : 1f; sr.color = c;
 
             float hpk = run.hp / run.MaxHP;
-            aura.color = run.riteT > 0 ? new Color(1f, 0.1f, 0.15f, 0.35f + Mathf.Sin(Time.time * 10f) * 0.1f) : goldT > 0 ? new Color(1f, 0.8f, 0.3f, 0.35f) : hpk < 0.3f ? new Color(1f, 0.25f, 0.25f, 0.18f + Mathf.Sin(Time.time * 8f) * 0.08f) : new Color(0.4f, 0.9f, 1f, 0.15f);
-            aura.transform.localScale = Vector3.one * (2.1f + Mathf.Sin(Time.time * 2f) * 0.1f);
+            aura.color = run.riteT > 0 ? new Color(1f, 0.1f, 0.15f, 0.35f + Mathf.Sin(Time.time * 10f) * 0.1f) : goldT > 0 ? new Color(1f, 0.8f, 0.3f, 0.35f) : hpk < 0.3f ? new Color(1f, 0.25f, 0.25f, 0.18f + Mathf.Sin(Time.time * 8f) * 0.08f) : RealmAura(run.level);
+            aura.transform.localScale = Vector3.one * (2.1f + Mathf.Sin(Time.time * 2f) * 0.1f) * (1f + 0.15f * Mathf.Min(3, run.level / 10));
+            if (run.level >= 20 && g.state == GState.Playing)
+            {   // Kim Đan and above: motes of light circle the hero
+                moteT -= Time.deltaTime;
+                if (moteT <= 0f)
+                {
+                    moteT = run.level >= 30 ? 0.08f : 0.14f;
+                    float a = Random.value * 6.2832f; Color mc = RealmAura(run.level); mc.a = 0.9f;
+                    Fx.Particle(Pos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 1.1f, new Vector2(-Mathf.Sin(a), Mathf.Cos(a)) * 1.2f, mc, new Color(mc.r, mc.g, mc.b, 0f), 0.09f, 0.02f, 0.7f, Res.Glow, true, 0f);
+                }
+            }
 
             // weapons orbit the player
             int n = run.weapons.Count;
@@ -219,7 +229,28 @@ namespace VK
             Fx.Hitstop(0.07f);
             Sfx.Play("hurt", 0.8f);
             g.ui.HurtFlash();
+            if (run.hp <= 0 && run.level >= 30 && !run.guardUsed)
+            {   // Nguyên Anh hộ chủ: the first lethal hit of a wave leaves 1 HP (before Bất Tử Phù)
+                run.guardUsed = true; run.hp = 1f; iframe = Mathf.Max(iframe, 1f);
+                Fx.Ring(Pos, new Color(0.85f, 0.7f, 1f), 0.3f, 5f, 0.7f);
+                Fx.Text(Pos + Vector2.up * 1.1f, "Nguyên Anh hộ chủ!", new Color(0.85f, 0.7f, 1f), 1.2f, 1.4f);
+                Sfx.Play("breakthrough", 0.6f, 0f);
+            }
             if (run.hp <= 0) { run.hp = 0; g.OnPlayerDeath(); }
+        }
+
+        float moteT;
+
+        /// <summary>Aura color by realm: Luyện Khí cyan, Trúc Cơ jade, Kim Đan gold, Nguyên Anh white-violet (spec section 6).</summary>
+        static Color RealmAura(int level)
+        {
+            switch (Mathf.Min(3, level / 10))
+            {
+                case 1: return new Color(0.35f, 1f, 0.65f, 0.27f);
+                case 2: return new Color(1f, 0.85f, 0.35f, 0.33f);
+                case 3: return new Color(0.85f, 0.7f, 1f, 0.4f);
+                default: return new Color(0.4f, 0.9f, 1f, 0.15f);
+            }
         }
 
         float lastHealText;

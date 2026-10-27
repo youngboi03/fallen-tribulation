@@ -250,3 +250,6 @@ Thần Lực|Spirit Power|神力
 Tĩnh Tâm|Calm Mind|静心
 sát thương Thần Thông|Divine Art damage|神通伤害
 giảm hồi chiêu Thần Thông|Divine Art cooldown reduction|神通冷却缩减
+Uy Áp|Majesty|威压
+Nguyên Anh hộ chủ|Nascent Soul Guardian|元婴护主
+mỗi đợt|each wave|每波

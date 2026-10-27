@@ -290,6 +290,46 @@ namespace VK
             Check("field_paused", r.skillDmg == d0, ""); Game.I.SetPause(false);
         }
 
+        // ---------------------------------------------------------------- Tiến Giai, Uy Áp (Task 7)
+        IEnumerator T_prog_stage()
+        {
+            yield return Arena(0, 5, 0); var r = Game.I.run; var b = BossAt(new Vector2(0, 4), 0);
+            b.Damage(b.hp + 1f, false, Vector2.zero, 0f, null); yield return new WaitForSeconds(0.2f);
+            Check("stage_up", r.skillStage == 1 && r.stageUpWave == 5 && r.stageCallout, r.skillStage + "");
+            yield return Arena(0, 20, 3); r = Game.I.run; b = BossAt(new Vector2(0, 4), 3);
+            b.Damage(b.hp + 1f, false, Vector2.zero, 0f, null); yield return new WaitForSeconds(0.2f);
+            Check("stage_cap", r.skillStage == 3, r.skillStage + "");
+            Game.I.player.SetSkillReady(); Game.I.player.TryCast(); Check("callout_once", !r.stageCallout, "");
+        }
+
+        IEnumerator T_prog_uyap()
+        {
+            yield return Arena(0, 9, 1); var r = Game.I.run; float hp = r.MaxHP, ar = r.stats[Stat.Armor];
+            Game.I.OnLevelUp(10); r.Recalc();
+            Check("uyap_10", Mathf.Approximately(r.MaxHP - hp, 10f) && Mathf.Approximately(r.stats[Stat.Armor] - ar, 1f), "");
+            float dm = r.stats[Stat.Damage], sp = r.stats[Stat.SkillPower]; Game.I.OnLevelUp(20); r.Recalc();
+            Check("uyap_20", Mathf.Approximately(r.stats[Stat.Damage] - dm, 10f) && Mathf.Approximately(r.stats[Stat.SkillPower] - sp, 10f), "");
+        }
+
+        IEnumerator T_prog_guard()
+        {
+            yield return Arena(0, 18, 3); var r = Game.I.run; var p = Game.I.player; p.god = false; r.level = 30; r.hp = 5f;
+            yield return new WaitForSeconds(1.2f);   // wave-start grace (ResetForWave gives 1 s of i-frames)
+            p.Hurt(1000f, p.Pos + Vector2.right);
+            Check("nguyen_anh", Mathf.Approximately(r.hp, 1f) && Game.I.state == GState.Playing && r.guardUsed && p.InvulnLeft >= 0.9f, r.hp + "");
+            Skills.OnWaveStart(r); Check("guard_reset", !r.guardUsed, "");
+        }
+
+        // all four auras side by side for the visual review (Luyện Khí / Trúc Cơ / Kim Đan / Nguyên Anh)
+        IEnumerator T_prog_aura()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                yield return Arena(0, 3, 0); Game.I.run.level = i * 10 + 1; yield return new WaitForSecondsRealtime(0.3f);
+                Game.I.bot.Shot("aura_" + i); yield return new WaitForSecondsRealtime(0.6f);
+            }
+        }
+
         IEnumerator T_ml_shots()   // all 24 forms for visual review; stage IV also in a 100-enemy crowd (spec section 13)
         {
             for (int ci = 0; ci < 6; ci++) for (int st = 0; st < 4; st++)

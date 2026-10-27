@@ -68,6 +68,13 @@ namespace VK
                 if (Res.RegisterPixelLab(500 + i, "Icons/i_" + Items[i].id, Items[i].sprite)) { Items[i].sprite = 500 + i; Items[i].tint = Color.white; }
         }
 
+        /// <summary>Uy Áp Cảnh Giới (spec section 6): reward added to levelStats at the Trúc Cơ (10) and Kim Đan (20) breakthroughs; Nguyên Anh (30) gives a once-per-wave guard instead.</summary>
+        public static readonly Mod[][] UyAp =
+        {
+            new[] { new Mod(Stat.MaxHP, 10f), new Mod(Stat.Armor, 1f) },
+            new[] { new Mod(Stat.Damage, 10f), new Mod(Stat.SkillPower, 10f) },
+        };
+
         public static string Realm(int level)
         {
             int r = Mathf.Min(level / 10, RealmName.Length - 1);

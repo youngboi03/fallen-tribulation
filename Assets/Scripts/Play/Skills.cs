@@ -72,6 +72,12 @@ namespace VK
             Splash(p, SkillNum.PhuBurstR, SkillNum.PhuBurstHit, "phu_burst", 1f);
         }
 
+        /// <summary>Per-wave resets for the Thần Thông state (called from Game.BeginWave).</summary>
+        public static void OnWaveStart(RunState r)
+        {
+            r.guardUsed = false; r.hoMenhUsed = false; r.kiemKhi = 0; r.linhLung = 0;
+        }
+
         /// <summary>Called by Enemy.Die before the enemy goes away.</summary>
         public static void OnKill(Enemy e)
         {

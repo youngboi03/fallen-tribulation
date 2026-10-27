@@ -258,6 +258,9 @@ namespace VK
         public void OnBossDeath()
         {
             bossDead = true;
+            var run = Game.I.run;
+            run.skillStage = Mathf.Min(3, run.skillStage + 1);   // Tiến Giai: every boss kill advances the skill one form (spec section 2)
+            run.stageUpWave = run.wave; run.stageCallout = true;
             Game.I.player.Invuln(3f);
             ClearTeles();
             foreach (var e in Enemy.Snapshot()) if (e && !e.dead && !e.boss) e.Vanish();

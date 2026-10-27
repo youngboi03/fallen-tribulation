@@ -228,6 +228,7 @@ namespace VK
             combo = 0;
             run.riteT = 0;
             run.hitsThisWave = 0; run.rerolls = 0; run.levelRerolls = 0; run.shopRolled = false;
+            Skills.OnWaveStart(run);
             run.Recalc();
             run.hp = run.MaxHP;
             save.bestWave = Mathf.Max(save.bestWave, n);
@@ -362,12 +363,27 @@ namespace VK
             BeginWave(run.wave + 1);
         }
 
+        /// <summary>Banner subtitle tail listing the Uy Áp reward of a breakthrough.</summary>
+        static string UyApText(int level)
+        {
+            int realm = level / 10;
+            if (realm >= 1 && realm - 1 < Content.UyAp.Length)
+            {
+                var parts = new System.Collections.Generic.List<string>();
+                foreach (var m in Content.UyAp[realm - 1]) parts.Add(StatInfo.Fmt(m, false));
+                return " · Uy Áp: " + string.Join(", ", parts);
+            }
+            return realm >= 3 ? " · Uy Áp: Nguyên Anh hộ chủ mỗi đợt" : "";
+        }
+
         public void OnLevelUp(int level)
         {
             if (player == null) return;
             save.bestLevel = Mathf.Max(save.bestLevel, level);
             if (level % 10 == 0)
             {
+                int realm = level / 10;
+                if (realm - 1 < Content.UyAp.Length) { run.levelStats.Add(Content.UyAp[realm - 1]); run.Recalc(); }
                 run.hp = run.MaxHP;
                 Fx.Ring(player.Pos, new Color(1f, 0.85f, 0.4f), 0.5f, 6f, 0.8f);
                 Fx.Ring(player.Pos, new Color(1f, 1f, 1f), 0.3f, 4f, 0.6f);
@@ -381,7 +397,7 @@ namespace VK
                 Fx.Shake(0.35f, 0.4f);
                 Sfx.Play("breakthrough", 0.9f, 0f);
                 Sfx.Play("j_levelup", 0.6f, 0f);
-                ui.Banner("ĐỘT PHÁ " + Content.RealmOnly(level).ToUpper() + "!", "Máu hồi đầy · phần thưởng phẩm Tiên", new Color(1f, 0.85f, 0.4f));
+                ui.Banner("ĐỘT PHÁ " + Content.RealmOnly(level).ToUpper() + "!", "Máu hồi đầy · phần thưởng phẩm Tiên" + UyApText(level), new Color(1f, 0.85f, 0.4f));
                 if (level >= 10) Ach.Unlock("lv10");
                 if (level >= 20) Ach.Unlock("lv20");
                 if (level >= 30) Ach.Unlock("lv30");

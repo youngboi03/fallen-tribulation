@@ -58,6 +58,8 @@ namespace VK
         public Dictionary<string, float> skillDmgBy = new Dictionary<string, float>();
         public int stageUpWave = -1;
         public bool stageCallout;
+        public bool guardUsed, hoMenhUsed;   // once per wave: Nguyên Anh hộ chủ / Hộ Mệnh Đan
+        public int kiemKhi, linhLung;        // Kiếm Khí Hộ Thể tiers / Linh Lung Bảo Tháp stacks, both reset each wave
         public bool HasCard(string id) => skillCards.Contains(id);
         public float SPAt(int w) => Content.SkillR(w) * WaveDirector.ExpectedTrashHp(w);
         public float SP => SPAt(wave);

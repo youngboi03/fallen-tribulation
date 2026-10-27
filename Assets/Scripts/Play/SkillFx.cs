@@ -30,11 +30,11 @@ namespace VK
                 Fx.ScreenTint(c, 0.12f, 0.3f);
                 Sfx.Play("sk_choir", 0.6f, 0.02f);
                 Sfx.Play("sk_boom", 0.7f, 0.03f, 0.8f);
-                if (run != null && run.stageCallout)
-                {
-                    run.stageCallout = false;
-                    Callout(Skills.FormName(run.ch, run.skillStage), pos, c);
-                }
+            }
+            if (run != null && run.stageCallout)
+            {   // first cast after a Tiến Giai names the new form
+                run.stageCallout = false;
+                Callout(Skills.FormName(run.ch, stage), pos, c);
             }
         }
 
