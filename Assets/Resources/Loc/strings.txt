@@ -253,6 +253,21 @@ giảm hồi chiêu Thần Thông	Divine Art cooldown reduction	神通冷却缩�
 Uy Áp	Majesty	威压
 Nguyên Anh hộ chủ	Nascent Soul Guardian	元婴护主
 mỗi đợt	each wave	每波
+Thần Thông · Đặc trưng	Divine Art · Signature	神通 · 专属
+Thần Thông · Chung	Divine Art · Shared	神通 · 通用
+NGỘ ĐẠO	ENLIGHTENMENT	悟道
+THẦN THÔNG TIẾN GIAI	DIVINE ART ADVANCES	神通进阶
+THẦN THÔNG	DIVINE ART	神通
+Tiến Giai	advance	进阶
+Giai	Stage	阶
+Chưa ngộ thẻ nào	No cards yet	尚未领悟任何卡
+Đột Phá để chọn	break through to pick	突破后可选
+: mỗi lần Đột Phá bạn được chọn thẻ	: at every Breakthrough you pick a	：每次突破你可选择一张
+— thẻ Đặc trưng chỉ dành cho nhân vật này, thẻ Chung dùng được cho mọi người.	card. Signature cards are for this character only; Shared cards work for everyone.	卡牌。专属卡仅限本角色，通用卡所有人可用。
+Mỗi boss hạ gục sẽ	Each boss defeated will	每击败一名首领将
+Thần Thông: chiêu đổi dạng, mạnh hơn. Xem tên dạng ở thanh chiêu.	your Divine Art to a new form: stronger. See the form name on the skill bar.	你的神通变换形态，威力更强。形态名见技能条。
+Chặn!	Blocked!	挡住！
+Hộ Mệnh!	Life-Guard!	护命！
 Hoang Sơn	Barren Mountains	荒山
 Hàn Băng Cốc	Frost Valley	寒冰谷
 Huyết Sát Hải	Blood Sea	血煞海

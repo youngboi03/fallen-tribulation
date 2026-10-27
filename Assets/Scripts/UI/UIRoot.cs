@@ -25,6 +25,7 @@ namespace VK
 
         // HUD
         RectTransform hpFill, xpFill, bossFill, bossBox, weaponRow, dashFill, skillFill;
+        Text skLblTxt; CharDef skLblCh; int skLblStage = -1;
         Text hpTxt, xpTxt, goldTxt, waveTxt, timerTxt, bossTxt, synTxt, killTxt, comboTxt;
         int lastCombo; float comboPop;
         string weaponKey = "", synKey = "";
@@ -282,7 +283,7 @@ namespace VK
             dashLbl.text = GameInput.K("Lướt [Space]", "Lướt");
             skillFill = UIK.Bar(box.transform, new Color(0.15f, 0.1f, 0.05f), new Color(1f, 0.75f, 0.3f), out var skLbl, 18);
             skillFill.parent.GetComponent<RectTransform>().Place(0, 1, 440, 28, 15, -140);
-            skLbl.text = GameInput.K("[E] ", "") + "Thần Thông: " + Run.ch.skill;
+            skLblTxt = skLbl; skLblCh = null; skLblStage = -1;   // text filled in Update (the form changes with Tiến Giai)
 
             // top-center wave & timer
             waveTxt = UIK.Txt(hud, "", 30, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -323,6 +324,11 @@ namespace VK
             UIK.SetFill(dashFill, Game.I.player.DashReady);
             float skr = Game.I.player.SkillReady;
             UIK.SetFill(skillFill, skr);
+            if (skLblTxt && (skLblCh != run.ch || skLblStage != run.skillStage))
+            {
+                skLblCh = run.ch; skLblStage = run.skillStage;
+                skLblTxt.text = GameInput.K("[E] ", "") + Skills.FormName(run.ch, run.skillStage) + " · " + Skills.StageLabel(run.skillStage);
+            }
             skillFill.GetComponent<Image>().color = skr >= 1f ? new Color(1f, 0.8f, 0.3f + Mathf.Sin(Time.unscaledTime * 6f) * 0.15f) : new Color(0.55f, 0.42f, 0.2f);
             var d = Game.I.dir;
             waveTxt.text = "ĐỢT " + run.wave + " / 20" + (run.kiep > 0 ? "   ·   KIẾP " + run.kiep : "") + (run.activeRoute > 0 ? "   ·   <color=#FF8A70>" + Content.RouteName[run.activeRoute] + "</color>" : "");
@@ -726,6 +732,20 @@ namespace VK
                 sb.Append("</size>");
                 UIK.Txt(p.transform, sb.ToString(), 22, UIK.Dim, TextAnchor.UpperLeft);
             }
+            var tt = new StringBuilder();
+            var sc = run.ch.skillColor;
+            tt.Append("<b><color=#").Append(ColorUtility.ToHtmlStringRGB(sc)).Append(">THẦN THÔNG</color></b>  <color=#FFFFFF>").Append(Skills.FormName(run.ch, run.skillStage)).Append("</color> · ").Append(Skills.StageLabel(run.skillStage)).Append("\n<size=17>");
+            if (run.skillCards.Count == 0) tt.Append("<color=#5E5870>Chưa ngộ thẻ nào (Đột Phá để chọn)</color>");
+            else
+            {
+                for (int k = 0; k < run.skillCards.Count; k++)
+                {
+                    if (k > 0) tt.Append(" · ");
+                    tt.Append("<color=#FFD266>").Append(Content.SkillCard(run.skillCards[k]).name).Append("</color>");
+                }
+            }
+            tt.Append("</size>");
+            UIK.Txt(p.transform, tt.ToString(), 22, UIK.Dim, TextAnchor.UpperLeft);
         }
 
         string WeaponInfo(WeaponDef d, int tier)
@@ -768,8 +788,15 @@ namespace VK
             var run = Run;
             var o = Overlay(0.8f);
             bool brk = run.IsBreakthrough;
-            Title(o, brk ? "ĐỘT PHÁ " + Content.RealmOnly(run.ChoosingLevel).ToUpper() + "!" : "LÊN CẤP — CHỌN CÔNG PHÁP", 70, brk ? 76 : 60,
+            bool ngo = System.Array.Exists(run.levelOpts, q => q.card != null);
+            if (ngo) Hint("ngodao", "<color=#FFD266>Ngộ Đạo</color>: mỗi lần Đột Phá bạn được chọn thẻ <color=#FFD266>Thần Thông</color> — thẻ Đặc trưng chỉ dành cho nhân vật này, thẻ Chung dùng được cho mọi người.");
+            Title(o, brk ? "ĐỘT PHÁ " + Content.RealmOnly(run.ChoosingLevel).ToUpper() + (ngo ? " — NGỘ ĐẠO" : "!") : "LÊN CẤP — CHỌN CÔNG PHÁP", 70, brk ? (ngo ? 52 : 76) : 60,
                 brk ? new Color(1f, 0.75f, 0.3f) : UIK.Cyan);
+            if (brk)
+            {
+                string ua = Game.UyApText(run.ChoosingLevel).Replace(" · ", "");
+                if (ua.Length > 0) UIK.Txt(o, ua, 24, new Color(1f, 0.85f, 0.4f)).rectTransform.Place(0.5f, 1, 1200, 36, 0, -208);
+            }
             var info = UIK.Txt(o, Content.Realm(run.ChoosingLevel) + "    ·    còn " + run.pendingLevels + " lần chọn    ·    phím 1-4", 26, UIK.Dim);
             info.rectTransform.Place(0.5f, 1, 1200, 40, 0, -170);
 
@@ -784,12 +811,12 @@ namespace VK
                 var opt = run.levelOpts[i];
                 var card = UIK.Img(row, UIK.Panel2, "opt");
                 UIK.LE(card.gameObject, 265, 340);
-                UIK.Border(card.gameObject, Content.TierColor[opt.tier], opt.tier >= 2 ? 3 : 2);
+                UIK.Border(card.gameObject, opt.card != null ? run.ch.skillColor : Content.TierColor[opt.tier], opt.tier >= 2 || opt.card != null ? 3 : 2);
                 UIK.VL(card.gameObject, 10, 18, TextAnchor.MiddleCenter);
                 UIK.Txt(card.transform, "[" + (i + 1) + "]", 20, UIK.Dim);
                 if (opt.card != null)
                 {   // Ngộ Đạo card (a proper design comes with part E)
-                    UIK.Txt(card.transform, "Ngộ Đạo", 28, Content.TierColor[opt.tier], TextAnchor.MiddleCenter, FontStyle.Bold);
+                    UIK.Txt(card.transform, opt.card.charId != null ? "Thần Thông · Đặc trưng" : "Thần Thông · Chung", 19, run.ch.skillColor, TextAnchor.MiddleCenter, FontStyle.Bold);
                     UIK.Spacer(card.transform);
                     UIK.Txt(card.transform, opt.card.name, 30, new Color(1f, 0.85f, 0.4f), TextAnchor.MiddleCenter, FontStyle.Bold);
                     UIK.Txt(card.transform, opt.card.desc, 22, Color.white);
@@ -836,7 +863,7 @@ namespace VK
 
             var place = UIK.R(o, "p").Place(0, 1, 360, 760, 24, -24);
             StatsPanel(o, place);
-            SynergyPanel(o, -24, -24, 380, 640);
+            SynergyPanel(o, -24, -24, 380, 800);
 
             // cards
             var row = UIK.R(o, "cards").Place(0.5f, 1, 1120, 430, -10, -200);
@@ -1034,7 +1061,14 @@ namespace VK
             Title(o, "BẢO KHỐ", 120, 72, new Color(0.85f, 0.6f, 1f));
             var sub = UIK.Txt(o, run.Boss(run.wave / 5 - 1).name + " để lại kho báu — chọn một món", 26, UIK.Dim);
             sub.rectTransform.Place(0.5f, 1, 1100, 40, 0, -220);
-            var row = UIK.R(o, "relics").Place(0.5f, 0.5f, 1180, 470, 0, -30);
+            if (run.stageUpWave == run.wave)
+            {
+                Hint("tiengiai", "Mỗi boss hạ gục sẽ <color=#FFD266>Tiến Giai</color> Thần Thông: chiêu đổi dạng, mạnh hơn. Xem tên dạng ở thanh chiêu.");
+                var sc = run.ch.skillColor;
+                var tg = UIK.Txt(o, "<b>THẦN THÔNG TIẾN GIAI: " + Skills.FormName(run.ch, run.skillStage) + " (" + Skills.StageLabel(run.skillStage) + ")</b>\n<size=21>" + Skills.FormDesc(run.ch, run.skillStage) + "</size>", 28, sc);
+                tg.rectTransform.Place(0.5f, 1, 1100, 66, 0, -258);
+            }
+            var row = UIK.R(o, "relics").Place(0.5f, 0.5f, 1180, 470, 0, -52);
             UIK.HL(row.gameObject, 30, 0, TextAnchor.MiddleCenter, false);
             for (int i = 0; i < run.relicChoices.Length; i++)
             {
@@ -1120,7 +1154,7 @@ namespace VK
             UIK.Btn(col, "Bỏ Cuộc", () => Game.I.Abandon(), UIK.BtnRed, 24, -1, 56);
             var place = UIK.R(o, "p").Place(0, 0.5f, 380, 700, 30, -60);
             StatsPanel(o, place);
-            SynergyPanel(o, -24, -180, 380, 640);
+            SynergyPanel(o, -24, -180, 380, 800);
         }
 
         // ================================================================== Game over

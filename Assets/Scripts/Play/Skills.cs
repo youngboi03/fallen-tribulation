@@ -15,6 +15,9 @@ namespace VK
         public static int Talismans;
         static int talismanGen;
 
+        static readonly string[] Roman = { "I", "II", "III", "IV" };
+        public static string StageLabel(int stage) => "Giai " + Roman[Mathf.Clamp(stage, 0, 3)];
+        public static string FormDesc(CharDef c, int stage) => stage <= 0 || c.forms == null || stage > c.forms.Length ? c.skillDesc : c.forms[stage - 1].desc;
         public static string FormName(CharDef c, int stage) => stage <= 0 || c.forms == null || stage > c.forms.Length ? c.skill : c.forms[stage - 1].name;
 
         /// <summary>Lifesteal bonus while the Huyết Tế rite runs.</summary>

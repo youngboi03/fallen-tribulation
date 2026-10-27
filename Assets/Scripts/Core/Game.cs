@@ -280,6 +280,12 @@ namespace VK
             if (interest > 0) sub += "Lãi +" + interest;
             ui.Banner("ĐỢT " + run.wave + " HOÀN THÀNH", sub, new Color(0.6f, 1f, 0.7f));
 
+            if (run.stageUpWave == run.wave && !(run.chests > 0 && run.wave % 5 == 0))
+            {   // Tiến Giai without a Bảo Khố screen to carry the line: say it as a toast
+                ui.Hint("tiengiai", "Mỗi boss hạ gục sẽ <color=#FFD266>Tiến Giai</color> Thần Thông: chiêu đổi dạng, mạnh hơn. Xem tên dạng ở thanh chiêu.");
+                ui.Toast("THẦN THÔNG TIẾN GIAI", Skills.FormName(run.ch, run.skillStage) + " (" + Skills.StageLabel(run.skillStage) + ")");
+            }
+
             if (run.wave >= 20) { StartCoroutine(Delay(1.8f, () => FinishRun(true))); return; }
             StartCoroutine(Delay(1.3f, EnterBetween));
         }
@@ -364,7 +370,7 @@ namespace VK
         }
 
         /// <summary>Banner subtitle tail listing the Uy Áp reward of a breakthrough.</summary>
-        static string UyApText(int level)
+        public static string UyApText(int level)
         {
             int realm = level / 10;
             if (realm >= 1 && realm - 1 < Content.UyAp.Length)

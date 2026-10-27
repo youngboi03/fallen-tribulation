@@ -476,6 +476,49 @@ namespace VK
             return items == 0 ? 0f : skill / (float)items;
         }
 
+        // ---------------------------------------------------------------- UI (Task 12)
+        int UiCount(string s)
+        {
+            string tr = Loc.Tr(s); int n = 0;
+            foreach (var t in Object.FindObjectsOfType<UnityEngine.UI.Text>())
+                if (t.isActiveAndEnabled && (t.text.Contains(s) || t.text.Contains(tr))) n++;
+            return n;
+        }
+
+        IEnumerator T_ui_ngodao()
+        {
+            yield return Arena(0, 8, 1); var r = Game.I.run; r.level = 10; r.pendingLevels = 1; r.RollLevelOpts(); Game.I.ui.ShowLevelUp();
+            yield return new WaitForSecondsRealtime(0.4f);
+            Check("ui_ngodao_cards", UiCount("Thần Thông · ") >= 2, UiCount("Thần Thông · ") + " card labels");
+            Check("ui_ngodao_title", UiCount("NGỘ ĐẠO") >= 1, "");
+            Check("ui_ngodao_uyap", UiCount("Uy Áp") >= 1, "");
+            Game.I.bot.Shot("ui_ngodao"); yield return new WaitForSecondsRealtime(0.6f);
+        }
+
+        IEnumerator T_ui_relic()
+        {
+            yield return Arena(0, 5, 1); var r = Game.I.run; r.stageUpWave = 5; r.chests = 1; r.relicChoices = r.RollRelics(); Game.I.ui.ShowRelics();
+            yield return new WaitForSecondsRealtime(0.4f);
+            Check("ui_relic_line", UiCount("TIẾN GIAI") >= 1 && UiCount(Skills.FormName(r.ch, 1)) >= 1, "");
+            Game.I.bot.Shot("ui_relic"); yield return new WaitForSecondsRealtime(0.6f);
+        }
+
+        IEnumerator T_ui_hud()
+        {
+            yield return Arena(0, 5, 1); var r = Game.I.run;
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("ui_hud", UiCount(Skills.FormName(r.ch, 1)) >= 1 && UiCount("Giai II") >= 1, "");
+            Game.I.bot.Shot("ui_hud"); yield return new WaitForSecondsRealtime(0.6f);
+        }
+
+        IEnumerator T_ui_synergy()
+        {
+            yield return Arena(0, 8, 1, "bach_kiem"); Game.I.run.RollShop(); Game.I.ui.ShowShop();
+            yield return new WaitForSecondsRealtime(0.4f);
+            Check("ui_synergy", UiCount("THẦN THÔNG") >= 1 && UiCount(Content.SkillCard("bach_kiem").name) >= 1, "");
+            Game.I.bot.Shot("ui_synergy"); yield return new WaitForSecondsRealtime(0.6f);
+        }
+
         // ---------------------------------------------------------------- Ngộ Đạo (Task 8)
         IEnumerator T_nd_roll()
         {
