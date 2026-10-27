@@ -11,7 +11,7 @@ namespace VK
     public class RunSummary
     {
         public bool win; public int wave, level, kills, daoHanh, kiep; public string charName;
-        public float dmgDealt, bestHit; public int bestCombo; public List<string> unlocks = new List<string>();
+        public float dmgDealt, bestHit, skillDmg; public int bestCombo; public List<string> unlocks = new List<string>();
     }
 
     /// <summary>Bootstraps the whole game from code and owns the run state machine.</summary>
@@ -439,7 +439,7 @@ namespace VK
             var s = new RunSummary
             {
                 win = win, wave = run.wave, level = run.level, kills = run.kills, kiep = run.kiep,
-                charName = run.ch.name, dmgDealt = run.dmgDealt, bestHit = run.bestHit, bestCombo = run.bestCombo
+                charName = run.ch.name, dmgDealt = run.dmgDealt, skillDmg = run.skillDmg, bestHit = run.bestHit, bestCombo = run.bestCombo
             };
             float dh = cleared * 3 + run.kills / 40f + (win ? 60 : 0);
             s.daoHanh = Mathf.RoundToInt(dh * (1f + 0.5f * run.kiep));

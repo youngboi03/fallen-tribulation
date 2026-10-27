@@ -109,5 +109,60 @@ namespace VK
             r.levelStats[Stat.SkillHaste] += 10000; r.Recalc();
             Check("cd_floor", Mathf.Approximately(r.SkillCooldown, SkillNum.MinCd), r.SkillCooldown.ToString());
         }
+        // ---------------------------------------------------------------- base (Task 2)
+        IEnumerator T_base_formula()
+        {
+            yield return Arena(0, 10, 0); var r = Game.I.run;
+            r.levelStats[Stat.Crit] -= 1000; r.levelStats[Stat.SkillPower] += 100; r.Recalc();
+            var e = Elite(new Vector2(4, 0));
+            Random.InitState(7); float d = Skills.Hit(e, 1f, "t", Vector2.right);
+            Check("formula_power", d >= r.SP * 2f * 0.92f && d <= r.SP * 2f * 1.08f, d + " / " + r.SP * 2f);
+            r.levelStats[Stat.SkillPower] -= 100; r.levelStats[Stat.Damage] += 100; r.Recalc();
+            Random.InitState(7); float d2 = Skills.Hit(e, 1f, "t", Vector2.right);
+            Check("formula_damage_half", Mathf.Abs(d2 / d - 0.75f) < 0.001f, (d2 / d).ToString("0.000"));
+            r.riteT = 5f; Random.InitState(7); float d3 = Skills.Hit(e, 1f, "t", Vector2.right);
+            Check("no_weapon_mult", d3 > 0f && Mathf.Abs(d3 - d2) < 0.001f, d3 + " / " + d2);
+            Check("dmg_recorded", r.skillDmg >= d + d2 + d3 - 0.01f && Dmg("t") > 0, r.skillDmg.ToString("0"));
+        }
+
+        IEnumerator T_base_boss()
+        {
+            yield return Arena(0, 10, 0); var r = Game.I.run; r.levelStats[Stat.Crit] -= 1000; r.Recalc();
+            var el = Elite(new Vector2(4, 0)); var b = BossAt(new Vector2(-4, 0), 1);
+            Random.InitState(7); float a = Skills.Hit(el, 1f, "t", Vector2.right);
+            Random.InitState(7); float c = Skills.Hit(b, 1f, "t", Vector2.right);
+            Check("boss_half", Mathf.Abs(c / a - SkillNum.BossMul) < 0.001f, (c / a).ToString("0.000"));
+        }
+
+        IEnumerator T_base_cast()
+        {
+            for (int ci = 0; ci < 6; ci++)
+            {
+                yield return Arena(ci, 3, 0); var r = Game.I.run; var p = Game.I.player;
+                Pack(20, 1.5f, 4.5f); Elite(new Vector2(5.5f, 0)); int n0 = Enemy.All.Count;
+                r.hp = r.MaxHP * 0.5f; float hp0 = r.hp; int fired = Projectile.SkillFired;
+                p.SetSkillReady(); p.TryCast();
+                string id = r.ch.id; int frozen = Enemy.All.FindAll(e => e.Frozen).Count + (n0 - Enemy.All.Count);   // stunned, or already dead
+                if (id == "kiem_tu") Check("kiem_shots", Projectile.SkillFired - fired == 12, "");
+                if (id == "dan_tu") Check("dan_heal", r.hp >= hp0 + r.MaxHP * SkillNum.DanHeal - 0.5f, r.hp.ToString("0"));
+                if (id == "the_tu") Check("the_invuln", p.InvulnLeft >= 1.9f, p.InvulnLeft.ToString("0.00"));
+                if (id == "phu_tu" || id == "loi_tu") Check(id + "_freeze", frozen >= 3, frozen + "");
+                if (id == "ma_tu") Check("ma_rite", r.riteT > 4.9f && r.hp < hp0, r.riteT.ToString("0.0"));
+                Check(id + "_cd_spent", p.SkillCdLeft > 1f, p.SkillCdLeft.ToString("0.0"));
+                yield return new WaitForSeconds(3f);
+                string src = id == "kiem_tu" ? "kiem" : id == "dan_tu" ? "dan_nova" : id == "the_tu" ? "the_wave" : id == "phu_tu" ? "phu" : id == "loi_tu" ? "loi" : null;
+                if (src != null) Check(id + "_dmg", Dmg(src) > 0, Dmg(src).ToString("0"));
+            }
+        }
+
+        IEnumerator T_base_empty()   // Review Focus 1
+        {
+            for (int ci = 0; ci < 6; ci++) for (int st = 0; st < 4; st++)
+            {
+                yield return Arena(ci, 18, st); var p = Game.I.player; int e0 = AutoTest.Errors;
+                p.SetSkillReady(); bool cast = p.TryCast(); yield return new WaitForSeconds(2.5f);
+                Check("empty_" + ci + "_" + st, cast && p.SkillCdLeft > 0f && AutoTest.Errors == e0, AutoTest.Errors - e0 + " errors");
+            }
+        }
     }
 }

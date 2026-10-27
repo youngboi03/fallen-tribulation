@@ -12,6 +12,10 @@ namespace VK
         float dmg, life, radius, splash, spinSpd, trailT;
         int pierce;
         WeaponInst src;
+        SkillShot ss;
+        public static int SkillFired;
+        public static int CountSkill() { int n = 0; foreach (var p in All) if (p != null && !p.dead && p.ss != null) n++; return n; }
+        public static int CountHostile() { int n = 0; foreach (var p in All) if (p != null && !p.dead && p.hostile) n++; return n; }
         Color col;
         ProjLook look;
         SpriteRenderer sr, glow;
@@ -78,10 +82,25 @@ namespace VK
             p.Orient();
         }
 
+        public static Projectile FireSkill(SkillShot s, Vector2 pos, Vector2 dir)
+        {
+            var p = Make(pos);
+            p.ss = s; SkillFired++;
+            p.vel = dir.normalized * s.speed; p.radius = s.radius; p.col = s.col; p.look = s.look;
+            p.life = s.life; p.pierce = s.pierce; p.homing = s.homing;
+            p.sr.sortingOrder = 91; p.glow.sortingOrder = 90;
+            p.sr.sprite = s.sprite != null ? s.sprite : Res.Circle; p.sr.color = s.tint;
+            p.sr.transform.localScale = Vector3.one * 0.85f;
+            p.glow.color = new Color(s.col.r, s.col.g, s.col.b, 0.55f);
+            p.glow.transform.localScale = Vector3.one * 1.1f;
+            p.Orient();
+            return p;
+        }
+
         void Orient()
         {
             if (look == ProjLook.Point && !hostile)
-                sr.transform.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(vel.y, vel.x) * Mathf.Rad2Deg - (src != null ? Res.SpriteAngle(src.def.sprite) : 90f));
+                sr.transform.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(vel.y, vel.x) * Mathf.Rad2Deg - (ss != null ? ss.spriteAngle : src != null ? Res.SpriteAngle(src.def.sprite) : 90f));
         }
 
         void Update()
@@ -94,7 +113,7 @@ namespace VK
 
             if (homing)
             {
-                var t = Enemy.Nearest(pos, 7f, hits);
+                var t = Enemy.Nearest(pos, ss != null ? ss.homingRange : 7f, hits);
                 if (t != null)
                 {
                     Vector2 want = (t.Pos - pos).normalized * vel.magnitude;
@@ -144,6 +163,14 @@ namespace VK
         void OnHit(Enemy e, Vector2 pos)
         {
             hits.Add(e);
+            if (ss != null)
+            {
+                Skills.Hit(e, ss.coef, ss.src, vel.normalized, 1f);
+                ss.onHit?.Invoke(e);
+                pierce--;
+                if (pierce < 0) Kill();
+                return;
+            }
             Combat.Hit(e, src, vel.normalized);
             if (splash > 0)
             {

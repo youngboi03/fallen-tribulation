@@ -12,6 +12,18 @@ namespace VK
         public bool god;
         public float SkillReady => Mathf.Clamp01(1f - skillCd / Mathf.Max(0.01f, Game.I.run != null ? Game.I.run.SkillCooldown : 1f));
         float skillCd, goldT;
+        public float InvulnLeft => Mathf.Max(0f, iframe);
+        public float SkillCdLeft => Mathf.Max(0f, skillCd);
+        public void ReduceSkillCd(float s) { skillCd -= s; }
+        public void SetSkillReady() { skillCd = 0f; }
+        public bool TryCast()
+        {
+            var run = Game.I.run;
+            if (run == null || skillCd > 0f) return false;
+            skillCd = run.SkillCooldown;
+            Skills.Cast(this, run);
+            return true;
+        }
         public void Invuln(float t) { iframe = Mathf.Max(iframe, t); goldT = t; }
 
         Transform body;
@@ -112,12 +124,8 @@ namespace VK
             dashCd -= dt; iframe -= dt; skillCd -= dt; goldT -= dt;
             if (run.riteT > 0) run.riteT -= dt;
             if (Game.T > 4f && run.wave == 1) g.ui.Hint("dash", GameInput.K("Nhấn <color=#FFD266>SPACE</color>", "Chạm nút <color=#FFD266>Lướt</color>") + " để lướt: bất tử trong lúc lướt, xuyên qua quái và đạn.");
-            if (skillCd <= 0 && run.wave >= 1 && Game.T > 12f) g.ui.Hint("skill", "Thần Thông đã sẵn sàng! " + GameInput.K("Nhấn <color=#FFD266>E</color> (hoặc chuột trái)", "Chạm nút <color=#FFD266>Thần Thông</color>") + ": " + run.ch.skill + " — " + run.ch.skillDesc + ".");
-            if (skillCd <= 0 && ReadSkill())
-            {
-                skillCd = run.SkillCooldown;
-                Skills.Cast(this, run);
-            }
+            if (skillCd <= 0 && run.wave >= 1 && Game.T > 12f) g.ui.Hint("skill", "Thần Thông đã sẵn sàng! " + GameInput.K("Nhấn <color=#FFD266>E</color> (hoặc chuột trái)", "Chạm nút <color=#FFD266>Thần Thông</color>") + ": " + Skills.FormName(run.ch, run.skillStage) + " — " + run.ch.skillDesc + ".");
+            if (skillCd <= 0 && ReadSkill()) TryCast();
 
             if (dashT > 0)
             {

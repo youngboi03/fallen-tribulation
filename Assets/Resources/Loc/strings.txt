@@ -466,6 +466,42 @@ Kiếp 2 — Thêm: quái tinh anh xuất hiện nhiều hơn	Tribulation 2 — 
 Kiếp 3 — Thêm: quái xuất hiện dày hơn	Tribulation 3 — Plus: denser monster spawns	劫3——追加：怪物更密集
 Kiếp 4 — Thêm: Thiên Kiếp giáng xuống mọi đợt	Tribulation 4 — Plus: Heavenly Tribulation strikes every wave	劫4——追加：每波都有天劫降临
 Kiếp 5 — Thêm: boss thêm 15% máu. Chỉ dành cho bậc tông sư	Tribulation 5 — Plus: bosses have 15% more HP. For grandmasters only	劫5——追加：首领生命+15%。仅限宗师
+Hồi Phong Kiếm	Returning Wind Sword	回风剑
+Kiếm Trận Hộ Thân	Sword Array Ward	剑阵护身
+Thiên Kiếm Giáng Thế	Heavenly Sword Descends	天剑降世
+Liệt Hỏa Đan	Blazing Pill	烈火丹
+Đan Khí Hộ Thể	Pill-Qi Body Ward	丹气护体
+Lò Đỉnh Pháp Tướng	Cauldron Dharma Form	炉鼎法相
+Chấn Hồn	Soul Shock	震魂
+Địa Liệt	Earth Rend	地裂
+Kim Thân Pháp Tướng	Golden Body Dharma Form	金身法相
+Phi Phù	Flying Talismans	飞符
+Bạo Phù	Burst Talisman	爆符
+Thiên La Địa Võng	Heaven-Earth Net	天罗地网
+Huyết Bạo	Blood Burst	血爆
+Huyết Thuẫn	Blood Shield	血盾
+Huyết Ma Pháp Tướng	Blood Demon Dharma Form	血魔法相
+Lôi Liên	Chain Lightning	雷链
+Lôi Vực	Thunder Domain	雷域
+Lôi Thần Pháp Tướng	Thunder God Dharma Form	雷神法相
+Kiếm hết đà quay về người, chém thêm lần nữa	Swords that run out of reach fly back and strike again	剑势尽时飞回，再斩一次
+16 kiếm; kiếm về xoay quanh người 2 giây, chém quái chạm vào	16 swords; returning swords orbit you for 2 s, cutting what they touch	16柄剑；归来之剑环绕2秒，斩击触碰之敌
+Thêm một cự kiếm rơi xuống chỗ quái đông nhất, nổ vùng lớn	A giant sword falls on the biggest crowd and explodes in a wide area	巨剑落于敌群最密处，大范围爆炸
+Thêm 4 viên đan lửa bay tới quái ngoài vùng nổ	4 fire pills fly to enemies outside the blast	另有4枚火丹飞向爆炸范围外的敌人
+Vùng nổ rộng hơn, xoá đạn địch, giảm 30% sát thương nhận vào 3 giây	Wider blast, clears enemy bullets, 30% less damage taken for 3 s	爆炸范围更大，清除敌弹，3秒内受伤减少30%
+Nổ thêm 2 đợt liên tiếp quanh người	Two more blasts in quick succession around you	连续再爆2次
+Sóng chấn rộng hơn, choáng địch 1 giây	Wider shockwave, stuns enemies for 1 s	冲击波更大，眩晕敌人1秒
+4 đường nứt lan ra từ người, choáng địch	4 cracks spread out from you, stunning enemies	4道裂缝自身周蔓延，眩晕敌人
+Bất tử 3 giây, hết giờ thì dư chấn nổ lớn	Invulnerable for 3 s, then a huge aftershock	无敌3秒，结束时余震大爆
+Thêm 6 lá bùa bay tới quái ngoài vùng, đóng băng	6 more talismans fly to enemies outside the area, freezing them	另有6张符飞向范围外的敌人并冻结
+Quái bị đóng băng hết băng sẽ nổ lên quái xung quanh	Enemies frozen by the skill explode on their neighbours when the ice ends	被冻结的敌人解冻时爆炸，伤及周围
+Vùng đóng băng 8 ô, quái chịu thêm 50% sát thương	Freeze zone of 8 tiles; frozen enemies take 50% more damage	冻结范围8格，冻结敌人额外受50%伤害
+Khi thi triển, vòng máu nổ quanh thân	On cast, a blood ring explodes around you	施展时周身血环爆炸
+1.5 giây đầu giảm 40% sát thương; diệt quái kéo dài hiến tế	40% less damage for the first 1.5 s; kills extend the rite	前1.5秒减伤40%；击杀延长献祭
+Vòng nổ lớn hơn, Hút Máu hiến tế +40%	Bigger blast, rite Lifesteal +40%	爆炸更大，献祭吸血+40%
+Mỗi tia sét nảy sang 2 quái gần đó	Each bolt jumps to 2 nearby enemies	每道雷电再跳向附近2名敌人
+Vùng sấm đi theo người 4 giây, liên tục giật quái bên trong	A thunder zone follows you for 4 s, shocking enemies inside	雷域跟随4秒，持续电击域内敌人
+12 tia sét và một cột sét lớn đánh quái cứng nhất	12 bolts plus a huge pillar of lightning on the toughest enemy	12道雷电，另有巨型雷柱击打最强敌人
 Ma Đạo Truyền Thừa	Demonic Inheritance	魔道传承
 Trong hang tối, một bộ hài cốt ôm cuốn ma công. Huyết khí cuồn cuộn mời gọi.	In a dark cave a skeleton clutches a demonic manual. Blood qi surges, beckoning you.	幽暗洞中，一具骸骨怀抱魔功秘籍。血气翻涌，似在召唤。
 Tu luyện ma công	Practise the demonic art	修炼魔功

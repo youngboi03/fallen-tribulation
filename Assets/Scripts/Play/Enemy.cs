@@ -28,6 +28,9 @@ namespace VK
         Vector2 blinkTo;
         SpriteRenderer boom;
         float burnDps, burnT, poisonDps, poisonT, dotTick, frozenT;
+        public bool Frozen => frozenT > 0;
+        public bool Burning => burnT > 0;
+        public int skillHits;
         public bool HasStatus => burnT > 0 || poisonT > 0 || frozenT > 0;
         public void Freeze(float t) { frozenT = Mathf.Max(frozenT, boss ? t * 0.4f : t); }
         bool enraged;

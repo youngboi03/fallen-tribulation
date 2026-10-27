@@ -36,10 +36,14 @@ namespace VK
         public bool elite;
     }
 
+    public class SkillForm { public string name, desc; }
+
     public class CharDef
     {
         public string id, name, title, desc, startWeapon, unlockDesc, skill, skillDesc;
         public float skillCd = 10f;
+        public SkillForm[] forms;      // stages II-IV
+        public Color skillColor = Color.white;
         public int sprite;
         public Mod[] mods;
     }

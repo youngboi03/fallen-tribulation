@@ -7,6 +7,15 @@ namespace VK
     public static class SkillNum
     {
         public const float BossMul = 0.5f, MinCd = 3f;
+        // stage I (spec section 4)
+        public const int KiemSwords = 12, KiemPierce = 2;
+        public const float KiemHit = 1f, KiemHomeRange = 7f;
+        public const float DanR = 3.5f, DanHit = 2f, DanHeal = 0.25f;
+        public const float TheR = 3.2f, TheHit = 2f, TheInvuln = 2f;
+        public const float PhuR = 5.5f, PhuHit = 0.8f, PhuFreeze = 2.5f;
+        public const float MaCost = 0.15f, MaRite = 5f;
+        public const int LoiBolts = 8;
+        public const float LoiRange = 10f, LoiHit = 2.2f, LoiStun = 1f;
     }
 
     public static class Content
@@ -231,27 +240,27 @@ namespace VK
             new CharDef { id="kiem_tu", name="Kiếm Tu", title="Lý Thanh Phong", sprite=Res.Px.KiemTu, startWeapon="thiet_kiem",
                 desc="Kiếm khách cân bằng, sở trường bạo kích.", unlockDesc="Mặc định",
                 skill="Kiếm Vũ", skillDesc="12 phi kiếm toả ra, tự tìm địch", skillCd=9f,
-                mods=new[]{ new Mod(Stat.Melee,15), new Mod(Stat.Crit,5) } },
+                mods=new[]{ new Mod(Stat.Melee,15), new Mod(Stat.Crit,5) }, skillColor=new Color(0.502f, 1.000f, 1.000f), forms=new[]{ new SkillForm { name="Hồi Phong Kiếm", desc="Kiếm hết đà quay về người, chém thêm lần nữa" }, new SkillForm { name="Kiếm Trận Hộ Thân", desc="16 kiếm; kiếm về xoay quanh người 2 giây, chém quái chạm vào" }, new SkillForm { name="Thiên Kiếm Giáng Thế", desc="Thêm một cự kiếm rơi xuống chỗ quái đông nhất, nổ vùng lớn" } } },
             new CharDef { id="dan_tu", name="Đan Tu", title="Bạch Hạc Lão Nhân", sprite=Res.Px.DanTu, startWeapon="hoa_truong",
                 desc="Luyện đan sư, pháp thuật mạnh, hồi máu nhanh.", unlockDesc="Đạt tới đợt 5",
                 skill="Đan Hỏa Bạo", skillDesc="Nổ lửa quanh thân, hồi 25% máu", skillCd=9f,
-                mods=new[]{ new Mod(Stat.Spell,20), new Mod(Stat.Regen,5), new Mod(Stat.MaxHP,5), new Mod(Stat.Melee,-15) } },
+                mods=new[]{ new Mod(Stat.Spell,20), new Mod(Stat.Regen,5), new Mod(Stat.MaxHP,5), new Mod(Stat.Melee,-15) }, skillColor=new Color(1.000f, 0.502f, 0.149f), forms=new[]{ new SkillForm { name="Liệt Hỏa Đan", desc="Thêm 4 viên đan lửa bay tới quái ngoài vùng nổ" }, new SkillForm { name="Đan Khí Hộ Thể", desc="Vùng nổ rộng hơn, xoá đạn địch, giảm 30% sát thương nhận vào 3 giây" }, new SkillForm { name="Lò Đỉnh Pháp Tướng", desc="Nổ thêm 2 đợt liên tiếp quanh người" } } },
             new CharDef { id="the_tu", name="Thể Tu", title="Thiết Hán Vô Danh", sprite=Res.Px.TheTu, startWeapon="thiet_chuy",
                 desc="Luyện thể, da dày thịt béo, đánh chậm mà nặng.", unlockDesc="Tổng cộng diệt 1500 kẻ địch",
                 skill="Kim Cang Chấn", skillDesc="Bất tử 2s + sóng chấn đẩy lùi", skillCd=12f,
-                mods=new[]{ new Mod(Stat.MaxHP,15), new Mod(Stat.Armor,3), new Mod(Stat.Melee,10), new Mod(Stat.AtkSpeed,-10), new Mod(Stat.Speed,-5) } },
+                mods=new[]{ new Mod(Stat.MaxHP,15), new Mod(Stat.Armor,3), new Mod(Stat.Melee,10), new Mod(Stat.AtkSpeed,-10), new Mod(Stat.Speed,-5) }, skillColor=new Color(1.000f, 0.851f, 0.400f), forms=new[]{ new SkillForm { name="Chấn Hồn", desc="Sóng chấn rộng hơn, choáng địch 1 giây" }, new SkillForm { name="Địa Liệt", desc="4 đường nứt lan ra từ người, choáng địch" }, new SkillForm { name="Kim Thân Pháp Tướng", desc="Bất tử 3 giây, hết giờ thì dư chấn nổ lớn" } } },
             new CharDef { id="phu_tu", name="Phù Tu", title="Tô Vân Nhi", sprite=Res.Px.PhuTu, startWeapon="phu_luc",
                 desc="Phù sư, tầm xa, cơ duyên tốt.", unlockDesc="Đạt cảnh giới Kim Đan",
                 skill="Định Thân Phù", skillDesc="Đóng băng địch quanh thân 2.5s, chúng nhận thêm 30% ST", skillCd=12f,
-                mods=new[]{ new Mod(Stat.Luck,20), new Mod(Stat.Range,20), new Mod(Stat.Spell,10), new Mod(Stat.MaxHP,-4) } },
+                mods=new[]{ new Mod(Stat.Luck,20), new Mod(Stat.Range,20), new Mod(Stat.Spell,10), new Mod(Stat.MaxHP,-4) }, skillColor=new Color(0.502f, 0.902f, 1.000f), forms=new[]{ new SkillForm { name="Phi Phù", desc="Thêm 6 lá bùa bay tới quái ngoài vùng, đóng băng" }, new SkillForm { name="Bạo Phù", desc="Quái bị đóng băng hết băng sẽ nổ lên quái xung quanh" }, new SkillForm { name="Thiên La Địa Võng", desc="Vùng đóng băng 8 ô, quái chịu thêm 50% sát thương" } } },
             new CharDef { id="ma_tu", name="Ma Tu", title="Huyết Ảnh", sprite=Res.Px.MaTu, startWeapon="huyet_nguyet_dao",
                 desc="Tà đạo: sát thương khủng, hút máu, nhưng mỏng manh.", unlockDesc="Phi thăng (thắng) 1 lần",
                 skill="Huyết Tế", skillDesc="Hiến 15% máu: 5s +60% ST, +25% hút máu", skillCd=14f,
-                mods=new[]{ new Mod(Stat.Damage,40), new Mod(Stat.Lifesteal,10), new Mod(Stat.MaxHP,-3), new Mod(Stat.Regen,-3), new Mod(Stat.Armor,-1) } },
+                mods=new[]{ new Mod(Stat.Damage,40), new Mod(Stat.Lifesteal,10), new Mod(Stat.MaxHP,-3), new Mod(Stat.Regen,-3), new Mod(Stat.Armor,-1) }, skillColor=new Color(0.902f, 0.102f, 0.200f), forms=new[]{ new SkillForm { name="Huyết Bạo", desc="Khi thi triển, vòng máu nổ quanh thân" }, new SkillForm { name="Huyết Thuẫn", desc="1.5 giây đầu giảm 40% sát thương; diệt quái kéo dài hiến tế" }, new SkillForm { name="Huyết Ma Pháp Tướng", desc="Vòng nổ lớn hơn, Hút Máu hiến tế +40%" } } },
             new CharDef { id="loi_tu", name="Lôi Tu", title="Lôi Vân Tử", sprite=Res.Px.LoiTu, startWeapon="loi_truong",
                 desc="Lôi pháp: đánh cực nhanh, sét lan khắp đàn quái.", unlockDesc="Đạt tới đợt 10",
                 skill="Thiên Lôi Dẫn", skillDesc="Gọi 8 tia sét lên kẻ địch gần nhất, làm choáng 1s", skillCd=11f,
-                mods=new[]{ new Mod(Stat.AtkSpeed,20), new Mod(Stat.Spell,10), new Mod(Stat.Speed,5), new Mod(Stat.MaxHP,3) } },
+                mods=new[]{ new Mod(Stat.AtkSpeed,20), new Mod(Stat.Spell,10), new Mod(Stat.Speed,5), new Mod(Stat.MaxHP,3) }, skillColor=new Color(0.702f, 0.851f, 1.000f), forms=new[]{ new SkillForm { name="Lôi Liên", desc="Mỗi tia sét nảy sang 2 quái gần đó" }, new SkillForm { name="Lôi Vực", desc="Vùng sấm đi theo người 4 giây, liên tục giật quái bên trong" }, new SkillForm { name="Lôi Thần Pháp Tướng", desc="12 tia sét và một cột sét lớn đánh quái cứng nhất" } } },
         };
 
         public static bool CharUnlocked(int i, SaveData s)
