@@ -27,7 +27,7 @@ namespace VK
                 case BMove.Line: return Line(b, m);
                 case BMove.Blink: return m.after != null ? BlinkEcho(b, m) : Blink(b, m);
                 case BMove.Summon: return Summon(b, m);
-                case BMove.Hook: return Todo(b, "hook " + (m.hook ?? m.id));
+                case BMove.Hook: return BossHooks.Run(b, m);
                 default: return Todo(b, m.kind.ToString());
             }
         }
@@ -46,7 +46,7 @@ namespace VK
         }
 
         /// <summary>Boss time elapsed this frame.</summary>
-        static float Step(BossBrain b)
+        internal static float Step(BossBrain b)
         {
             var g = Game.I;
             if (g == null || !g.Playing || b.e == null) return 0f;
@@ -54,14 +54,16 @@ namespace VK
         }
 
         // ------------------------------------------------------------------ helpers
-        static float Tele(BossBrain b, BossMove m) { float t = b.EffTele(m); b.LastTele = t; return t; }
-        static float D(BossBrain b, BossMove m) => b.e.dmg * m.dmg;
-        static Vector2 P => Game.I.player.Pos;
-        static float Ang(Vector2 d) => Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
-        static Vector2 Dir(float deg) { float r = deg * Mathf.Deg2Rad; return new Vector2(Mathf.Cos(r), Mathf.Sin(r)); }
-        static float AimAt(BossBrain b) => Ang(P - b.e.Pos);
+        /// <summary>Effective telegraph of m, recorded in LastTele (also on the real brain when b is a hook proxy).</summary>
+        internal static float Tele(BossBrain b, BossMove m) { float t = b.EffTele(m); b.LastTele = t; if (b.master != null) b.master.LastTele = t; return t; }
+        /// <summary>Damage of m: boss damage x move factor x the brain multiplier (0.7 for Vạn Ma Quy Tông ghosts).</summary>
+        internal static float D(BossBrain b, BossMove m) => b.e.dmg * m.dmg * b.dmgMul;
+        internal static Vector2 P => Game.I.player.Pos;
+        internal static float Ang(Vector2 d) => Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+        internal static Vector2 Dir(float deg) { float r = deg * Mathf.Deg2Rad; return new Vector2(Mathf.Cos(r), Mathf.Sin(r)); }
+        static float AimAt(BossBrain b) => Ang(P - b.Pos);
 
-        static BossHazard Hz(BossBrain b, BossMove m, HShape s, Vector2 pos, float tele, float active, float dmg, float tick = 0f)
+        internal static BossHazard Hz(BossBrain b, BossMove m, HShape s, Vector2 pos, float tele, float active, float dmg, float tick = 0f)
         {
             var h = BossHazard.Spawn(b.e, s, pos, tele, active, dmg, b.kit.col, tick);
             h.moveId = m.id;
@@ -69,12 +71,12 @@ namespace VK
         }
 
         /// <summary>Pure telegraph: a hazard with no live phase (never hurts).</summary>
-        static BossHazard Mark(BossBrain b, BossMove m, HShape s, Vector2 pos, float tele) => Hz(b, m, s, pos, tele, 0f, 0f);
+        internal static BossHazard Mark(BossBrain b, BossMove m, HShape s, Vector2 pos, float tele) => Hz(b, m, s, pos, tele, 0f, 0f);
 
         static void Shoot(BossBrain b, BossMove m, float deg, float speed)
         {
             Vector2 d = Dir(deg);
-            var p = Projectile.FireHostile(b.e.Pos + d * b.e.radius * 0.6f, d * speed * b.ShotMul, D(b, m), b.kit.col);
+            var p = Projectile.FireHostile(b.Pos + d * b.e.radius * 0.6f, d * speed * b.ShotMul, D(b, m), b.kit.col);
             p.owner = b.e; p.moveId = m.id;
         }
 
@@ -88,7 +90,7 @@ namespace VK
             b.lastPoints.Clear();
             for (int r = 0; r < reps; r++)
             {
-                Vector2 start = b.e.Pos;
+                Vector2 start = b.Pos;
                 float aim = AimAt(b);
                 var lane = Mark(b, m, HShape.Bar, start, tele);
                 lane.width = m.width;
@@ -127,13 +129,13 @@ namespace VK
                 b.Dashing = true; b.vel = dv * spd;
                 Sfx.Play("swing", 0.8f, 0f, 0.5f);
                 bool hit = false; float moved = 0f, el = 0f, maxT = laneLen / spd * 1.5f + 0.3f;
-                Vector2 last = b.e.Pos;
+                Vector2 last = b.Pos;
                 float reach = Mathf.Max(b.e.radius, m.width * 0.5f);
                 while (moved < laneLen - 0.05f && el < maxT)
                 {
                     yield return null;
                     float s = Step(b); el += s;
-                    Vector2 now = b.e.Pos; float step = (now - last).magnitude; moved += step; last = now;
+                    Vector2 now = b.Pos; float step = (now - last).magnitude; moved += step; last = now;
                     if (s > 0f && step < spd * s * 0.25f && el > 0.1f) break;   // blocked by the arena wall
                     var pl = Game.I.player;
                     if (!hit && Vector2.Distance(pl.Pos, now) < reach + pl.radius * 0.8f)
@@ -142,8 +144,8 @@ namespace VK
                 }
                 b.vel = Vector2.zero; b.Dashing = false;
                 Fx.Shake(0.2f, 0.2f);
-                b.lastPoints.Add(b.e.Pos);
-                b.laneA = start; b.laneB = b.e.Pos; b.laneWidth = m.width;
+                b.lastPoints.Add(b.Pos);
+                b.laneA = start; b.laneB = b.Pos; b.laneWidth = m.width;
                 if (blast != null) yield return Wait(b, 0.25f);
                 if (r < reps - 1) yield return Wait(b, 0.25f);
             }
@@ -172,25 +174,25 @@ namespace VK
         static IEnumerator Fan(BossBrain b, BossMove m)
         {
             float tele = Tele(b, m), aim = AimAt(b);
-            var cone = Mark(b, m, HShape.Cone, b.e.Pos, tele);
+            var cone = Mark(b, m, HShape.Cone, b.Pos, tele);
             cone.radius = 3.5f; cone.arcDeg = Mathf.Max(20f, m.angle); cone.angleDeg = aim;
             float t = 0f;
             while (t < tele)
             {
                 yield return null; t += Step(b);
-                if (t < tele - 0.2f) { aim = AimAt(b); cone.angleDeg = aim; cone.pos = b.e.Pos; }
+                if (t < tele - 0.2f) { aim = AimAt(b); cone.angleDeg = aim; cone.pos = b.Pos; }
             }
             b.lastPoints.Clear();
             int reps = Mathf.Max(1, m.reps);
             for (int v = 0; v < reps; v++)
             {
                 if (v > 0) aim = AimAt(b);
-                float reach = Mathf.Clamp((P - b.e.Pos).magnitude, 2f, 12f);
+                float reach = Mathf.Clamp((P - b.Pos).magnitude, 2f, 12f);
                 for (int i = 0; i < m.n; i++)
                 {
                     float a = m.n <= 1 ? aim : aim - m.angle * 0.5f + m.angle * i / (m.n - 1);
                     Shoot(b, m, a, m.speed);
-                    b.lastPoints.Add(Arena.Clamp(b.e.Pos + Dir(a) * reach, 0.5f));
+                    b.lastPoints.Add(Arena.Clamp(b.Pos + Dir(a) * reach, 0.5f));
                 }
                 Sfx.Play("shoot", 0.5f, 0.05f, 0.7f);
                 if (v < reps - 1) yield return Wait(b, m.gap);
@@ -202,7 +204,7 @@ namespace VK
         static IEnumerator Ring(BossBrain b, BossMove m)
         {
             float tele = Tele(b, m);
-            var ring = Mark(b, m, HShape.Ring, b.e.Pos, tele);
+            var ring = Mark(b, m, HShape.Ring, b.Pos, tele);
             ring.radius = b.e.radius + 1.6f; ring.radius2 = b.e.radius + 0.9f;
             yield return Wait(b, tele);
             float a0 = AimAt(b), step = 360f / Mathf.Max(1, m.n);
@@ -210,7 +212,7 @@ namespace VK
             for (int v = 0; v < reps; v++)
             {
                 for (int i = 0; i < m.n; i++) Shoot(b, m, a0 + step * (i + (v % 2) * 0.5f), m.speed);
-                Fx.Ring(b.e.Pos, b.kit.col, 0.5f, 3f, 0.35f);
+                Fx.Ring(b.Pos, b.kit.col, 0.5f, 3f, 0.35f);
                 Sfx.Play("shoot", 0.6f, 0f, 0.5f);
                 if (v < reps - 1) yield return Wait(b, m.gap);
             }
@@ -221,7 +223,7 @@ namespace VK
         static IEnumerator Spiral(BossBrain b, BossMove m)
         {
             float tele = Tele(b, m);
-            var mark = Mark(b, m, HShape.Circle, b.e.Pos, tele);
+            var mark = Mark(b, m, HShape.Circle, b.Pos, tele);
             mark.radius = b.e.radius + 1.4f;
             yield return Wait(b, tele);
             const float BulletSpeed = 4.2f, RaySpread = 12f;
@@ -254,7 +256,7 @@ namespace VK
             int reps = Mathf.Max(1, m.reps);
             for (int r = 0; r < reps; r++)
             {
-                var h = Hz(b, m, HShape.Cone, b.e.Pos, tele, 0.15f, D(b, m));
+                var h = Hz(b, m, HShape.Cone, b.Pos, tele, 0.15f, D(b, m));
                 h.radius = m.radius; h.arcDeg = m.angle; h.angleDeg = AimAt(b);
                 Sfx.Play("swing", 0.5f, 0.1f, 0.7f);
                 yield return Wait(b, tele + 0.15f);
@@ -288,12 +290,12 @@ namespace VK
             if (m.layout == ZLayout.Radial)
             {
                 float a0 = Random.Range(0f, 360f);
-                for (int i = 0; i < m.n; i++) pts.Add(Arena.Clamp(b.e.Pos + Dir(a0 + 360f * i / Mathf.Max(1, m.n)) * 4f, 0.5f));
+                for (int i = 0; i < m.n; i++) pts.Add(Arena.Clamp(b.Pos + Dir(a0 + 360f * i / Mathf.Max(1, m.n)) * 4f, 0.5f));
                 return pts;
             }
             if (m.layout == ZLayout.Between)
             {
-                for (int i = 0; i < m.n; i++) pts.Add(Arena.Clamp(Vector2.Lerp(b.e.Pos, pp, (i + 1f) / (m.n + 1f)), 0.5f));
+                for (int i = 0; i < m.n; i++) pts.Add(Arena.Clamp(Vector2.Lerp(b.Pos, pp, (i + 1f) / (m.n + 1f)), 0.5f));
                 return pts;
             }
             int near = m.layout == ZLayout.AroundPlayer ? m.n : Mathf.Min(m.n, m.gaps);
@@ -438,7 +440,7 @@ namespace VK
                 else if (seq) start[i] = aim + rot * (i - (n - 1) * 0.5f) * arc - rot * arc * 0.5f;
                 else start[i] = aim - rot * (m.speed > 0f ? m.speed : arc * 0.5f);
                 at[i] = tele + (seq ? i * interval : 0f);
-                var w = Mark(b, m, HShape.Cone, b.e.Pos, at[i]);
+                var w = Mark(b, m, HShape.Cone, b.Pos, at[i]);
                 w.radius = m.len; w.arcDeg = Mathf.Min(359f, arc + 2f * halfW + 2f); w.angleDeg = start[i] + rot * arc * 0.5f;
                 wedges.Add(w);
             }
@@ -447,7 +449,7 @@ namespace VK
             while (t < total)
             {
                 yield return null; t += Step(b);
-                Vector2 c = b.e.Pos;
+                Vector2 c = b.Pos;
                 for (int i = 0; i < n; i++)
                 {
                     if (beams[i] == null && t >= at[i])
@@ -477,7 +479,7 @@ namespace VK
             int reps = Mathf.Max(1, m.reps), gaps = Mathf.Max(0, m.gaps);
             float r0 = m.radius, r1 = m.radius2, dur = Mathf.Max(0.1f, m.dur);
             float interval = Mathf.Max(m.gap, KiepNum.TeleFloor(b.kiep));
-            Vector2 c = collapse ? P : b.e.Pos;
+            Vector2 c = collapse ? P : b.Pos;
             float baseAng = Random.Range(0f, 360f);
             var dirs = new List<float>();
             for (int i = 0; i < gaps; i++) dirs.Add(baseAng + 360f * i / gaps);
@@ -553,7 +555,7 @@ namespace VK
             }
             else
             {
-                Vector2 o = b.e.Pos; float aim = AimAt(b);
+                Vector2 o = b.Pos; float aim = AimAt(b);
                 for (int i = 0; i < m.n; i++)
                 {
                     float a = aim + i * 360f / Mathf.Max(1, m.n);
@@ -586,7 +588,7 @@ namespace VK
             float vanish = Mathf.Min(tele, Mathf.Max(0.1f, m.dur));
             yield return Wait(b, tele - vanish);
             b.e.SetHidden(true);
-            Fx.Burst(b.e.Pos, b.kit.col, 8, 3f, 0.1f, 0.4f, true);
+            Fx.Burst(b.Pos, b.kit.col, 8, 3f, 0.1f, 0.4f, true);
             yield return Wait(b, vanish);
             b.e.transform.position = spot;
             b.e.SetHidden(false);
@@ -611,22 +613,32 @@ namespace VK
         // ------------------------------------------------------------------ Summon
         static float MinionHpFrac(string id) => id == "bat_small" ? 0.20f : 0.15f;
 
-        static int Alive(BossBrain b, string id = null)
+        /// <summary>Live minions of this boss; with no id the breakables (cocoons, flags: EBeh.Static) do not count against kit.summonCap.</summary>
+        internal static int Alive(BossBrain b, string id = null)
         {
             int n = 0;
-            foreach (var e in Enemy.All) if (e != null && !e.dead && e.summoner == b && (id == null || e.def.id == id)) n++;
+            foreach (var e in Enemy.All) if (e != null && !e.dead && e.summoner == b && (id == null ? e.def.beh != EBeh.Static : e.def.id == id)) n++;
             return n;
         }
+
+        /// <summary>Minions queued through the spawn warning but not spawned yet.</summary>
+        internal static int Pending(BossBrain b) { int n = 0; foreach (var kv in b.pending) n += kv.Value; return n; }
 
         /// <summary>Minions hp = fraction of the expected trash hp of the boss wave (times the Kiep factor), contact damage 0.3 x boss damage.</summary>
         static void OnMinion(BossBrain b, BossMove m, string defId, Enemy e)
         {
             if (b.pending.TryGetValue(defId, out var c)) b.pending[defId] = Mathf.Max(0, c - 1);
             if (b == null || b.e == null || b.e.dead) { e.Vanish(); return; }
+            SetupMinion(b, defId, e, m.life);
+        }
+
+        /// <summary>Summoned minion bookkeeping and stats (also used by hatching cocoons).</summary>
+        internal static void SetupMinion(BossBrain b, string defId, Enemy e, float life)
+        {
             e.summoner = b;
             e.maxHp = e.hp = MinionHpFrac(defId) * WaveDirector.ExpectedTrashHp(b.e.wave) * KiepNum.HpMul(b.kiep, b.e.wave);
             e.dmg = 0.3f * b.e.dmg;
-            e.lifeT = m.life;
+            e.lifeT = life;
         }
 
         /// <summary>Spawns n minions (def id in hook) around the boss through the wave director's spawn warning, never above kit.summonCap alive.
@@ -641,7 +653,7 @@ namespace VK
                 int c = (b.casts.TryGetValue(m.after, out var v) ? v : 0) + 1; b.casts[m.after] = c;
                 if (m.gaps > 1 && c % m.gaps != 0) yield break;
             }
-            int pend = 0; foreach (var kv in b.pending) pend += kv.Value;
+            int pend = Pending(b);
             int room = b.kit.summonCap - Alive(b) - pend;
             if (rider) room = Mathf.Min(room, m.n - Alive(b, def.id) - (b.pending.TryGetValue(def.id, out var pi) ? pi : 0));
             int count = Mathf.Min(rider ? 1 : m.n, room);
@@ -651,14 +663,14 @@ namespace VK
             if (rider)
             {
                 var pools = BossHazard.All.FindAll(h => IsPool(b, h));
-                spots.Add(pools.Count > 0 ? pools[Random.Range(0, pools.Count)].pos : Arena.Clamp(b.e.Pos + Dir(Random.Range(0f, 360f)) * (b.e.radius + 1.5f), 0.5f));
+                spots.Add(pools.Count > 0 ? pools[Random.Range(0, pools.Count)].pos : Arena.Clamp(b.Pos + Dir(Random.Range(0f, 360f)) * (b.e.radius + 1.5f), 0.5f));
             }
             else
             {
                 float a0 = Random.Range(0f, 360f), tele = Tele(b, m);
                 for (int i = 0; i < count; i++)
                 {
-                    Vector2 p = Arena.Clamp(b.e.Pos + Dir(a0 + 360f * i / count) * (b.e.radius + 1.8f), 0.5f);
+                    Vector2 p = Arena.Clamp(b.Pos + Dir(a0 + 360f * i / count) * (b.e.radius + 1.8f), 0.5f);
                     spots.Add(p);
                     var mk = Mark(b, m, HShape.Circle, p, Mathf.Max(0.85f, tele));
                     mk.radius = 0.5f;

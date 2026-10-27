@@ -289,6 +289,7 @@ namespace VK
             Game.I.player.Invuln(3f);
             ClearTeles();
             foreach (var e in Enemy.Snapshot()) if (e && !e.dead && !e.boss) e.Vanish();
+            BossHooks.ClearAll();   // clones, ghosts, cocoons, flags, hands
             Enemy.All.RemoveAll(e => e == null || e.dead);
             Projectile.ClearAll(true);
             StartCoroutine(EndSoon());
@@ -308,6 +309,7 @@ namespace VK
             Enemy.All.Clear();
             Projectile.ClearAll(true);
             BossHazard.ClearAll();
+            BossHooks.ClearAll();
             ClearTeles();
         }
 

@@ -44,6 +44,9 @@ namespace VK
         public ZLayout layout;
         public string hook;
         public string after;
+
+        /// <summary>Shallow copy (hooks reuse rows of other kits, e.g. the Vạn Ma Quy Tông ghosts).</summary>
+        public BossMove Clone() => (BossMove)MemberwiseClone();
     }
 
     public class BossKit

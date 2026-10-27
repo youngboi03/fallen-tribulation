@@ -1261,5 +1261,234 @@ namespace VK
             }
             BossHazard.ClearAll();
         }
+
+        // ---------------------------------------------------------------- task 5 signature hooks and cleanup
+        int Summoned(BossBrain b, string defId = null) => Enemy.All.Count(e => e != null && !e.dead && e.summoner == b && (defId == null || e.def.id == defId));
+        List<Enemy> SummonedList(BossBrain b, string defId) => Enemy.All.Where(e => e != null && !e.dead && e.summoner == b && e.def.id == defId).ToList();
+        static void KillEnemy(Enemy e) { if (e != null && !e.dead) e.Damage(e.hp + 1f, false, Vector2.zero, 0f, null); }
+
+        /// <summary>Waits until the brain has no running move (or timeout).</summary>
+        IEnumerator WaitIdle(BossBrain b, float timeout)
+        {
+            float t = 0f;
+            while (b != null && b.Current != null && t < timeout) { yield return null; t += Game.Dt; }
+        }
+
+        IEnumerator T_boss_hook_clones()
+        {
+            yield return BossPrep("b3", 0, 15, new Vector2(0, 5)); var b = boss.brain;
+            int pr0 = Projectile.CountHostile();
+            yield return Fire(b, "ma_anh_huyet_y"); yield return Sec(1.8f);   // clones after 0.7 s, then the shared ring after 0.7 s more
+            int c = BossHooks.Count(b, "clone");
+            Check("clones_two", c == 2, c.ToString());
+            Check("clones_outline", boss.Highlighted, "");
+            bool spriteOnly = BossHooks.Objects(b, "clone").All(o => o.GetComponentInChildren<Enemy>() == null && o.GetComponentInChildren<Collider2D>() == null && o.transform.IsChildOf(BossHooks.Root));
+            Check("clones_sprite_only", c > 0 && spriteOnly, "");
+            Check("clones_fire", Projectile.CountHostile() - pr0 >= 12, (Projectile.CountHostile() - pr0).ToString());
+            yield return Sec(6f);
+            Check("clones_gone", BossHooks.Count(b, "clone") == 0 && !boss.Highlighted, BossHooks.Count(b, "clone").ToString());
+            BossHazard.ClearAll(); Projectile.ClearAll(false);
+        }
+
+        IEnumerator T_boss_hook_cocoons()
+        {
+            yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); var b = boss.brain; var r = Game.I.run;
+            Game.I.player.ReduceSkillCd(-999f);   // no Thần Thông cast may break the cocoon that must hatch
+            yield return Fire(b, "ken_doc"); yield return Sec(0.9f);
+            var cs = SummonedList(b, "cocoon");
+            Check("cocoon_two", cs.Count == 2, cs.Count.ToString());
+            Check("cocoon_hp", cs.Count > 0 && cs.All(e => Mathf.Abs(e.maxHp - 0.02f * boss.maxHp) < 0.01f && e.def.beh == EBeh.Static && e.transform.IsChildOf(BossHooks.Root)), cs.Count > 0 ? cs[0].maxHp + " vs " + 0.02f * boss.maxHp : "-");
+            int kills0 = r.kills, orbs0 = Orb.All.Count;
+            if (cs.Count > 0) KillEnemy(cs[0]);
+            yield return null;
+            Check("cocoon_no_credit", r.kills == kills0 && Orb.All.Count == orbs0, "kills " + (r.kills - kills0) + " orbs " + (Orb.All.Count - orbs0));
+            yield return Sec(3.4f);
+            int sp = Summoned(b, "spiderling");
+            Check("cocoon_hatch", sp == 2 && Summoned(b, "cocoon") == 0, "spiders " + sp + " cocoons " + Summoned(b, "cocoon"));
+            // cocoon cap 3: three casts in a row
+            yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); b = boss.brain;
+            int maxC = 0;
+            for (int cast = 0; cast < 3; cast++)
+            {
+                b.Hold = false; b.ForceMove("ken_doc"); int n0 = b.Log.Count; float w = 0f;
+                while (w < 3f && (b.Log.Count == n0 || b.Current != null)) { yield return null; w += Game.Dt; maxC = Mathf.Max(maxC, Summoned(b, "cocoon")); }
+                b.Hold = true;
+            }
+            Check("cocoon_cap", maxC == 3, maxC.ToString());
+            // spiderling cap 6: Vạn Trùng Phệ, 6 edge cocoons x 2
+            yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); b = boss.brain;
+            yield return Fire(b, "van_trung_phe"); yield return Sec(1.3f);
+            int edgeC = Summoned(b, "cocoon");
+            Check("cocoon_edge_six", edgeC == 6, edgeC.ToString());
+            int maxS = 0; float t = 0f;
+            while (t < 4f) { yield return null; t += Game.Dt; maxS = Mathf.Max(maxS, Summoned(b, "spiderling")); }
+            Check("spider_cap", maxS == 6, maxS.ToString());
+            BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_hook_flags()
+        {
+            yield return BossPrep("b2", 0, 10, new Vector2(0, 0)); var b = boss.brain;
+            yield return Fire(b, "phan_thien_chien_ky"); yield return Sec(1.5f);
+            var fl = SummonedList(b, "war_flag");
+            Check("flags_four", fl.Count == 4, fl.Count.ToString());
+            Check("flags_hp", fl.Count > 0 && fl.All(e => Mathf.Abs(e.maxHp - 0.04f * boss.maxHp) < 0.01f), fl.Count > 0 ? fl[0].maxHp.ToString("0") : "-");
+            Check("flags_corners", fl.Count > 0 && fl.All(e => Mathf.Abs(Mathf.Abs(e.Pos.x) - 13f) < 0.01f && Mathf.Abs(Mathf.Abs(e.Pos.y) - 7f) < 0.01f), "");
+            System.Func<Enemy, int> beams = f => BossHazard.All.Count(h => h != null && h.anchor == f && h.Live && h.dmg > 0f);
+            Check("flags_beams", fl.Count == 4 && fl.All(f => beams(f) == 1), string.Join(",", fl.Select(f => beams(f))));
+            if (fl.Count == 4)
+            {
+                var dead = fl[0];
+                KillEnemy(dead); yield return null;
+                Check("flag_beam_off", BossHazard.All.Count(h => h != null && h.anchor == dead) == 0, "");
+                Check("flag_others_live", fl.Skip(1).All(f => !f.dead && beams(f) == 1), string.Join(",", fl.Skip(1).Select(f => beams(f))));
+            }
+            yield return WaitIdle(b, 10f); yield return Sec(0.3f);
+            Check("flags_end", Summoned(b, "war_flag") == 0 && !BossHazard.All.Any(h => h != null && h.moveId == "phan_thien_chien_ky"), Summoned(b, "war_flag").ToString());
+            BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_hook_ghosts()
+        {
+            yield return BossPrep("b4", 0, 20, new Vector2(0, 5)); var b = boss.brain;
+            yield return Fire(b, "van_ma_quy_tong");
+            float t = 0f; int maxG = 0; float ringDmg = -1f;
+            while (t < 14f && (b.Current != null || t < 1f))
+            {
+                yield return null; t += Game.Dt; maxG = Mathf.Max(maxG, BossHooks.Count(b, "ghost"));
+                var pr = Projectile.All.FirstOrDefault(p => p != null && !p.Dead && p.Hostile && p.moveId == "huyet_luan");
+                if (pr != null && ringDmg < 0f) ringDmg = pr.Dmg;
+            }
+            var want = new[] { "ma_nhan_quet", "huyet_anh_luot", "viem_hoan", "doc_ty_troi", "huyet_luan" }.Select(id => id + " x0.70").ToList();
+            Check("ghosts_order", b.HookLog.SequenceEqual(want), string.Join(",", b.HookLog));
+            Check("ghosts_seen", maxG >= 1, maxG.ToString());
+            float exp = boss.dmg * 0.55f * 0.7f;
+            Check("ghosts_dmg", Mathf.Abs(ringDmg - exp) < 0.01f, ringDmg.ToString("0.00") + " vs " + exp.ToString("0.00"));
+            yield return Sec(0.6f);
+            Check("ghosts_gone", BossHooks.Count(b, "ghost") == 0, BossHooks.Count(b, "ghost").ToString());
+            BossHazard.ClearAll(); Projectile.ClearAll(false);
+        }
+
+        /// <summary>Everything a boss fight leaves: hazards, boss bullets, hook objects, summoned or breakable minions.</summary>
+        string Leftovers() => "hz " + BossHazard.All.Count(h => h != null) + " pr " + Projectile.CountHostile() + " hook " + BossHooks.Count() + " min " + Enemy.All.Count(e => e != null && !e.dead && e.summoner != null);
+        bool Clean() => BossHazard.All.Count(h => h != null) == 0 && Projectile.CountHostile() == 0 && BossHooks.Count() == 0 && Enemy.All.Count(e => e != null && !e.dead && e.summoner != null) == 0;
+
+        IEnumerator T_boss_clean_mid()   // Review Focus 2: boss dies halfway through its set II ultimate
+        {
+            foreach (var cfg in new[] { ("b1", 5), ("b1b", 5), ("b2", 10), ("b2b", 10), ("b3", 15), ("b4", 19) })   // b4 at 19: wave 20 would finish (and win) the test run
+            {
+                yield return BossPrep(cfg.Item1, 5, cfg.Item2, new Vector2(0, 5)); var b = boss.brain; var r = Game.I.run;
+                if (b.kit.Move("ken_doc") != null) { yield return Fire(b, "ken_doc"); yield return WaitIdle(b, 3f); b.Hold = false; }
+                if (b.kit.Move("ma_anh_huyet_y") != null) { yield return Fire(b, "ma_anh_huyet_y"); yield return WaitIdle(b, 3f); b.Hold = false; }
+                var u = b.kit.Ult(BTier.II);
+                yield return Fire(b, u.id); yield return Sec(1.6f);
+                int chests0 = r.chests + Orb.All.Count(o => o != null && o.IsChest);
+                Check("clean_mid_running_" + cfg.Item1, b.Current == u, b.Current != null ? b.Current.id : "none");
+                KillEnemy(boss);
+                yield return Sec(0.5f);
+                Check("clean_mid_" + cfg.Item1, Clean(), Leftovers());
+                yield return new WaitForSecondsRealtime(2.2f);
+                Check("clean_mid_chest_" + cfg.Item1, Game.I.state != GState.Playing && r.chests >= chests0 + 1, Game.I.state + " chests " + r.chests + " vs " + chests0);
+                Check("clean_mid_still_" + cfg.Item1, Clean(), Leftovers());
+            }
+        }
+
+        IEnumerator T_boss_clean_over()   // the player dies mid-ult: run over, then a fresh run is clean
+        {
+            yield return BossPrep("b2", 5, 10, new Vector2(0, 5)); var b = boss.brain;
+            yield return Fire(b, "phan_thien_chien_ky"); yield return Sec(1.6f);
+            Check("clean_over_running", b.Current != null && Summoned(b, "war_flag") > 0, Leftovers());
+            tankHold = false; var g = Game.I; g.player.god = false; g.run.hp = 0f; g.OnPlayerDeath();
+            yield return new WaitForSecondsRealtime(2.6f);
+            Check("clean_over_state", g.state == GState.Over, g.state.ToString());
+            bool ok = true;
+            try { g.StartRun(0, 0); } catch (System.Exception ex) { ok = false; Debug.Log("[AUTOTEST] clean_over exception " + ex); }
+            yield return null; yield return null;
+            Check("clean_over_restart", ok && g.state == GState.Playing, g.state.ToString());
+            Check("clean_over_clean", Clean() && Enemy.All.Count(e => e != null && e.boss) == 0, Leftovers());
+        }
+
+        /// <summary>Forces a hook move: the first damage (a live damaging hazard, a hit or a new boss bullet) comes after a telegraph that was on
+        /// screen at least minTele; LastTele at that moment is at least minTele; every hazard and hook object stays inside the arena; after the move, no hook objects are left.</summary>
+        IEnumerator HookPrim(string bossId, int wave, string moveId, float minTele)
+        {
+            yield return BossPrep(bossId, 0, wave, new Vector2(0, 5)); var b = boss.brain; b.LastTele = -1f;
+            int ph0 = BossHazard.PlayerHits, bh0 = BossBrain.HitCount, pr0 = Projectile.CountHostile();
+            yield return Fire(b, moveId);
+            bool teleSeen = false, dmgSeen = false, teleFirst = false, inside = true; float t = 0f, teleAt = -1f, dmgAt = -1f, teleAtDmg = -1f; string outside = "";
+            const float Tol = 0.35f;
+            while (t < 16f && (b.Current != null || t < 0.5f))
+            {
+                yield return null; t += Game.Dt;
+                if (!teleSeen && BossHazard.All.Any(h => h != null && h.owner == boss && h.Telegraphing)) { teleSeen = true; teleAt = t; }
+                if (!dmgSeen && (BossHazard.All.Any(h => h != null && h.owner == boss && h.Live && h.dmg > 0f) || BossHazard.PlayerHits != ph0 || BossBrain.HitCount != bh0 || Projectile.CountHostile() > pr0))
+                { dmgSeen = true; dmgAt = t; teleFirst = teleSeen; teleAtDmg = b.LastTele; }
+                foreach (var h in BossHazard.All)
+                    if (h != null && (Mathf.Abs(h.pos.x) > VK.Arena.HalfW + Tol || Mathf.Abs(h.pos.y) > VK.Arena.HalfH + Tol)) { inside = false; outside = "hz " + h.moveId + " " + h.pos; }
+                foreach (var o in BossHooks.Objects(b, null))
+                    if (Mathf.Abs(o.transform.position.x) > VK.Arena.HalfW + Tol || Mathf.Abs(o.transform.position.y) > VK.Arena.HalfH + Tol) { inside = false; outside = o.kind + " " + o.transform.position; }
+            }
+            Check("hook_" + moveId + "_ran", b.Log.Contains(moveId) && dmgSeen && b.Current == null, "t=" + t.ToString("0.0") + " dmg " + dmgSeen);
+            Check("hook_" + moveId + "_tele_first", teleFirst && dmgAt - teleAt >= minTele - 0.05f, "shown " + (dmgAt - teleAt).ToString("0.00"));
+            Check("hook_" + moveId + "_tele_floor", teleAtDmg >= minTele - 0.001f, teleAtDmg.ToString("0.00"));
+            Check("hook_" + moveId + "_inside", inside, outside);
+            yield return Sec(0.3f);
+            Check("hook_" + moveId + "_no_leftover", BossHooks.Count(b) == 0 && Summoned(b, "war_flag") == 0, BossHooks.Count(b).ToString());
+            BossHazard.ClearAll(); Projectile.ClearAll(false);
+        }
+
+        IEnumerator T_boss_hook_ult_b1b_bats() { yield return HookPrim("b1b", 5, "van_buc_trieu", 1f); }
+        IEnumerator T_boss_hook_ult_b2_firecity() { yield return HookPrim("b2", 10, "liet_hoa_thanh", 1f); }
+        IEnumerator T_boss_hook_ult_b2_flags() { yield return HookPrim("b2", 10, "phan_thien_chien_ky", 1f); }
+        IEnumerator T_boss_hook_ult_b2b_sea() { yield return HookPrim("b2b", 10, "doc_hai", 1f); }
+        IEnumerator T_boss_hook_ult_b3_clones() { yield return HookPrim("b3", 15, "huyet_anh_van_sat", 1f); }
+        IEnumerator T_boss_hook_ult_b4_hand() { yield return HookPrim("b4", 20, "thien_ma_giang_the", 1f); }
+        IEnumerator T_boss_hook_ult_b4_ghosts() { yield return HookPrim("b4", 20, "van_ma_quy_tong", 1f); }
+        IEnumerator T_boss_hook_b4_gates() { yield return HookPrim("b4", 20, "hu_khong_mon", KiepNum.TeleFloor(0)); }
+        IEnumerator T_boss_hook_ult_b4_heaven()
+        {
+            yield return HookPrim("b4", 20, "thien_dao_tich_diet", KiepNum.TeleFloor(0));   // stage 1 keeps its own telegraph; stage 2 is the 1 s+ part
+            Check("hook_heaven_stage2_tele", boss != null && boss.brain.LastTele >= 1.5f - 0.001f, boss != null ? boss.brain.LastTele.ToString("0.00") : "-");
+        }
+
+        IEnumerator T_boss_hook_heaven_safe()   // stage 2: hit outside the safe circle, safe inside it
+        {
+            for (int pass = 0; pass < 2; pass++)
+            {
+                yield return BossPrep("b4", 0, 20, new Vector2(0, 5)); var b = boss.brain;
+                yield return Fire(b, "thien_dao_tich_diet");
+                float t = 0f; BossHazard strike = null;
+                while (t < 10f && strike == null) { yield return null; t += Game.Dt; strike = BossHazard.All.FirstOrDefault(h => h != null && h.holes != null && h.Telegraphing); }
+                if (strike == null) { Check("heaven_strike", false, "none"); continue; }
+                int ph0 = BossHazard.PlayerHits;
+                Place(pass == 0 ? Vector2.zero : new Vector2(6f, 3f));
+                float w = 0f;   // keep the player there: the bot would walk into the safe circle
+                while (b.Current != null && w < 6f) { Game.I.player.transform.position = pass == 0 ? Vector2.zero : new Vector2(6f, 3f); yield return null; w += Game.Dt; }
+                int hits = BossHazard.PlayerHits - ph0;
+                Check(pass == 0 ? "heaven_safe_inside" : "heaven_hit_outside", hits == (pass == 0 ? 0 : 1), hits.ToString());
+            }
+            BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_hook_sea_safe()   // a drifting safe patch protects, the flood elsewhere ticks
+        {
+            yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); var b = boss.brain;
+            yield return Fire(b, "doc_hai");
+            BossHazard flood = null; float t = 0f;
+            while (t < 3f && flood == null) { yield return null; t += Game.Dt; flood = BossHazard.All.FirstOrDefault(h => h != null && h.holes != null && h.moveId == "doc_hai"); }
+            Check("sea_patches", flood != null && flood.holes.Count == 3 && Mathf.Abs(flood.holeR - 2f) < 0.01f, flood == null ? "none" : flood.holes.Count.ToString());
+            if (flood == null) yield break;
+            int ph0 = BossHazard.PlayerHits; tankHold = false;
+            Vector2 start = flood.holes[0]; t = 0f;
+            while (t < 3.5f) { yield return null; t += Game.Dt; if (flood != null) Game.I.player.transform.position = flood.holes[0]; }
+            Check("sea_safe_in_patch", BossHazard.PlayerHits == ph0, (BossHazard.PlayerHits - ph0).ToString());
+            Check("sea_patch_drifts", flood != null && (flood.holes[0] - start).magnitude > 1f, flood != null ? (flood.holes[0] - start).magnitude.ToString("0.0") : "-");
+            Vector2 far = new Vector2(VK.Arena.HalfW - 0.5f, VK.Arena.HalfH - 0.5f);
+            if (flood != null && flood.holes.Any(h => (h - far).magnitude < 3f)) far = -far;
+            Place(far);
+            yield return Sec(1.2f);
+            Check("sea_flood_ticks", BossHazard.PlayerHits - ph0 >= 2, (BossHazard.PlayerHits - ph0).ToString());
+            BossHazard.ClearAll();
+        }
     }
 }

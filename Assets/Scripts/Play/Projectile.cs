@@ -11,6 +11,10 @@ namespace VK
         /// <summary>Boss that fired this hostile bullet and its move ([BOSSHIT] attribution); null for normal enemies.</summary>
         public Enemy owner;
         public string moveId;
+        /// <summary>Read-only views for tests.</summary>
+        public bool Hostile => hostile;
+        public bool Dead => dead;
+        public float Dmg => dmg;
         Vector2 vel;
         float dmg, life, radius, splash, spinSpd, trailT;
         int pierce;

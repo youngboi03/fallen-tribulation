@@ -22,11 +22,14 @@ namespace VK
         public BossMove Current { get; private set; }
         /// <summary>Ids of moves started (riders included), in order.</summary>
         public readonly List<string> Log = new List<string>();
+        /// <summary>Moves run by hook helpers (ghosts), as "id xMUL".</summary>
+        public readonly List<string> HookLog = new List<string>();
         /// <summary>Hp fractions that queue an ultimate for this Kiếp (spec 3.2), highest first.</summary>
         public readonly List<float> UltMarks = new List<float>();
         /// <summary>When set, called instead of the short phase transition (Kiếp 5 Ma Thân cutscene).
         /// The transition only starts when no move is running, so there is no cancelled move to clean up; the hook
-        /// itself must clear the boss telegraphs/hazards (BossHazard.ClearOwner) and bullets (Projectile.ClearOwner) it wants gone,
+        /// itself must clear the boss telegraphs/hazards (BossHazard.ClearOwner) and bullets (Projectile.ClearOwner) it wants gone
+        /// (hook objects and minions are already cleared by BossHooks.ClearOwner when phase 2 begins),
         /// and must set Hold back to false when it ends.</summary>
         public Action<BossBrain> PhaseTwoHook;
 
@@ -62,6 +65,29 @@ namespace VK
         BossMove forced, prev;
         float restT;
         Coroutine running;
+
+        // ---- hook proxies (BossHooks): a brain on a clone / ghost / gate that runs primitives from its own body
+        /// <summary>Real brain this proxy works for (null on the real boss).</summary>
+        public BossBrain master;
+        /// <summary>Where moves originate: the hook object for a proxy, else the boss.</summary>
+        public Transform body;
+        /// <summary>Damage multiplier of every move this brain runs (ghosts 0.7).</summary>
+        public float dmgMul = 1f;
+        public Vector2 Pos => body != null ? (Vector2)body.position : e.Pos;
+
+        public void InitProxy(BossBrain real, BossKit k, Transform t, float mul)
+        {
+            master = real; e = real.e; kit = k; kiep = real.kiep; body = t; dmgMul = mul;
+            cdLeft = new float[kit.moves.Count];
+            Hold = true;
+        }
+
+        /// <summary>A proxy moves its own body (dash); the real boss is moved by Enemy.Update.</summary>
+        void Update()
+        {
+            if (master == null || body == null || vel == Vector2.zero || e == null) return;
+            body.position = Arena.Clamp((Vector2)body.position + vel * BossMoves.Step(this), e.radius * 0.5f);
+        }
 
         public static int HitCount;
         /// <summary>Telegraph time the last primitive actually used (tests).</summary>
@@ -155,6 +181,7 @@ namespace VK
             if (!PhasePending || Current != null) return;
             foreach (var u in ults) if (u.Value > 0.5f) return;
             Phase = 2; Transitions++; Phase2At = FightT;
+            BossHooks.ClearOwner(this);   // clones, ghosts, cocoons, flags and summons never cross a phase change
             p2Picks = 0; p2Done = false;
             Debug.Log("[BOSS] phase2 t=" + FightT.ToString("0.0"));
             if (PhaseTwoHook != null) PhaseTwoHook(this);
@@ -179,7 +206,7 @@ namespace VK
         }
 
         /// <summary>Runs nested IEnumerators inline on one Unity coroutine, so StopCoroutine stops the whole move tree.</summary>
-        static IEnumerator Flat(IEnumerator root)
+        public static IEnumerator Flat(IEnumerator root)
         {
             var st = new Stack<IEnumerator>();
             st.Push(root);
@@ -263,6 +290,7 @@ namespace VK
             e.SetHidden(false);
             BossHazard.ClearOwner(e);
             Projectile.ClearOwner(e);
+            BossHooks.ClearOwner(this);
         }
 
         /// <summary>Boss died or vanished: stop every move coroutine and remove its hazards.</summary>
@@ -272,6 +300,8 @@ namespace VK
             running = null; Current = null; vel = Vector2.zero; Dashing = false; Hold = true;
             if (e != null) e.SetHidden(false);
             BossHazard.ClearOwner(e);
+            Projectile.ClearOwner(e);
+            BossHooks.ClearOwner(this);
         }
 
         public void OnDeath()

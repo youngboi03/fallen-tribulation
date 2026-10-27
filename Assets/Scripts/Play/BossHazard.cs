@@ -32,6 +32,12 @@ namespace VK
         public float spinDeg;
         /// <summary>Boss move that made it ([BOSSHIT] attribution).</summary>
         public string moveId;
+        /// <summary>Breakable object that carries this hazard (war flag); the hazard ends when it dies.</summary>
+        public Enemy anchor { get => anchorE; set { anchorE = value; anchored = value != null; } }
+        Enemy anchorE; bool anchored;
+        /// <summary>Safe holes cut out of the shape (centres, radius holeR); Contains is false inside one.</summary>
+        public List<Vector2> holes;
+        public float holeR;
         static bool hinted;
 
         float age, hitCd;
@@ -90,6 +96,7 @@ namespace VK
         /// <summary>True when a disc of radius r at p overlaps the hazard shape (ignores the lifecycle phase).</summary>
         public bool Contains(Vector2 p, float r)
         {
+            if (holes != null) foreach (var c in holes) if ((p - c).sqrMagnitude <= holeR * holeR) return false;
             switch (shape)
             {
                 case HShape.Circle:
@@ -150,6 +157,7 @@ namespace VK
         void Update()
         {
             var g = Game.I;
+            if (!gone && anchored && (anchorE == null || anchorE.dead)) { Kill(); return; }
             if (gone || g == null || !g.Playing) return;
             float dt = Game.Dt;
             if (owner != null && !owner.dead) dt *= owner.TimeScale;

@@ -48,12 +48,17 @@ namespace VK
         public float lifeT;
         /// <summary>Vanished from sight (Blink): no contact damage, renderers off.</summary>
         public bool Hidden { get; private set; }
+        /// <summary>Bright outline on (the real boss while its clones live).</summary>
+        public bool Highlighted { get; private set; }
         public void SetHidden(bool hide)
         {
+            if (hide == Hidden) return;   // un-hiding a visible enemy must not re-enable renderers that are off on purpose
             Hidden = hide;
             foreach (var r in GetComponentsInChildren<SpriteRenderer>(true)) r.enabled = !hide;
         }
         Color tintCol;
+        /// <summary>Current body colour (clones copy it).</summary>
+        public Color Tint => tintCol;
         float scaleMul = 1f;
         static readonly int FlashId = Shader.PropertyToID("_Flash");
 
@@ -224,7 +229,15 @@ namespace VK
             {
                 outline.sortingOrder = sr.sortingOrder - 1;
                 outline.flipX = sr.flipX;
-                outline.color = new Color(1, 1, 1, 0.55f + Mathf.Sin(Time.time * 6f) * 0.25f);
+                bool hl = brain != null && BossHooks.HasClones(brain);
+                if (hl != Highlighted)
+                {   // the real boss among its clones: bright, thicker outline
+                    Highlighted = hl;
+                    outMpb.SetColor("_FlashColor", hl ? new Color(1f, 1f, 0.8f) : boss ? new Color(0.85f, 0.4f, 1f) : new Color(1f, 0.25f, 0.2f));
+                    outline.SetPropertyBlock(outMpb);
+                    outline.transform.localScale = Vector3.one * (hl ? 1.24f : 1.14f);
+                }
+                outline.color = hl ? Color.white : new Color(1, 1, 1, 0.55f + Mathf.Sin(Time.time * 6f) * 0.25f);
             }
             flash = Mathf.MoveTowards(flash, 0, dt * 8f);
             sr.GetPropertyBlock(mpb);
@@ -482,6 +495,13 @@ namespace VK
         {
             dead = true;
             All.Remove(this);
+            if (summoner != null)
+            {   // boss minions and breakables (cocoons, flags): no kill credit, no drops, no XP, no on-kill effects
+                Fx.Burst(Pos, def.blood, 9, 6f, 0.14f, 0.45f);
+                Sfx.Play("kill", 0.3f, 0.15f, 1.1f);
+                Destroy(gameObject);
+                return;
+            }
             var g = Game.I;
             var run = g.run;
             run.kills++;
