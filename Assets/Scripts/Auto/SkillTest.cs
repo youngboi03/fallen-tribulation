@@ -407,6 +407,75 @@ namespace VK
             Check("tich_loi_cap", Mathf.Abs(cd0 - p.SkillCdLeft - 4f) < 0.02f, (cd0 - p.SkillCdLeft).ToString("0.00"));
         }
 
+        // ---------------------------------------------------------------- skill items and shop bias (Task 11)
+        void GiveItem(string id) { var r = Game.I.run; r.items.Add(Content.Items.Find(x => x.id == id)); r.Recalc(); }
+
+        IEnumerator T_item_stats()
+        {
+            yield return Arena(0, 5, 0); var r = Game.I.run; r.Recalc();
+            var want = new[] { ("ngung_than_huong", Stat.SkillPower, 12f), ("thanh_tam_phu", Stat.SkillHaste, 5f), ("than_thong_ngoc_gian", Stat.SkillPower, 25f) };
+            foreach (var (id, st, v) in want)
+            {
+                float b = r.stats[st]; GiveItem(id);
+                Check("stat_" + id, Mathf.Abs(r.stats[st] - b - v) < 0.001f, (r.stats[st] - b).ToString("0.0"));
+            }
+            float aw = r.stats[Stat.AtkSpeed]; r.items.RemoveAll(x => x.id == "than_thong_ngoc_gian"); r.Recalc();
+            Check("ngoc_gian_atk", Mathf.Abs(r.stats[Stat.AtkSpeed] - aw - 5f) < 0.001f, "");
+        }
+
+        IEnumerator T_item_bo_doan()
+        {
+            yield return Arena(0, 5, 0); var r = Game.I.run; var p = Game.I.player; GiveItem("tinh_toa_bo_doan");
+            r.hp = r.MaxHP * 0.5f; float h0 = r.hp; p.SetSkillReady(); p.TryCast();
+            Check("bo_doan", Mathf.Abs(r.hp - (h0 + 0.03f * r.MaxHP)) <= 0.5f, r.hp + " vs " + (h0 + 0.03f * r.MaxHP));
+        }
+
+        IEnumerator T_item_bao_thap()
+        {
+            yield return Arena(0, 10, 0); var r = Game.I.run; var p = Game.I.player; GiveItem("linh_lung_bao_thap");
+            r.levelStats[Stat.Crit] -= 1000; r.Recalc(); var e = Elite(new Vector2(8, 3));
+            Random.InitState(7); float d0 = Skills.Hit(e, 1f, "t", Vector2.right);
+            for (int i = 0; i < 5; i++) { p.SetSkillReady(); p.TryCast(); }
+            float b = 1f + r.stats[Stat.SkillPower] / 100f + r.stats[Stat.Damage] / 200f;
+            Random.InitState(7); float d5 = Skills.Hit(e, 1f, "t", Vector2.right);
+            Check("bao_thap_5", Mathf.Abs(d5 / d0 - (b + 0.20f) / b) < 0.005f, (d5 / d0).ToString("0.000") + " vs " + ((b + 0.2f) / b).ToString("0.000"));
+            for (int i = 0; i < 7; i++) { p.SetSkillReady(); p.TryCast(); }
+            Random.InitState(7); float d12 = Skills.Hit(e, 1f, "t", Vector2.right);
+            Check("bao_thap_cap", Mathf.Abs(d12 / d0 - (b + 0.40f) / b) < 0.005f && r.linhLung == 10, (d12 / d0).ToString("0.000") + " stack " + r.linhLung);
+            Skills.OnWaveStart(r); Check("bao_thap_reset", r.linhLung == 0, "");
+        }
+
+        IEnumerator T_item_thien_thu()
+        {
+            yield return Arena(0, 10, 0); var r = Game.I.run; r.levelStats[Stat.Crit] -= 1000; r.Recalc();
+            var w = r.AddWeapon(Content.W("thiet_kiem"), 0); var e = Elite(new Vector2(8, 3));
+            Random.InitState(7); float s0 = Skills.Hit(e, 1f, "t", Vector2.right); Random.InitState(7); float w0 = Combat.Roll(w, out _);
+            GiveItem("thien_thu_vo_tu");
+            Random.InitState(7); float s1 = Skills.Hit(e, 1f, "t", Vector2.right); Random.InitState(7); float w1 = Combat.Roll(w, out _);
+            Check("thien_thu_skill", Mathf.Abs(s1 / s0 - 1.5f) < 0.01f, (s1 / s0).ToString("0.000"));
+            Check("thien_thu_weapon", Mathf.Abs(w1 / w0 - 0.85f) < 0.01f, (w1 / w0).ToString("0.000"));
+        }
+
+        IEnumerator T_item_shop_bias()
+        {
+            yield return Arena(0, 8, 0); var r = Game.I.run; r.skillCards.Clear(); r.Recalc();
+            float plain = SkillItemShare(r, 3000);
+            r.skillCards.Add("tu_khi"); float biased = SkillItemShare(r, 3000);
+            Check("shop_bias", biased - plain >= 0.08f, plain.ToString("0.000") + " -> " + biased.ToString("0.000"));
+        }
+
+        float SkillItemShare(RunState r, int rolls)
+        {
+            int items = 0, skill = 0;
+            for (int i = 0; i < rolls; i++)
+            {
+                r.RollShop();
+                foreach (var sl in r.shop) if (sl != null && sl.it != null) { items++; if (System.Array.IndexOf(Content.SkillItemIds, sl.it.id) >= 0) skill++; }
+                foreach (var sl in r.shop) if (sl != null) sl.sold = true;   // force a fresh roll next time
+            }
+            return items == 0 ? 0f : skill / (float)items;
+        }
+
         // ---------------------------------------------------------------- Ngộ Đạo (Task 8)
         IEnumerator T_nd_roll()
         {

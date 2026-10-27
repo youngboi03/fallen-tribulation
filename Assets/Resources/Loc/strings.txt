@@ -558,6 +558,15 @@ Cần 2 vũ khí Đạo Hỏa. Đòn chiêu thiêu đốt (30% đòn mỗi giây
 Cần 2 vũ khí Đạo Lôi. Mỗi đòn chiêu nảy sang 1 quái trong 3.5 ô với 50% đòn.	Needs 2 Thunder weapons. Each skill hit jumps to 1 enemy within 3.5 tiles for 50%.	需要2件雷道武器。每次神通命中弹射到3.5格内1只怪，伤害50%。
 Cần 2 vũ khí Đạo Độc. Đòn chiêu gây độc; quái chết vì độc này lây cho tối đa 3 quái.	Needs 2 Poison weapons. Skill hits poison; enemies killed by this poison spread it to up to 3 others.	需要2件毒道武器。神通命中施毒；因此毒而死的怪会将毒传给最多3只怪。
 Cần 2 vũ khí Đạo Phù. Đòn chiêu có 25% đóng băng 1 giây.	Needs 2 Talisman weapons. Skill hits have a 25% chance to freeze for 1 second.	需要2件符道武器。神通命中有25%几率冰冻1秒。
+Ngưng Thần Hương	Spirit-Focusing Incense	凝神香
+Thanh Tâm Phù	Clear Mind Talisman	清心符
+Thần Thông Ngọc Giản	Divine Art Jade Slip	神通玉简
+Tĩnh Tọa Bồ Đoàn	Meditation Cushion	静坐蒲团
+Linh Lung Bảo Tháp	Exquisite Treasure Pagoda	玲珑宝塔
+Thiên Thư Vô Tự	Wordless Heavenly Book	天书无字
+Mỗi lần thi triển Thần Thông hồi 3% máu tối đa.	Each Divine Art cast heals 3% of max HP.	每次施放神通回复3%最大生命。
+Mỗi lần thi triển Thần Thông +4% Thần Lực đến hết đợt (tối đa +40%).	Each Divine Art cast gives +4% Spirit Power until the wave ends (max +40%).	每次施放神通+4%神力直到本波结束（最多+40%）。
+Sát thương Thần Thông ×1.5; sát thương vũ khí ×0.85.	Divine Art damage ×1.5; weapon damage ×0.85.	神通伤害×1.5；武器伤害×0.85。
 Ma Đạo Truyền Thừa	Demonic Inheritance	魔道传承
 Trong hang tối, một bộ hài cốt ôm cuốn ma công. Huyết khí cuồn cuộn mời gọi.	In a dark cave a skeleton clutches a demonic manual. Blood qi surges, beckoning you.	幽暗洞中，一具骸骨怀抱魔功秘籍。血气翻涌，似在召唤。
 Tu luyện ma công	Practise the demonic art	修炼魔功

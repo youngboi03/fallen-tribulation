@@ -38,7 +38,8 @@ namespace VK
             if (e == null || e.dead) return 0f;
             var run = Game.I.run;
             var st = run.stats;
-            float d = run.SP * coef * (1f + st[Stat.SkillPower] / 100f + st[Stat.Damage] / 200f);
+            float d = run.SP * coef * (1f + st[Stat.SkillPower] / 100f + Mathf.Min(10, run.linhLung) * 0.04f + st[Stat.Damage] / 200f);
+            if (run.Has("thien_thu_vo_tu")) d *= 1.5f;
             bool eye = run.HasCard("than_nhan");   // Thần Nhãn: +15% Bạo Kích, +50% ST Bạo Kích on skill hits
             bool crit = UnityEngine.Random.value * 100f < st[Stat.Crit] + (eye ? 15f : 0f);
             if (crit) d *= 1.5f + (st[Stat.CritDmg] + (eye ? 50f : 0f)) / 100f;
@@ -256,6 +257,11 @@ namespace VK
             if (echo) return;
             SkillFx.Ladder(st, pos, r.ch.skillColor);
             tuKhiAcc = 0f; tichLoiAcc = 0f;   // a new cooldown cycle starts
+            if (r.Has("tinh_toa_bo_doan")) { p.Heal(r.MaxHP * 0.03f); Fx.Burst(pos, new Color(1f, 0.8f, 0.5f), 6, 3f, 0.12f, 0.4f, true); }   // Tĩnh Tọa Bồ Đoàn
+            if (r.Has("linh_lung_bao_thap") && r.linhLung < 10)
+            {   // Linh Lung Bảo Tháp: +4% Thần Lực per cast until the wave ends (max +40%)
+                r.linhLung++; Fx.Ring(pos, new Color(1f, 0.9f, 0.5f), 0.3f, 1.2f, 0.3f);
+            }
             Color c = r.ch.skillColor;
             if (rt != null && r.HasCard("du_ba"))
             {   // Dư Ba: weapons glow in the skill color and attack 35% faster for 4 s (WeaponInst.Cooldown / Tick)

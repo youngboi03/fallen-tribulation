@@ -61,6 +61,8 @@ namespace VK
         public bool guardUsed, hoMenhUsed;   // once per wave: Nguyên Anh hộ chủ / Hộ Mệnh Đan
         public int kiemKhi, linhLung;        // Kiếm Khí Hộ Thể tiers / Linh Lung Bảo Tháp stacks, both reset each wave
         public bool HasCard(string id) => skillCards.Contains(id);
+        /// <summary>A run built around Thần Thông: at least one Ngộ Đạo card or Thần Lực ≥ 20 (shop bias, spec section 7).</summary>
+        public bool SkillBuild => skillCards.Count > 0 || stats[Stat.SkillPower] >= 20f;
         public float SPAt(int w) => Content.SkillR(w) * WaveDirector.ExpectedTrashHp(w);
         public float SP => SPAt(wave);
         public float SkillCooldown => Mathf.Max(SkillNum.MinCd, ch.skillCd / (1f + Mathf.Max(0f, stats[Stat.SkillHaste]) / 100f));
@@ -110,6 +112,7 @@ namespace VK
             if (Has("van_kiem_quy_tong")) m *= 1f + 0.12f * TagCount(Tag.Kiem);
             if (Has("cuong_chien_y")) m *= 1f + (1f - hp / MaxHP) * 0.5f;
             if (riteT > 0) m *= 1.6f;
+            if (Has("thien_thu_vo_tu")) m *= 0.85f;   // Thiên Thư Vô Tự: weapons pay for the skill bonus
             if (Has("tich_linh_ho_lo")) m *= 1f + 0.02f * (wave - 1);
             if (Has("kim_thiem")) m *= 1f + Mathf.Min(0.4f, gold / 10 * 0.01f);
             return m;
@@ -174,11 +177,18 @@ namespace VK
             else
             {
                 ItemDef pick = null;
+                bool skillSlot = SkillBuild && Random.value < 0.15f;   // a Thần Thông build sees its items more often
                 for (int tt = t; tt >= 0 && pick == null; tt--)
                 {
-                    var pool = Content.Items.FindAll(i => i.tier == tt && (i.max == 0 || Count(i.id) < i.max));
+                    var pool = Content.Items.FindAll(i => i.tier == tt && (i.max == 0 || Count(i.id) < i.max) && (!skillSlot || System.Array.IndexOf(Content.SkillItemIds, i.id) >= 0));
                     if (pool.Count > 0) pick = pool[Random.Range(0, pool.Count)];
                 }
+                if (pick == null && skillSlot)
+                    for (int tt = t; tt >= 0 && pick == null; tt--)
+                    {
+                        var pool = Content.Items.FindAll(i => i.tier == tt && (i.max == 0 || Count(i.id) < i.max));
+                        if (pool.Count > 0) pick = pool[Random.Range(0, pool.Count)];
+                    }
                 if (pick == null) pick = Content.Items[0];
                 s.it = pick; s.tier = pick.tier; s.price = Price(pick.price);
             }

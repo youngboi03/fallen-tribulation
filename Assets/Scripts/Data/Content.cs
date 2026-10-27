@@ -110,6 +110,8 @@ namespace VK
         };
         public static SkillCardDef SkillCard(string id) => SkillCards.Find(c => c.id == id);
 
+        public static readonly string[] SkillItemIds = { "ngung_than_huong", "thanh_tam_phu", "than_thong_ngoc_gian", "tinh_toa_bo_doan", "linh_lung_bao_thap", "thien_thu_vo_tu" };
+
         public static string Realm(int level)
         {
             int r = Mathf.Min(level / 10, RealmName.Length - 1);
@@ -252,6 +254,16 @@ namespace VK
                 desc="+12% sát thương cho mỗi vũ khí Đạo Kiếm đang có." },
             new ItemDef { id="thien_dao_chi_tam", name="Thiên Đạo Chi Tâm", sprite=29, tier=3, price=100, max=1,
                 mods=new[]{M(Stat.Damage,20), M(Stat.AtkSpeed,10), M(Stat.Crit,8), M(Stat.MaxHP,15)} },
+            // Thần Thông items (spec section 7); icons are placeholders until the PixelLab redraw (tools/icons.json)
+            new ItemDef { id="ngung_than_huong", name="Ngưng Thần Hương", sprite=126, tint=new Color(0.85f,0.7f,1f), tier=0, price=13, mods=new[]{M(Stat.SkillPower,12)} },
+            new ItemDef { id="thanh_tam_phu", name="Thanh Tâm Phù", sprite=Res.TalismanId, tint=new Color(0.7f,0.9f,1f), tier=0, price=12, mods=new[]{M(Stat.SkillHaste,5)} },
+            new ItemDef { id="than_thong_ngoc_gian", name="Thần Thông Ngọc Giản", sprite=66, tint=new Color(0.6f,1f,0.75f), tier=1, price=30, mods=new[]{M(Stat.SkillPower,25), M(Stat.AtkSpeed,-5)} },
+            new ItemDef { id="tinh_toa_bo_doan", name="Tĩnh Tọa Bồ Đoàn", sprite=56, tint=new Color(1f,0.7f,0.4f), tier=1, price=32, max=1, mods=new[]{M(Stat.SkillHaste,12)},
+                desc="Mỗi lần thi triển Thần Thông hồi 3% máu tối đa." },
+            new ItemDef { id="linh_lung_bao_thap", name="Linh Lung Bảo Tháp", sprite=90, tint=new Color(1f,0.9f,0.5f), tier=2, price=52, max=1,
+                desc="Mỗi lần thi triển Thần Thông +4% Thần Lực đến hết đợt (tối đa +40%)." },
+            new ItemDef { id="thien_thu_vo_tu", name="Thiên Thư Vô Tự", sprite=66, tint=new Color(1f,0.95f,0.8f), tier=3, price=85, max=1,
+                desc="Sát thương Thần Thông ×1.5; sát thương vũ khí ×0.85." },
         };
 
         // ---------------------------------------------------------------- routes (Lộ Tuyến)
