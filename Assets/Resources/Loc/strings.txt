@@ -479,11 +479,11 @@ Kích hoạt mốc 6 của một Đạo	Activate a Dao's 6-piece resonance	激�
 Đạt Liên Sát	Reach a kill streak of	连杀达到
 Hoàn thành Đồ Giám	Complete the Codex	完成图鉴
 Kiếp 0 — Phàm nhân lộ: thử thách chuẩn	Tribulation 0 — Mortal Path: the standard challenge	劫0——凡人路：标准挑战
-Kiếp 1 — Quái +30% máu, +25% sát thương (tăng dần theo đợt	Tribulation 1 — Monsters +30% HP, +25% damage (ramping up by wave	劫1——怪物生命+30%，伤害+25%(随波次递增
+Kiếp 1 — Quái +máu, +sát thương (tăng dần theo đợt	Tribulation 1 — Monsters +HP, +damage (ramping up by wave	劫1——怪物生命、伤害提升(随波次递增
 Kiếp 2 — Thêm: quái tinh anh xuất hiện nhiều hơn	Tribulation 2 — Plus: more elite monsters	劫2——追加：精英怪更多
-Kiếp 3 — Thêm: quái xuất hiện dày hơn	Tribulation 3 — Plus: denser monster spawns	劫3——追加：怪物更密集
+Kiếp 3 — Thêm: quái dày hơn 20%. Boss Kiếp Biến: thêm bộ chiêu mới.	Tribulation 3 — Plus: 20% denser monsters. Bosses mutate: they gain a new set of moves.	劫3——追加：怪物密度+20%。首领劫变：获得新招式。
 Kiếp 4 — Thêm: Thiên Kiếp giáng xuống mọi đợt	Tribulation 4 — Plus: Heavenly Tribulation strikes every wave	劫4——追加：每波都有天劫降临
-Kiếp 5 — Thêm: boss thêm 15% máu. Chỉ dành cho bậc tông sư	Tribulation 5 — Plus: bosses have 15% more HP. For grandmasters only	劫5——追加：首领生命+15%。仅限宗师
+Kiếp 5 — Thêm: boss hoá Ma Thân ở phase II, mở bộ chiêu cuối. Chỉ dành cho bậc tông sư.	Tribulation 5 — Plus: bosses become Demon Bodies in phase II and unlock their final moves. For grandmasters only.	劫5——追加：首领在第二阶段化为魔身，解锁终极招式。仅限宗师。
 Hồi Phong Kiếm	Returning Wind Sword	回风剑
 Kiếm Trận Hộ Thân	Sword Array Ward	剑阵护身
 Thiên Kiếm Giáng Thế	Heavenly Sword Descends	天剑降世
@@ -582,6 +582,74 @@ Thiên Thư Vô Tự	Wordless Heavenly Book	天书无字
 Mỗi lần thi triển Thần Thông hồi 3% máu tối đa.	Each Divine Art cast heals 3% of max HP.	每次施放神通回复3%最大生命。
 Mỗi lần thi triển Thần Thông +4% Thần Lực đến hết đợt (tối đa +40%).	Each Divine Art cast gives +4% Spirit Power until the wave ends (max +40%).	每次施放神通+4%神力直到本波结束（最多+40%）。
 Sát thương Thần Thông ×1.5; sát thương vũ khí ×0.85.	Divine Art damage ×1.5; weapon damage ×0.85.	神通伤害×1.5；武器伤害×0.85。
+Ma Nhãn Quét	Demon Eye Sweep	魔眼横扫
+Độc Nhãn Xung	One-Eye Rush	独眼冲锋
+Tà Quang Phân Liệt	Split Baleful Light	邪光分裂
+Vạn Nhãn Thiên La	Net of Ten Thousand Eyes	万眼天罗
+Nhãn Cầu Truy Kích	Chasing Eyeballs	眼球追击
+Tà Nhãn Phong Ấn	Evil Eye Seal	邪眼封印
+Ấn Mù	Blinding Mark	盲印
+Diệt Thế Ma Nhãn	World-Ending Demon Eye	灭世魔眼
+Âm Ba Huyết Dực	Blood Wing Soundwave	音波血翼
+Huyết Ảnh Lướt	Blood Shadow Glide	血影掠
+Dạ Hành	Night Stalk	夜行
+Huyết Nguyệt Dạ Yến	Blood Moon Night Feast	血月夜宴
+Bầy Dơi	Bat Swarm	蝠群
+Vạn Bức Triều	Tide of Ten Thousand Bats	万蝠潮
+Vọng Âm	Echo	回音
+Huyết Hải Cuồng Ca	Blood Sea Frenzy Song	血海狂歌
+Liệt Diễm Tam Kích	Blazing Triple Strike	烈焰三击
+Hỏa Cầu Tề Xạ	Fireball Volley	火球齐射
+Viêm Hoàn	Flame Ring	炎环
+Thiên Hỏa Lạc	Heavenly Fire Falls	天火落
+Hỏa Trụ	Fire Pillars	火柱
+Liệt Hỏa Thành	Blazing Fire Citadel	烈火城
+Nộ Hỏa	Wrathful Embers	怒火
+Phần Thiên Chiến Kỳ	Sky-Burning War Banners	焚天战旗
+Độc Ty Trói	Venom Silk Bind	毒丝缚
+Nọc Phun	Venom Spit	毒液喷吐
+Kén Độc	Venom Cocoons	毒茧
+Tơ Đan	Woven Silk	丝织
+Vạn Trùng Phệ	Ten Thousand Insects Devour	万虫噬
+Phun Mồi	Bait Spit	喷饵
+Độc Hải	Sea of Venom	毒海
+Huyết Luân	Blood Wheel	血轮
+Huyết Bộ	Blood Step	血步
+Ma Ảnh Huyết Y	Blood-Robe Shadows	魔影血衣
+Huyết Hà Đảo Lưu	Reversed Blood River	血河倒流
+Huyết Tế Trường	Blood Sacrifice Field	血祭场
+Huyết Ảnh Vạn Sát	Ten Thousand Blood Shadow Slaughter	血影万杀
+Huyết Phản	Blood Rebound	血反
+Huyết Vũ	Blood Rain	血雨
+Thiên Lôi Cấm Vực	Heavenly Thunder Seal	天雷禁域
+Hư Không Lao	Void Charge	虚空冲
+Thiên Ma Pháp Tướng	Heavenly Demon Avatar	天魔法相
+Thiên Ma Giáng Thế	Heavenly Demon Descends	天魔降世
+Hư Không Môn	Void Gates	虚空门
+Vạn Ma Quy Tông	All Demons Return	万魔归宗
+Thiên Kiếp Cộng Hưởng	Tribulation Resonance	天劫共鸣
+Thiên Đạo Tịch Diệt	Heavenly Dao Annihilation	天道寂灭
+Ma Nhãn Hắc Sơn	Demon Eye of Black Mountain	黑山魔眼
+Chúa Tể Đêm Máu	Lord of the Blood Night	血夜之主
+Đại Tướng Luyện Ngục	Great General of Purgatory	炼狱大将
+Mẫu Hoàng Vạn Độc	Empress of Ten Thousand Venoms	万毒母皇
+Ma Tôn Huyết Hải	Demon Venerable of the Blood Sea	血海魔尊
+Chúa Tể Vạn Ma	Lord of All Demons	万魔之主
+Con mắt này đã thấy thiên đạo... và thấy cái chết của ngươi.	This eye has seen the Heavenly Dao... and seen your death.	这只眼见过天道……也见过你的死亡。
+Vạn nhãn khai, thiên địa tận!	Ten thousand eyes open, heaven and earth end!	万眼开，天地尽！
+Đêm nay... máu ngươi sẽ nhuộm đỏ trăng.	Tonight... your blood will dye the moon red.	今夜……你的血将染红月亮。
+Huyết nguyệt đã lên!	The blood moon has risen!	血月已升！
+Lửa trời đã nhập vào binh khí của ta!	Heavenly fire has entered my weapon!	天火已入我兵刃！
+Luyện ngục, khai môn!	Purgatory, open your gates!	炼狱，开门！
+Thiên kiếp... chỉ là tơ để ta dệt lưới.	Tribulation... is only silk for me to weave my web.	天劫……不过是我织网的丝。
+Vạn độc quy tông!	All venoms return to the source!	万毒归宗！
+Máu của thiên lôi... ngọt hơn máu người.	The blood of heavenly thunder... is sweeter than human blood.	天雷之血……比人血更甜。
+Huyết hải vô biên, hồi đầu vô ngạn!	The blood sea is boundless, turn back and find no shore!	血海无边，回头无岸！
+Ngươi tưởng thiên kiếp là của riêng ngươi sao?	Do you think the tribulation belongs to you alone?	你以为天劫是你一个人的吗？
+Ta chính là Thiên Đạo!	I am the Heavenly Dao!	我即天道！
+Nhện Con	Spiderling	小蜘蛛
+Dơi Nhỏ	Small Bat	小蝠
+Chiến Kỳ	War Banner	战旗
 Ma Đạo Truyền Thừa	Demonic Inheritance	魔道传承
 Trong hang tối, một bộ hài cốt ôm cuốn ma công. Huyết khí cuồn cuộn mời gọi.	In a dark cave a skeleton clutches a demonic manual. Blood qi surges, beckoning you.	幽暗洞中，一具骸骨怀抱魔功秘籍。血气翻涌，似在召唤。
 Tu luyện ma công	Practise the demonic art	修炼魔功

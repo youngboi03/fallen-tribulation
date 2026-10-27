@@ -5,7 +5,7 @@ namespace VK
     public enum Tag { Kiem, The, Hoa, Loi, Phu, Doc, COUNT }
     public enum WType { Thrust, Swing, Bolt, Chain, Fly }
     public enum ProjLook { Glow, Spin, Point }
-    public enum EBeh { Chase, Swarm, Charger, Shooter, Splitter, Boss, Bomber, Mimic, Blinker }
+    public enum EBeh { Chase, Swarm, Charger, Shooter, Splitter, Boss, Bomber, Mimic, Blinker, Static }
 
     public class WeaponDef
     {

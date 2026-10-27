@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -80,6 +81,56 @@ namespace VK
         public Enemy BossAt(Vector2 p, int slot) => Enemy.Spawn(Game.I.run.Boss(slot), p, Game.I.run.wave, 1f, 1f, true, slot);
 
         public float Dmg(string src) => Game.I.run.skillDmgBy.TryGetValue(src, out var v) ? v : 0f;
+
+
+        // ---------------------------------------------------------------- boss helpers (part C)
+        public Enemy boss;
+        bool tankHold;
+
+        /// <summary>Like Arena, at the given kiep, then spawns the boss of that wave slot through the same numbers WaveDirector uses.</summary>
+        public IEnumerator BossArena(string bossId, int kiep, int wave)
+        {
+            var g = Game.I;
+            tankHold = false;
+            g.StartRun(0, kiep);
+            g.dir.enabled = false;
+            g.dir.EndWave();
+            foreach (var e in Enemy.Snapshot()) if (e != null) Destroy(e.gameObject);
+            Enemy.All.Clear();
+            var r = g.run;
+            r.wave = wave; r.skillStage = 0; r.skillCards = new List<string>();
+            foreach (var w in r.weapons.ToArray()) w.DestroyView();
+            r.weapons.Clear(); r.Recalc();
+            g.player.god = true;
+            Random.InitState(1234);
+            yield return null;
+            var def = Content.Bosses.First(b => b.id == bossId);
+            boss = Enemy.Spawn(def, new Vector2(0f, 5f), wave, KiepNum.HpMul(kiep, wave), KiepNum.DmgMul(kiep, wave), true, wave / 5 - 1);
+            yield return null;
+        }
+
+        /// <summary>Waits s seconds of gameplay time (sums Game.Dt).</summary>
+        public IEnumerator Sec(float s)
+        {
+            float t = 0f;
+            while (t < s) { yield return null; t += Game.Dt; }
+        }
+
+        /// <summary>Player cannot die or dodge and stays at the arena centre, so every hit lands and can be counted.</summary>
+        public void Tank()
+        {
+            var g = Game.I;
+            g.player.god = false;
+            g.run.stats[Stat.Dodge] = 0f;
+            g.run.hp = 1e6f;
+            g.player.transform.position = Vector3.zero;
+            if (!tankHold) { tankHold = true; StartCoroutine(HoldCentre()); }
+        }
+
+        IEnumerator HoldCentre()
+        {
+            while (tankHold) { Game.I.player.transform.position = Vector3.zero; Game.I.run.hp = 1e6f; yield return null; }
+        }
 
         // ---------------------------------------------------------------- core (Task 1)
         IEnumerator T_core_sp()
@@ -661,6 +712,36 @@ namespace VK
                 Game.I.bot.Shot("form_" + ci + "_" + st);
                 yield return new WaitForSecondsRealtime(0.6f);   // the capture is written at end of frame: do not rebuild the arena before it lands
             }
+        }
+
+        // ---------------------------------------------------------------- boss data (part C, task 1)
+        IEnumerator T_boss_data()
+        {
+            yield return Arena(0, 1, 0);
+            foreach (var id in new[] { "b1", "b1b", "b2", "b2b", "b3", "b4" })
+            {
+                var k = Content.Kit(id);
+                Check("kit_" + id, k != null && k.Tier(BTier.Base).Count(m => !m.ult) == 2 && k.Tier(BTier.P2).Count() == 1
+                      && k.Ult(BTier.Base) != null && k.Ult(BTier.I) != null && k.Ult(BTier.II) != null
+                      && k.Tier(BTier.I).Count(m => !m.ult) == 1 && k.Tier(BTier.II).Count(m => !m.ult) == 1, id);
+                Check("tele_" + id, k.moves.All(m => m.after != null || m.tele >= (m.ult ? 1.0f : m.tier >= BTier.I ? 0.5f : 0.6f)), id);
+                Check("riders_" + id, k.moves.Where(m => m.after != null).All(m => k.Move(m.after) != null), id);
+                Check("ids_" + id, k.moves.Select(m => m.id).Distinct().Count() == k.moves.Count && k.moves.All(m => !string.IsNullOrEmpty(m.id)), id);
+            }
+            foreach (var id in new[] { "spiderling", "bat_small", "cocoon", "war_flag" })
+                Check("minion_" + id, Content.Minion(id) != null && Content.Minion(id).minWave == 99, id);
+            Check("static_beh", Content.Minion("cocoon").beh == EBeh.Static && Content.Minion("war_flag").beh == EBeh.Static, "");
+        }
+
+        IEnumerator T_boss_kiep()
+        {
+            yield return Arena(0, 1, 0);
+            Check("ramp_cap", Mathf.Approximately(KiepNum.Ramp(20), 1.3f), "");
+            Check("hp_k5_w20", Mathf.Abs(KiepNum.HpMul(5, 20) - 2.43f) < 0.01f, KiepNum.HpMul(5, 20).ToString("0.00"));
+            Check("dmg_k3_w10", Mathf.Abs(KiepNum.DmgMul(3, 10) - (1 + 0.18f * 3 * (0.2f + 10 / 12f))) < 0.001f, "");
+            Check("hp_k0", Mathf.Approximately(KiepNum.HpMul(0, 20), 1f), "");
+            Check("boss_cd", Mathf.Approximately(KiepNum.BossCd[0], 1f) && Mathf.Approximately(KiepNum.BossCd[5], 0.85f) && Mathf.Approximately(KiepNum.BossShot[3], 1.06f), "");
+            Check("tele_floor", Mathf.Approximately(KiepNum.TeleFloor(2), 0.6f) && Mathf.Approximately(KiepNum.TeleFloor(3), 0.5f), "");
         }
     }
 }

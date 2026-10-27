@@ -178,7 +178,7 @@ namespace VK
             pos = clamped;
             transform.position = pos;
 
-            if (frozenT <= 0 && Vector2.Distance(pos, pp) < radius + p.radius) p.Hurt(dmg, pos);
+            if (frozenT <= 0 && def.beh != EBeh.Static && Vector2.Distance(pos, pp) < radius + p.radius) p.Hurt(dmg, pos);
             sr.color = frozenT > 0 ? Color.Lerp(def.tint, new Color(0.5f, 0.85f, 1f), 0.65f) : def.tint;
 
             // damage over time

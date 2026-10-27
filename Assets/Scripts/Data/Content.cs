@@ -39,7 +39,7 @@ namespace VK
         public const float LoiBigHit = 3f, LoiBigDelay = 0.4f, LoiBigStun = 1.5f, LoiBigRange = 12f;
     }
 
-    public static class Content
+    public static partial class Content
     {
         /// <summary>Skill power ratio vs. the average trash HP: 1.5 at wave 1 falling to 0.15 at wave 20 (balance pass 2026-10-27, docs/balance).</summary>
         public static float SkillR(int w) => 1.5f - 1.35f * (Mathf.Clamp(w, 1, 20) - 1) / 19f;
@@ -308,6 +308,18 @@ namespace VK
             new EnemyDef { id="b1b", name="Huyết Bức Vương", sprite=Res.Px.Boss1b, hp=1300, speed=2.4f, dmg=7, scale=3.0f, beh=EBeh.Boss, orbs=40 },
             new EnemyDef { id="b2b", name="Vạn Độc Chu Hậu", sprite=Res.Px.Boss2b, hp=10000, speed=2.0f, dmg=12, scale=3.2f, beh=EBeh.Boss, orbs=60, blood=new Color(0.4f,0.95f,0.3f) },
         };
+        /// <summary>Creatures summoned by boss moves (spec 6.2-6.4). Not in Enemies: never spawned by the wave spawner, not in the codex.</summary>
+        public static readonly EnemyDef[] BossMinions =
+        {
+            new EnemyDef { id="spiderling", name="Nhện Con", sprite=Res.Px.DocChu, hp=2, speed=3.2f, dmg=1, scale=0.6f, beh=EBeh.Chase, orbs=0, minWave=99, weight=0,
+                blood=new Color(0.4f,0.95f,0.3f) },
+            new EnemyDef { id="bat_small", name="Dơi Nhỏ", sprite=Res.Px.MaBuc, hp=1, speed=3.8f, dmg=1, scale=0.6f, beh=EBeh.Swarm, orbs=0, minWave=99, weight=0 },
+            new EnemyDef { id="cocoon", name="Kén Độc", sprite=Res.Px.DocTrung, tint=new Color(0.85f,1f,0.75f), hp=50, speed=0, dmg=0, scale=1.1f, beh=EBeh.Static, orbs=0, minWave=99, weight=0,
+                blood=new Color(0.4f,0.95f,0.3f) },
+            new EnemyDef { id="war_flag", name="Chiến Kỳ", sprite=Res.Px.MaTuong, tint=new Color(1f,0.45f,0.25f), hp=50, speed=0, dmg=0, scale=1.2f, beh=EBeh.Static, orbs=0, minWave=99, weight=0,
+                blood=new Color(1f,0.5f,0.2f) },
+        };
+        public static EnemyDef Minion(string id) => System.Array.Find(BossMinions, e => e.id == id);
         /// <summary>Boss for a 5-wave slot (0-3); slots 0 and 1 have an alternate boss picked per run.</summary>
         public static EnemyDef BossFor(int slot, bool alt) => alt && slot < 2 ? Bosses[4 + slot] : Bosses[slot];
 
@@ -444,11 +456,11 @@ namespace VK
         public const int MaxKiep = 5;
         public static readonly string[] KiepDesc = {
             "Kiếp 0 — Phàm nhân lộ: thử thách chuẩn.",
-            "Kiếp 1 — Quái +30% máu, +25% sát thương (tăng dần theo đợt).",
+            "Kiếp 1 — Quái +máu, +sát thương (tăng dần theo đợt).",
             "Kiếp 2 — Thêm: quái tinh anh xuất hiện nhiều hơn.",
-            "Kiếp 3 — Thêm: quái xuất hiện dày hơn 20%.",
+            "Kiếp 3 — Thêm: quái dày hơn 20%. Boss Kiếp Biến: thêm bộ chiêu mới.",
             "Kiếp 4 — Thêm: Thiên Kiếp giáng xuống mọi đợt.",
-            "Kiếp 5 — Thêm: boss thêm 15% máu. Chỉ dành cho bậc tông sư.",
+            "Kiếp 5 — Thêm: boss hoá Ma Thân ở phase II, mở bộ chiêu cuối. Chỉ dành cho bậc tông sư.",
         };
 
         public static WeaponDef W(string id) => Weapons.Find(w => w.id == id);

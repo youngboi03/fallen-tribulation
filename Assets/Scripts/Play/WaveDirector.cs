@@ -32,9 +32,8 @@ namespace VK
             ClearAll();
             wave = w;
             kiep = Game.I.run.kiep;
-            float ramp = Mathf.Min(1.5f, 0.2f + w / 12f);   // kiếp bonus grows over the run so early waves stay fair
-            HpMul = 1f + 0.3f * kiep * ramp;
-            DmgMul = 1f + 0.25f * kiep * ramp;
+            HpMul = KiepNum.HpMul(kiep, w);   // kiếp bonus grows over the run so early waves stay fair
+            DmgMul = KiepNum.DmgMul(kiep, w);
             bossWave = w % 5 == 0;
             duration = bossWave ? 0 : WaveTime(w);
             timeLeft = duration;
@@ -243,8 +242,7 @@ namespace VK
             if (t.isBoss)
             {
                 int bi = wave / 5 - 1;
-                float hpm = HpMul * (kiep >= 5 ? 1.15f : 1f);
-                boss = Enemy.Spawn(t.def, t.pos, wave, hpm, DmgMul, true, bi);
+                boss = Enemy.Spawn(t.def, t.pos, wave, HpMul, DmgMul, true, bi);
                 bossSpawned = true;
                 Fx.Ring(t.pos, new Color(0.8f, 0.3f, 1f), 1f, 8f, 0.8f);
                 Fx.Shake(0.5f, 0.6f);
