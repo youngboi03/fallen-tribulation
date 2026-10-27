@@ -79,7 +79,7 @@ namespace VK
         public void ResetForWave()
         {
             transform.position = Vector3.zero;
-            vel = Vector2.zero; dashT = 0; dashCd = 0; iframe = 1f; dead = 0; goldT = 0;
+            vel = Vector2.zero; dashT = 0; dashCd = 0; iframe = 1f; dead = 0; goldT = 0; slowT = 0f; slowMul = 1f;
             skillCd = Mathf.Min(skillCd, 3f);
             body.localRotation = Quaternion.identity;
             sr.color = Color.white;
@@ -205,17 +205,18 @@ namespace VK
             }
         }
 
-        public void Hurt(float dmg, Vector2 from)
+        /// <summary>True only when the player was actually damaged (not for god/iframe/dash/dodge/block).</summary>
+        public bool Hurt(float dmg, Vector2 from)
         {
             var g = Game.I;
-            if (god || iframe > 0 || dashT > 0 || g.state != GState.Playing) return;
+            if (god || iframe > 0 || dashT > 0 || g.state != GState.Playing) return false;
             var run = g.run;
             if (Random.value * 100f < Mathf.Min(60f, run.stats[Stat.Dodge]))
             {
                 Fx.Text(Pos + Vector2.up * 0.6f, "Né!", new Color(0.6f, 1f, 1f), 0.9f);
                 iframe = 0.3f;
                 Sfx.Play("tick", 0.6f);
-                return;
+                return false;
             }
             dmg = Skills.ModifyIncoming(dmg);
             if (dmg <= 0f)
@@ -224,7 +225,7 @@ namespace VK
                 Fx.Text(Pos + Vector2.up * 0.6f, "Chặn!", new Color(0.5f, 1f, 1f), 1.1f);
                 Fx.Ring(Pos, new Color(0.5f, 1f, 1f), 0.4f, 2.4f, 0.4f);
                 Sfx.Play("bell", 0.6f, 0f, 1.4f, 0f);
-                return;
+                return false;
             }
             float armor = run.stats[Stat.Armor] + Skills.TempArmor;
             float mul = armor >= 0 ? 1f / (1f + armor / 15f) : 2f - 1f / (1f - armor / 15f);
@@ -247,13 +248,14 @@ namespace VK
                 Fx.Text(Pos + Vector2.up * 1.1f, "Nguyên Anh hộ chủ!", new Color(0.85f, 0.7f, 1f), 1.2f, 1.4f);
                 Sfx.Play("breakthrough", 0.6f, 0f);
             }
-            if (run.hp <= 0) { run.hp = 0; g.OnPlayerDeath(); return; }
+            if (run.hp <= 0) { run.hp = 0; g.OnPlayerDeath(); return true; }
             if (run.HasCard("ho_menh") && !run.hoMenhUsed && run.hp < run.MaxHP * 0.3f && skillCd <= 0f)
             {   // Hộ Mệnh Đan: below 30% HP with the skill ready, it casts itself (once per wave)
                 run.hoMenhUsed = true;
                 Fx.Text(Pos + Vector2.up * 1.1f, "Hộ Mệnh!", new Color(1f, 0.6f, 0.3f), 1.2f, 1.2f);
                 TryCast();
             }
+            return true;
         }
 
         float moteT;

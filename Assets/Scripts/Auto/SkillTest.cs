@@ -823,5 +823,21 @@ namespace VK
             Check("hz_danger_early", BossHazard.DangerAt(new Vector2(5, 0), 0.1f) < 0.5f, "");
             BossHazard.ClearAll();
         }
+
+        IEnumerator T_boss_hz_iframe()
+        {
+            yield return Arena(0, 1, 0); Tank(); BossHazard.ClearAll();
+            var p = Game.I.player;
+            p.slowT = 0f; p.slowMul = 1f;
+            var h = Hz(null, HShape.Circle, Vector2.zero, 0.3f, 3f); h.slow = 0.5f;
+            p.Invuln(0.7f);   // covers the telegraph plus the first 0.4 s of the live phase
+            yield return Sec(0.65f);
+            Check("hz_iframe_blocked", BossHazard.PlayerHits == 0 && p.slowT <= 0f && h.Live, BossHazard.PlayerHits + " slowT=" + p.slowT);
+            yield return Sec(0.5f);
+            Check("hz_iframe_lands", BossHazard.PlayerHits == 1 && p.slowT > 0f, BossHazard.PlayerHits + " slowT=" + p.slowT);
+            yield return Sec(1.5f);
+            Check("hz_iframe_once", BossHazard.PlayerHits == 1, BossHazard.PlayerHits.ToString());
+            BossHazard.ClearAll();
+        }
     }
 }

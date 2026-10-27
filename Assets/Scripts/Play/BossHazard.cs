@@ -127,7 +127,8 @@ namespace VK
         /// <summary>1 when p is inside a live hazard, or one that goes live within lookahead seconds; else 0.</summary>
         public static float DangerAt(Vector2 p, float lookahead)
         {
-            const float pr = 0.3f;
+            var pl = Game.I != null ? Game.I.player : null;
+            float pr = pl != null ? pl.radius : 0.36f;
             foreach (var h in All)
             {
                 if (h == null || h.gone) continue;
@@ -156,11 +157,13 @@ namespace VK
                 var p = g.player;
                 if (p != null && p.gameObject.activeInHierarchy && (tick > 0f || !hitDone) && hitCd <= 0f && Contains(p.Pos, p.radius))
                 {
-                    hitDone = true;
-                    hitCd = Mathf.Max(tick, MinTick);
-                    PlayerHits++;
-                    if (slow > 0f) { float m = 1f - Mathf.Clamp01(slow); p.slowMul = p.slowT > 0f ? Mathf.Min(p.slowMul, m) : m; p.slowT = 1f; }
-                    p.Hurt(dmg, pos);
+                    if (p.Hurt(dmg, pos))
+                    {   // only a real hit consumes the hazard: god/iframe/dash/dodge leave it armed
+                        hitDone = true;
+                        hitCd = Mathf.Max(tick, MinTick);
+                        PlayerHits++;
+                        if (slow > 0f) { float m = 1f - Mathf.Clamp01(slow); p.slowMul = p.slowT > 0f ? Mathf.Min(p.slowMul, m) : m; p.slowT = 1f; }
+                    }
                 }
             }
             Draw();
