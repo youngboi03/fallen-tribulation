@@ -48,6 +48,7 @@ namespace VK
         public IEnumerator Arena(int ci, int wave, int stage, params string[] cards)
         {
             var g = Game.I;
+            tankHold = false;
             g.StartRun(ci, 0);
             g.dir.enabled = false;
             g.dir.EndWave();
@@ -724,7 +725,8 @@ namespace VK
                 Check("kit_" + id, k != null && k.Tier(BTier.Base).Count(m => !m.ult) == 2 && k.Tier(BTier.P2).Count() == 1
                       && k.Ult(BTier.Base) != null && k.Ult(BTier.I) != null && k.Ult(BTier.II) != null
                       && k.Tier(BTier.I).Count(m => !m.ult) == 1 && k.Tier(BTier.II).Count(m => !m.ult) == 1, id);
-                Check("tele_" + id, k.moves.All(m => m.after != null || m.tele >= (m.ult ? 1.0f : m.tier >= BTier.I ? 0.5f : 0.6f)), id);
+                // ult rows: max(tele, tele2) >= 1.0, because for a two-stage ult the final strike (tele2) is the telegraphed signature
+                Check("tele_" + id, k.moves.All(m => m.after != null || (m.ult ? Mathf.Max(m.tele, m.tele2) >= 1.0f : m.tele >= (m.tier >= BTier.I ? 0.5f : 0.6f))), id);
                 Check("riders_" + id, k.moves.Where(m => m.after != null).All(m => k.Move(m.after) != null), id);
                 Check("ids_" + id, k.moves.Select(m => m.id).Distinct().Count() == k.moves.Count && k.moves.All(m => !string.IsNullOrEmpty(m.id)), id);
             }
