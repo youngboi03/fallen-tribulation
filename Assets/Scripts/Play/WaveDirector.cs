@@ -242,7 +242,7 @@ namespace VK
             if (t.isBoss)
             {
                 int bi = wave / 5 - 1;
-                boss = Enemy.Spawn(t.def, t.pos, wave, HpMul, DmgMul, true, bi);
+                boss = SpawnBoss(t.def, t.pos, wave, HpMul, DmgMul, bi, kiep);
                 bossSpawned = true;
                 Fx.Ring(t.pos, new Color(0.8f, 0.3f, 1f), 1f, 8f, 0.8f);
                 Fx.Shake(0.5f, 0.6f);
@@ -253,9 +253,24 @@ namespace VK
             Enemy.Spawn(t.def, t.pos, wave, HpMul, DmgMul);
         }
 
+        /// <summary>Spawns a boss and attaches its BossBrain (kit by def id) at the given Kiếp; the one path for waves and tests.
+        /// slot only feeds Enemy.bossIndex (kept for compatibility, no mechanics use it).</summary>
+        public static Enemy SpawnBoss(EnemyDef def, Vector2 pos, int wave, float hpMul, float dmgMul, int slot, int kiep)
+        {
+            var e = Enemy.Spawn(def, pos, wave, hpMul, dmgMul, true, slot);
+            var kit = Content.Kit(def.id);
+            if (kit != null)
+            {
+                e.brain = e.gameObject.AddComponent<BossBrain>();
+                e.brain.Init(e, kit, kiep);
+            }
+            return e;
+        }
+
         public void OnBossDeath()
         {
             bossDead = true;
+            if (boss != null) BossHazard.ClearOwner(boss);
             var run = Game.I.run;
             run.skillStage = Mathf.Min(3, run.skillStage + 1);   // Tiến Giai: every boss kill advances the skill one form (spec section 2)
             run.stageUpWave = run.wave; run.stageCallout = true;

@@ -79,7 +79,8 @@ namespace VK
 
         public Enemy Elite(Vector2 p) => Enemy.Spawn(Content.Enemies.Find(x => x.id == "ma_tuong"), p, Game.I.run.wave, 1f, 1f);
 
-        public Enemy BossAt(Vector2 p, int slot) => Enemy.Spawn(Game.I.run.Boss(slot), p, Game.I.run.wave, 1f, 1f, true, slot);
+        /// <summary>Boss of a wave slot at Kiếp 0 with its brain, through the WaveDirector spawn path.</summary>
+        public Enemy BossAt(Vector2 p, int slot) => WaveDirector.SpawnBoss(Game.I.run.Boss(slot), p, Game.I.run.wave, 1f, 1f, slot, 0);
 
         public float Dmg(string src) => Game.I.run.skillDmgBy.TryGetValue(src, out var v) ? v : 0f;
 
@@ -106,7 +107,7 @@ namespace VK
             Random.InitState(1234);
             yield return null;
             var def = Content.Bosses.First(b => b.id == bossId);
-            boss = Enemy.Spawn(def, new Vector2(0f, 5f), wave, KiepNum.HpMul(kiep, wave), KiepNum.DmgMul(kiep, wave), true, wave / 5 - 1);
+            boss = WaveDirector.SpawnBoss(def, new Vector2(0f, 5f), wave, KiepNum.HpMul(kiep, wave), KiepNum.DmgMul(kiep, wave), wave / 5 - 1, kiep);
             yield return null;
         }
 
@@ -838,6 +839,173 @@ namespace VK
             yield return Sec(1.5f);
             Check("hz_iframe_once", BossHazard.PlayerHits == 1, BossHazard.PlayerHits.ToString());
             BossHazard.ClearAll();
+        }
+
+        // ---------------------------------------------------------------- boss brain (part C, task 3)
+        /// <summary>BossArena, tank player at the centre, boss held until the wave-start i-frames are over, world cleared.</summary>
+        IEnumerator BossPrep(string bossId, int kiep, int wave, Vector2 bossPos)
+        {
+            yield return BossArena(bossId, kiep, wave); Tank();
+            boss.brain.Hold = true; boss.transform.position = bossPos;
+            yield return Sec(1.05f);
+            BossHazard.ClearAll(); Projectile.ClearAll(false);
+            boss.transform.position = bossPos;
+            boss.brain.Hold = false;
+        }
+
+        /// <summary>Waits until the brain logs more than n moves (or timeout); returns via the log.</summary>
+        IEnumerator WaitLog(BossBrain b, int n, float timeout)
+        {
+            float t = 0f;
+            while (b.Log.Count <= n && t < timeout) { yield return null; t += Game.Dt; }
+        }
+
+        IEnumerator T_boss_phase()
+        {
+            yield return BossArena("b1", 0, 5); var b = boss.brain;
+            float spd = boss.speed; b.ForceMove("doc_nhan_xung"); yield return Sec(0.3f);   // a move in flight
+            var h = BossHazard.Spawn(boss, HShape.Circle, new Vector2(5, 5), 1f, 3f, 1f, Color.red);
+            Check("p1", b.Phase == 1, ""); boss.hp = boss.maxHp * 0.49f; yield return Sec(0.1f);
+            Check("p2", b.Phase == 2, ""); Check("hz_cleared", BossHazard.All.Count == 0, BossHazard.All.Count.ToString());
+            Check("p2_hold", b.Hold && b.Current == null, "");
+            yield return Sec(1.5f);
+            Check("no_enrage_speed", Mathf.Approximately(boss.speed, spd), boss.speed + " vs " + spd);
+            Check("p2_released", !b.Hold, "");
+        }
+
+        IEnumerator T_boss_ult_k0()
+        {
+            yield return BossArena("b1", 0, 5); var b = boss.brain; var ub = b.kit.Ult(BTier.Base);
+            Check("marks_k0", b.UltMarks.Count == 2 && Mathf.Approximately(b.UltMarks[0], 0.75f) && Mathf.Approximately(b.UltMarks[1], 0.25f), string.Join(",", b.UltMarks));
+            yield return Sec(0.5f);
+            boss.hp = boss.maxHp * 0.74f; int n = b.Log.Count;
+            yield return WaitLog(b, n, 8f);
+            Check("ult75_base", b.Log.Count > n && b.Log[n] == ub.id, b.Log.Count > n ? b.Log[n] : "none");
+            yield return Sec(1f);
+            boss.hp = boss.maxHp * 0.24f; n = b.Log.Count;
+            yield return WaitLog(b, n, 8f);
+            Check("ult25_base", b.Log.Count > n && b.Log[n] == ub.id, b.Log.Count > n ? b.Log[n] : "none");
+            yield return Sec(3f);
+            Check("ult_k0_count", b.Log.Count(id => id == ub.id) == 2, string.Join(",", b.Log));
+        }
+
+        IEnumerator T_boss_ult_k3()
+        {
+            yield return BossArena("b2", 3, 10); var b = boss.brain;
+            Check("marks_k3", b.UltMarks.Count == 2, string.Join(",", b.UltMarks));
+            yield return Sec(0.5f);
+            boss.hp = boss.maxHp * 0.74f; int n = b.Log.Count;
+            yield return WaitLog(b, n, 8f);
+            Check("ult75_k3_base", b.Log.Count > n && b.Log[n] == b.kit.Ult(BTier.Base).id, b.Log.Count > n ? b.Log[n] : "none");
+            yield return Sec(1f);
+            boss.hp = boss.maxHp * 0.24f; n = b.Log.Count;
+            yield return WaitLog(b, n, 10f);
+            Check("ult25_k3_I", b.Log.Count > n && b.Log[n] == b.kit.Ult(BTier.I).id, b.Log.Count > n ? b.Log[n] : "none");
+            Check("ult_k3_noII", !b.Log.Contains(b.kit.Ult(BTier.II).id), string.Join(",", b.Log));
+        }
+
+        IEnumerator T_boss_ult_multi()   // Review Focus 1
+        {
+            yield return BossArena("b3", 5, 15); var b = boss.brain; var k = b.kit;
+            Check("marks_k5", b.UltMarks.Count == 3 && Mathf.Approximately(b.UltMarks[1], 0.5f), string.Join(",", b.UltMarks));
+            yield return Sec(0.3f);
+            boss.hp = boss.maxHp * 0.9f;
+            boss.Damage(boss.maxHp * 0.7f, false, Vector2.zero, 0f, null);
+            int n0 = b.Log.Count; float t = 0f;
+            var ultIds = new[] { k.Ult(BTier.Base).id, k.Ult(BTier.I).id, k.Ult(BTier.II).id };
+            while (t < 25f && b.Log.Skip(n0).Count(id => ultIds.Contains(id)) < 3) { yield return null; t += Game.Dt; }
+            yield return Sec(1f);
+            var ults = b.Log.Skip(n0).Where(id => ultIds.Contains(id)).ToList();
+            Check("multi_order", ults.SequenceEqual(ultIds), string.Join(",", ults));
+            Check("multi_phase_once", b.Phase == 2 && b.Transitions == 1, b.Transitions.ToString());
+            Check("multi_phase_before_I", b.Phase2At >= 0f && b.Phase2At <= b.UltStartedAt(k.Ult(BTier.I).id), b.Phase2At + " vs " + b.UltStartedAt(k.Ult(BTier.I).id));
+        }
+
+        IEnumerator T_boss_select()
+        {
+            yield return BossArena("b1", 0, 5); var b = boss.brain; b.Hold = true;
+            var picks1 = new List<BossMove>(); var picks2 = new List<BossMove>();
+            for (int i = 0; i < 20; i++) picks1.Add(b.Pick(true));
+            boss.hp = boss.maxHp * 0.49f; yield return Sec(0.1f);
+            Check("sel_phase2", b.Phase == 2, "");
+            for (int i = 0; i < 20; i++) picks2.Add(b.Pick(true));
+            var all = picks1.Concat(picks2).ToList();
+            bool noRepeat = true; for (int i = 1; i < all.Count; i++) if (all[i] == null || all[i] == all[i - 1]) noRepeat = false;
+            Check("sel_no_repeat", all[0] != null && noRepeat, string.Join(",", all.Select(m => m == null ? "null" : m.id)));
+            Check("sel_no_set", all.All(m => m != null && (m.tier == BTier.Base || m.tier == BTier.P2) && !m.ult && m.after == null), "");
+            Check("sel_p2_late", picks1.All(m => m.tier != BTier.P2), "");
+            Check("sel_p2_early", picks2.Take(2).Any(m => m.tier == BTier.P2), string.Join(",", picks2.Take(2).Select(m => m.id)));
+        }
+
+        IEnumerator T_boss_unlock()
+        {
+            yield return BossArena("b1", 3, 5); var b = boss.brain; b.Hold = true;
+            var ps = new List<BossMove>(); for (int i = 0; i < 40; i++) ps.Add(b.Pick(true));
+            Check("unlock_k3_I", ps.Any(m => m.tier == BTier.I), string.Join(",", ps.Select(m => m.id).Distinct()));
+            Check("unlock_k3_noII", ps.All(m => m.tier != BTier.II) && !b.Unlocked(b.kit.Move("an_mu")), "");
+            yield return BossArena("b1", 5, 5); b = boss.brain; b.Hold = true;
+            ps.Clear(); for (int i = 0; i < 40; i++) ps.Add(b.Pick(true));
+            Check("unlock_k5_p1_noII", ps.All(m => m.tier != BTier.II) && !b.Unlocked(b.kit.Move("an_mu")), "");
+            boss.hp = boss.maxHp * 0.49f; yield return Sec(1.3f);
+            Check("unlock_k5_p2_II", b.Phase == 2 && b.Unlocked(b.kit.Move("an_mu")), "");
+            b.ForceMove("doc_nhan_xung"); int n = b.Log.Count; float t = 0f;
+            while (t < 6f && !b.Log.Skip(n).Contains("an_mu")) { yield return null; t += Game.Dt; }
+            var tail = b.Log.Skip(n).ToList(); int ia = tail.IndexOf("an_mu");
+            Check("unlock_rider", ia > 0 && tail[ia - 1] == "doc_nhan_xung", string.Join(",", tail));
+            Check("rider_puddle", BossHazard.All.Any(h => h.moveId == "an_mu"), "");
+        }
+
+        IEnumerator FirstBossHit(bool frozen, float[] outT)
+        {
+            yield return BossPrep("b1", 0, 5, new Vector2(0, 5)); var b = boss.brain;
+            int h0 = BossBrain.HitCount; b.ForceMove("doc_nhan_xung");
+            if (frozen) boss.Freeze(5f);
+            float t = 0f;
+            while (BossBrain.HitCount == h0 && t < 6f) { yield return null; t += Game.Dt; }
+            outT[0] = BossBrain.HitCount > h0 ? t : 99f;
+        }
+
+        IEnumerator T_boss_frozen()   // Review Focus 4
+        {
+            var a = new float[1]; var f = new float[1];
+            yield return FirstBossHit(false, a);
+            yield return FirstBossHit(true, f);
+            Check("frozen_hit", a[0] < 3f, a[0].ToString("0.00"));
+            Check("frozen_later", f[0] < 90f && f[0] - a[0] >= 0.4f, a[0].ToString("0.00") + " vs " + f[0].ToString("0.00"));
+        }
+
+        /// <summary>Force one move; every damage event (hazard hit, boss hit or new bullet) must come after a boss telegraph was already on screen.</summary>
+        IEnumerator Prim(string kind, string bossId, int wave, string moveId, Vector2 bossPos, int volley)
+        {
+            yield return BossPrep(bossId, 0, wave, bossPos); var b = boss.brain;
+            int ph0 = BossHazard.PlayerHits, bh0 = BossBrain.HitCount, pr0 = Projectile.CountHostile();
+            b.ForceMove(moveId);
+            bool teleSeen = false, changed = false, teleFirst = false; int firstVolley = -1; float t = 0f;
+            while (t < 8f && !changed)
+            {
+                yield return null; t += Game.Dt;
+                int pr = Projectile.CountHostile();
+                if (BossHazard.PlayerHits != ph0 || BossBrain.HitCount != bh0 || pr != pr0)
+                {
+                    changed = true; teleFirst = teleSeen; firstVolley = pr - pr0;
+                }
+                if (BossHazard.All.Any(h => h.owner == boss && h.Telegraphing)) teleSeen = true;
+            }
+            Check("prim_" + kind + "_fires", changed && b.Log.Contains(moveId), moveId + " t=" + t.ToString("0.00"));
+            Check("prim_" + kind + "_tele_first", teleFirst, moveId);
+            if (volley > 0) Check("prim_" + kind + "_volley", firstVolley == volley, firstVolley + " vs " + volley);
+        }
+
+        IEnumerator T_boss_prims()
+        {
+            yield return Prim("dash", "b1", 5, "doc_nhan_xung", new Vector2(0, 5), 0);
+            yield return Prim("fan", "b2", 10, "hoa_cau_te_xa", new Vector2(0, 5), 5);
+            yield return Prim("ring", "b3", 15, "huyet_luan", new Vector2(0, 5), 12);
+            yield return Prim("spiral", "b3", 15, "huyet_ha_dao_luu", new Vector2(0, 5), 6);
+            yield return Prim("cone", "b2", 10, "liet_diem_tam_kich", new Vector2(0, 3), 0);
+            yield return Prim("zones", "b4", 20, "thien_loi_cam_vuc", new Vector2(0, 5), 0);
+            yield return Prim("pillars", "b4", 20, "thien_ma_phap_tuong", new Vector2(0, 5), 0);
+            BossHazard.ClearAll(); Projectile.ClearAll(false);
         }
     }
 }

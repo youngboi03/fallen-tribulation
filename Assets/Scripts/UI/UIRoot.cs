@@ -25,6 +25,7 @@ namespace VK
 
         // HUD
         RectTransform hpFill, xpFill, bossFill, bossBox, weaponRow, dashFill, skillFill;
+        readonly RectTransform[] bossTicks = new RectTransform[3];
         Text skLblTxt; CharDef skLblCh; int skLblStage = -1;
         Text hpTxt, xpTxt, goldTxt, waveTxt, timerTxt, bossTxt, synTxt, killTxt, comboTxt;
         int lastCombo; float comboPop;
@@ -294,6 +295,13 @@ namespace VK
             bossBox = UIK.R(hud, "boss").Place(0.5f, 1, 900, 60, 0, -120);
             bossFill = UIK.Bar(bossBox, new Color(0.15f, 0.04f, 0.15f), new Color(0.75f, 0.2f, 0.9f), out bossTxt, 22);
             bossFill.parent.GetComponent<RectTransform>().Anchor(0, 0, 1, 1);
+            for (int i = 0; i < bossTicks.Length; i++)
+            {   // ultimate thresholds (spec 3.1): thin gold marks over the bar
+                var tk = UIK.Img(bossBox, new Color(1f, 0.85f, 0.4f, 0.9f), "ulttick").rectTransform;
+                tk.Anchor(0.5f, 0f, 0.5f, 1f, -2, -4, -2, -4);
+                tk.gameObject.SetActive(false);
+                bossTicks[i] = tk;
+            }
             bossBox.gameObject.SetActive(false);
 
             // top-right kills + synergies
@@ -344,7 +352,14 @@ namespace VK
             if (showBoss)
             {
                 UIK.SetFill(bossFill, d.boss.hp / d.boss.maxHp);
-                bossTxt.text = d.boss.def.name + "   " + Mathf.CeilToInt(d.boss.hp) + " / " + Mathf.CeilToInt(d.boss.maxHp);
+                var br = d.boss.brain;
+                bossTxt.text = d.boss.def.name + (br != null ? "  ·  Phase " + (br.Phase == 2 ? "II" : "I") : "") + "   " + Mathf.CeilToInt(d.boss.hp) + " / " + Mathf.CeilToInt(d.boss.maxHp);
+                for (int i = 0; i < bossTicks.Length; i++)
+                {
+                    bool on = br != null && i < br.UltMarks.Count;
+                    if (bossTicks[i].gameObject.activeSelf != on) bossTicks[i].gameObject.SetActive(on);
+                    if (on) { float v = br.UltMarks[i]; bossTicks[i].anchorMin = new Vector2(v, 0f); bossTicks[i].anchorMax = new Vector2(v, 1f); }
+                }
             }
             killTxt.text = "Diệt: " + run.kills;
             int cb = Game.I.combo;

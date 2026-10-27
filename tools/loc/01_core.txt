@@ -186,6 +186,7 @@ vũ khí cùng loại cùng phẩm → hợp nhất|weapons of the same kind and
 khó hơn nhưng thưởng lớn (thêm linh khí, rương|is harder but pays more (extra qi, chests|更难但奖励更多(额外灵气、宝箱
 Bấm R để làm mới shop|Press R to reroll the shop|按R刷新商店
 Bảo Rương do tinh anh và boss rơi: nhận pháp bảo hoặc bán lấy linh thạch|Treasure Chests drop from elites and bosses: take the treasure or sell it for Spirit Stones|宝箱由精英和首领掉落：领取法宝或出售换灵石
+Vùng sát thương của boss không phải đạn: chiêu xoá đạn không xoá được, hãy né ra ngoài|Boss damage zones are not bullets: bullet-clearing skills cannot remove them, step out instead|首领的伤害区域不是弹幕：消弹技能无法清除，请走出区域
 Kỳ Ngộ: mỗi lựa chọn là một canh bạc. Đọc kỹ cái giá trước khi chọn (phím|Encounters: every choice is a gamble. Read the cost before choosing (keys|奇遇：每个选择都是赌博。选择前看清代价(按键
 bấm để bán / hợp nhất — 2 vũ khí cùng loại cùng phẩm → phẩm cao hơn|click to sell / merge — 2 weapons of the same kind and grade → higher grade|点击出售／合成——2把同类同品武器→更高品级
 ▲ Có thể hợp nhất|▲ Can merge|▲ 可合成

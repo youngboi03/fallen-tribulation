@@ -55,7 +55,8 @@ namespace VK
                 {
                     case "menu": clip = Synth.Track(7, 76, 0); break;
                     case "boss": clip = Synth.Track(23, 128, 2); break;
-                    default: clip = Synth.Track(11, 104, 1); break;
+                    case "battle": clip = Synth.Track(11, 104, 1); break;
+                    default: return null;   // unknown track names are ignored by Music
                 }
                 tracks[track] = clip;
             }
@@ -65,8 +66,9 @@ namespace VK
         public static void Music(string track)
         {
             if (music == null || currentTrack == track) return;
-            currentTrack = track;
             var clip = Get(track);
+            if (clip == null) return;
+            currentTrack = track;
             music.clip = clip;
             music.Play();
             musicFade = 0f;

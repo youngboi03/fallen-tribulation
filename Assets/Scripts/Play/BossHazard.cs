@@ -28,6 +28,9 @@ namespace VK
         public Color col;
         public Vector2 vel;
         public float spinDeg;
+        /// <summary>Boss move that made it ([BOSSHIT] attribution).</summary>
+        public string moveId;
+        static bool hinted;
 
         float age, hitCd;
         bool hitDone, gone, forming;
@@ -36,6 +39,8 @@ namespace VK
         static Material defMat;
 
         public bool Live => !gone && age >= tele && age < tele + active;
+        /// <summary>Still in its telegraph (or forming) time.</summary>
+        public bool Telegraphing => !gone && age < tele;
 
         public static BossHazard Spawn(Enemy owner, HShape shape, Vector2 pos, float tele, float active, float dmg, Color col, float tick = 0f)
         {
@@ -153,11 +158,16 @@ namespace VK
 
             if (age >= tele)
             {
+                if (!hinted && owner != null && active > 0f && g.ui != null)
+                {   // spec 3.4: first live boss hazard explains that bullet-clearing skills do not remove it
+                    hinted = true;
+                    g.ui.Hint("boss_hazard", "Vùng sát thương của boss không phải đạn: chiêu xoá đạn không xoá được, hãy né ra ngoài.");
+                }
                 hitCd -= dt;
                 var p = g.player;
                 if (p != null && p.gameObject.activeInHierarchy && (tick > 0f || !hitDone) && hitCd <= 0f && Contains(p.Pos, p.radius))
                 {
-                    if (p.Hurt(dmg, pos))
+                    if (BossBrain.HurtPlayer(owner, moveId, dmg, pos))
                     {   // only a real hit consumes the hazard: god/iframe/dash/dodge leave it armed
                         hitDone = true;
                         hitCd = Mathf.Max(tick, MinTick);

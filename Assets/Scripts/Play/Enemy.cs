@@ -22,8 +22,7 @@ namespace VK
         MaterialPropertyBlock mpb;
         Vector2 knock, chargeDir;
         float flash, animT, stateT, shootT, wobble, spawnT, baseScale;
-        int state, attackIdx;
-        float spiralA;
+        int state;
         bool awake;
         Vector2 blinkTo;
         SpriteRenderer boom;
@@ -35,13 +34,16 @@ namespace VK
         public bool Burning => burnT > 0;
         public int skillHits;
         public bool HasStatus => burnT > 0 || poisonT > 0 || frozenT > 0;
-        public void Freeze(float t) { frozenT = Mathf.Max(frozenT, boss ? t * 0.4f : t); }
+        public void Freeze(float t) { if (brain != null && brain.Staggered) return; frozenT = Mathf.Max(frozenT, boss ? t * 0.4f : t); }
         /// <summary>Frozen by a Thần Thông (Phù Tu): takes <paramref name="bonus"/>× damage and fires Bạo Phù when the ice ends.</summary>
         public bool SkillFrozen { get; private set; }
         float skillBonus = 1.3f;
         public float FrozenBonus => frozenT > 0 && SkillFrozen ? skillBonus : 1.3f;
         public void SkillFreeze(float t, float bonus) { Freeze(t); SkillFrozen = true; skillBonus = bonus; }
-        bool enraged;
+        /// <summary>Boss AI (null for normal enemies and bosses without a kit).</summary>
+        public BossBrain brain;
+        Color tintCol;
+        float scaleMul = 1f;
         static readonly int FlashId = Shader.PropertyToID("_Flash");
 
         public static Enemy Spawn(EnemyDef d, Vector2 pos, int wave, float hpMul, float dmgMul, bool asBoss = false, int bossIdx = 0)
@@ -72,6 +74,7 @@ namespace VK
             speed = d.speed * (1f + Mathf.Min(0.25f, wm * 0.012f)) * (boss ? 1f : Random.Range(0.9f, 1.1f) * Game.I.dir.SpeedMul);
             radius = 0.34f * d.scale;
             baseScale = d.scale;
+            tintCol = d.tint;
             mpb = new MaterialPropertyBlock();
 
             var sh = new GameObject("shadow");
@@ -135,14 +138,6 @@ namespace VK
             float dist = to.magnitude;
             Vector2 dir = dist > 0.001f ? to / dist : Vector2.zero;
             Vector2 move = Vector2.zero;
-            if (boss && !enraged && hp < maxHp * 0.5f)
-            {
-                enraged = true;
-                Fx.Ring(pos, new Color(1f, 0.3f, 0.3f), 1f, 6f, 0.6f);
-                Fx.Shake(0.4f, 0.4f);
-                Sfx.Play("heavy", 0.9f, 0f, 0.7f);
-                g.ui.Banner("", def.name + " nổi điên!", new Color(1f, 0.4f, 0.4f));
-            }
 
             switch (def.beh)
             {
@@ -155,7 +150,7 @@ namespace VK
                     break;
                 case EBeh.Charger: move = Charger(dt, dir, dist); break;
                 case EBeh.Shooter: move = Shooter(dt, dir, dist); break;
-                case EBeh.Boss: move = Boss(dt, dir, dist); break;
+                case EBeh.Boss: move = brain != null ? brain.Tick(dt, dir, dist) : dir * speed; break;
                 case EBeh.Bomber: move = Bomber(dt, dir, dist); if (dead) return; break;
                 case EBeh.Mimic: move = Mimic(dt, dir, dist); break;
                 case EBeh.Blinker: move = Blinker(dt, dir, dist); break;
@@ -176,12 +171,15 @@ namespace VK
             pos += move * dt + knock * rawDt + sep * Mathf.Min(1f, rawDt * 12f) * sepK;
             knock *= Mathf.Max(0f, 1f - rawDt * 9f);
             var clamped = Arena.Clamp(pos, radius * 0.5f);
-            if (state == 2 && (clamped - pos).sqrMagnitude > 0.0001f && boss) { stateT = 0; Fx.Shake(0.3f, 0.3f); }
             pos = clamped;
             transform.position = pos;
 
-            if (frozenT <= 0 && def.beh != EBeh.Static && Vector2.Distance(pos, pp) < radius + p.radius) p.Hurt(dmg, pos);
-            sr.color = frozenT > 0 ? Color.Lerp(def.tint, new Color(0.5f, 0.85f, 1f), 0.65f) : def.tint;
+            if (frozenT <= 0 && def.beh != EBeh.Static && Vector2.Distance(pos, pp) < radius + p.radius)
+            {
+                if (brain != null) { if (!brain.Dashing) BossBrain.HurtPlayer(this, "contact", dmg, pos); }
+                else p.Hurt(dmg, pos);
+            }
+            sr.color = frozenT > 0 ? Color.Lerp(tintCol, new Color(0.5f, 0.85f, 1f), 0.65f) : tintCol;
 
             // damage over time
             if (burnT > 0 || poisonT > 0)
@@ -220,7 +218,7 @@ namespace VK
             sr.GetPropertyBlock(mpb);
             mpb.SetFloat(FlashId, Mathf.Max(flash, (state == 1 || state == 3) ? 0.35f + Mathf.Sin(Time.time * 30f) * 0.25f : 0f));
             sr.SetPropertyBlock(mpb);
-            if (auraSr) { var ac = auraSr.color; ac.a = (boss ? 0.3f : 0.25f) + Mathf.Sin(Time.time * 4f) * 0.08f + (enraged ? 0.15f : 0); auraSr.color = ac; }
+            if (auraSr) { var ac = auraSr.color; ac.a = (boss ? 0.3f : 0.25f) + Mathf.Sin(Time.time * 4f) * 0.08f + (brain != null && brain.Phase == 2 ? 0.15f : 0); auraSr.color = ac; }
             if (tele)
             {
                 bool show = state == 1;
@@ -380,90 +378,6 @@ namespace VK
             return new Vector2(-dir.y, dir.x) * speed * 0.5f * Mathf.Sign(Mathf.Sin(wobble * 0.7f));
         }
 
-        Vector2 Boss(float dt, Vector2 dir, float dist)
-        {
-            float rage = enraged ? 0.72f : 1f;
-            stateT -= dt;
-            switch (state)
-            {
-                case 0: // stalk
-                    if (stateT <= 0)
-                    {
-                        int[] pattern = bossIndex >= 2 ? new[] { 0, 3, 1, 0, 2, 3 } : new[] { 0, 1, 0, 2, 1 };
-                        int atk = pattern[attackIdx % pattern.Length];
-                        attackIdx++;
-                        if (atk == 0) { state = 1; stateT = 0.85f * rage; chargeDir = dir; EnsureTele(); Sfx.Play("heavy", 0.6f, 0f, 0.6f); }
-                        else if (atk == 1) { state = 3; stateT = 0.65f * rage; }
-                        else if (atk == 3) { state = 5; stateT = 2.2f; shootT = 0f; spiralA = Random.Range(0f, 360f); Sfx.Play("bell", 0.6f, 0f, 0.8f); }
-                        else { state = 4; stateT = 0.5f; }
-                    }
-                    return dir * speed * (enraged ? 1.3f : 1f);
-                case 1: // charge windup
-                    chargeDir = Vector2.Lerp(chargeDir, dir, dt * 1.5f).normalized;
-                    if (stateT <= 0) { state = 2; stateT = 0.75f; Sfx.Play("swing", 0.8f, 0f, 0.5f); }
-                    return Vector2.zero;
-                case 2: // charging
-                    if (Random.value < 0.6f) Fx.Particle(Pos, -chargeDir * 3f, new Color(def.blood.r, def.blood.g, def.blood.b, 0.6f), new Color(0, 0, 0, 0), 0.4f, 0.1f, 0.4f);
-                    if (stateT <= 0) { state = 0; stateT = 2.2f * rage; Fx.Shake(0.2f, 0.2f); }
-                    return chargeDir * speed * 5f;
-                case 3: // radial burst windup
-                    Fx.Particle(Pos + Random.insideUnitCircle * 2f, Vector2.zero, new Color(1f, 0.3f, 0.5f, 0.6f), new Color(1f, 0.3f, 0.5f, 0), 0.25f, 0.05f, 0.25f, null, true);
-                    if (stateT <= 0)
-                    {
-                        RadialBurst(0f);
-                        if (bossIndex >= 1 || enraged) StartCoroutine(Game.Delay(0.35f, () => { if (!dead && Game.I.Playing) RadialBurst(0.5f); }));
-                        if (bossIndex >= 2) StartCoroutine(Game.Delay(0.7f, () => { if (!dead && Game.I.Playing) RadialBurst(0.25f); }));
-                        state = 0; stateT = 2.4f * rage;
-                    }
-                    return Vector2.zero;
-                case 5: // spiral bullet storm
-                    shootT -= dt;
-                    if (shootT <= 0)
-                    {
-                        shootT = enraged ? 0.07f : 0.1f;
-                        for (int k = 0; k < 3; k++)
-                        {
-                            float a = (spiralA + k * 120f) * Mathf.Deg2Rad;
-                            var v = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 4.2f;
-                            Projectile.FireHostile(Pos + v.normalized * radius * 0.6f, v, dmg * 0.45f, new Color(0.8f, 0.4f, 1f));
-                        }
-                        spiralA += 13f;
-                        Sfx.Play("shoot", 0.25f, 0.05f, 0.7f, 0.09f);
-                    }
-                    if (stateT <= 0) { state = 0; stateT = 2.0f * rage; }
-                    return Vector2.zero;
-                case 4: // summon
-                    if (stateT <= 0)
-                    {
-                        int n = 3 + bossIndex + (enraged ? 2 : 0);
-                        for (int i = 0; i < n; i++)
-                        {
-                            float a = i * Mathf.PI * 2f / n;
-                            Game.I.dir.QueueSpawn(Pos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * (radius + 1.6f), null);
-                        }
-                        Fx.Ring(Pos, new Color(0.8f, 0.3f, 1f), 0.5f, 4f, 0.5f);
-                        Sfx.Play("zap", 0.6f, 0f, 0.7f);
-                        state = 0; stateT = 2.0f * rage;
-                    }
-                    return Vector2.zero;
-            }
-            return Vector2.zero;
-        }
-
-        void RadialBurst(float offset)
-        {
-            int n = 14 + bossIndex * 4;
-            for (int i = 0; i < n; i++)
-            {
-                float a = (i + offset) * Mathf.PI * 2f / n;
-                var v = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * (4.2f + bossIndex * 0.3f);
-                Projectile.FireHostile(Pos + v.normalized * radius * 0.6f, v, dmg * 0.6f, new Color(1f, 0.3f, 0.6f));
-            }
-            Fx.Ring(Pos, new Color(1f, 0.3f, 0.6f), 0.5f, 3f, 0.35f);
-            Fx.Shake(0.15f, 0.2f);
-            Sfx.Play("shoot", 0.6f, 0f, 0.5f);
-        }
-
         void EnsureTele()
         {
             if (tele) return;
@@ -483,6 +397,31 @@ namespace VK
             tele.transform.rotation = Quaternion.Euler(0, 0, ang);
             tele.transform.localScale = new Vector3(len / transform.lossyScale.x, w, 1);
             tele.color = new Color(1f, 0.15f, 0.15f, 0.18f + Mathf.Sin(Time.time * 20f) * 0.07f);
+        }
+
+        // ---------------------------------------------------------------- looks (boss cutscenes)
+        /// <summary>Body colour from now on (Kiếp Biến / Ma Thân recolour).</summary>
+        public void SetTint(Color c) { tintCol = c; if (sr) sr.color = c; }
+        /// <summary>Aura colour (alpha keeps pulsing); adds an aura when the enemy has none.</summary>
+        public void SetAura(Color c)
+        {
+            if (!auraSr)
+            {
+                var au = new GameObject("aura");
+                au.transform.SetParent(transform, false);
+                au.transform.localScale = Vector3.one * def.scale * 2f;
+                auraSr = au.AddComponent<SpriteRenderer>();
+                auraSr.sprite = Res.Glow; auraSr.sharedMaterial = Res.AddMat; auraSr.sortingOrder = -110;
+            }
+            auraSr.color = new Color(c.r, c.g, c.b, auraSr.color.a > 0f ? auraSr.color.a : 0.35f);
+        }
+        /// <summary>Size multiplier on the def scale (body, aura, hit radius).</summary>
+        public void SetScaleMul(float m)
+        {
+            scaleMul = Mathf.Max(0.1f, m);
+            baseScale = def.scale * scaleMul;
+            radius = 0.34f * def.scale * scaleMul;
+            if (auraSr) auraSr.transform.localScale = Vector3.one * def.scale * scaleMul * 2f;
         }
 
         // ---------------------------------------------------------------- damage
@@ -539,6 +478,7 @@ namespace VK
             Vector2 pos = Pos;
 
             Fx.Burst(pos, def.blood, boss ? 70 : elite ? 24 : 9, boss ? 11f : 6f, boss ? 0.25f : 0.14f, boss ? 1f : 0.45f);
+            if (brain != null) brain.OnDeath();
             Fx.Glow(pos, new Color(def.blood.r, def.blood.g, def.blood.b, 0.6f), radius * 3f, 0.25f);
             Sfx.Play("kill", boss ? 1f : 0.35f, 0.15f, boss ? 0.6f : 1f);
 
@@ -605,6 +545,7 @@ namespace VK
             if (dead) return;
             dead = true;
             All.Remove(this);
+            if (brain != null) brain.Stop();
             Fx.Burst(Pos, new Color(0.7f, 0.7f, 0.8f, 0.7f), 6, 3f);
             Destroy(gameObject);
         }

@@ -8,6 +8,9 @@ namespace VK
         public static readonly List<Projectile> All = new List<Projectile>();
 
         bool hostile, homing, dead;
+        /// <summary>Boss that fired this hostile bullet and its move ([BOSSHIT] attribution); null for normal enemies.</summary>
+        public Enemy owner;
+        public string moveId;
         Vector2 vel;
         float dmg, life, radius, splash, spinSpd, trailT;
         int pierce;
@@ -40,7 +43,7 @@ namespace VK
             return p;
         }
 
-        public static void FireHostile(Vector2 pos, Vector2 vel, float dmg, Color c)
+        public static Projectile FireHostile(Vector2 pos, Vector2 vel, float dmg, Color c)
         {
             var p = Make(pos);
             p.hostile = true; p.vel = vel; p.dmg = dmg; p.life = 6f; p.radius = 0.17f; p.col = c;
@@ -48,6 +51,7 @@ namespace VK
             p.sr.transform.localScale = Vector3.one * 0.34f;
             p.glow.color = new Color(c.r, c.g, c.b, 0.95f); p.glow.sortingOrder = 150;
             p.glow.transform.localScale = Vector3.one * 1.0f;
+            return p;
         }
 
         public static void FireWeapon(WeaponInst w, Vector2 pos, Vector2 dir)
@@ -153,7 +157,7 @@ namespace VK
                 {
                     if (Skills.TryBlockBullet(pos)) { Kill(); return; }
                     bool wasDashing = pl.IsDashing;
-                    pl.Hurt(dmg, pos);
+                    if (owner != null) BossBrain.HurtPlayer(owner, moveId, dmg, pos); else pl.Hurt(dmg, pos);
                     if (!wasDashing) Kill();
                 }
                 return;
