@@ -39,7 +39,7 @@ namespace VK
         public bool SkillFrozen { get; private set; }
         float skillBonus = 1.3f;
         public float FrozenBonus => frozenT > 0 && SkillFrozen ? skillBonus : 1.3f;
-        public void SkillFreeze(float t, float bonus) { Freeze(t); SkillFrozen = true; skillBonus = bonus; }
+        public void SkillFreeze(float t, float bonus) { if (brain != null && brain.Staggered) return; Freeze(t); SkillFrozen = true; skillBonus = bonus; }
         /// <summary>Boss AI (null for normal enemies and bosses without a kit).</summary>
         public BossBrain brain;
         Color tintCol;

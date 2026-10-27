@@ -49,7 +49,7 @@ namespace VK
         }
 
         // ------------------------------------------------------------------ helpers
-        static float Tele(BossBrain b, BossMove m) => Mathf.Max(m.tele, KiepNum.TeleFloor(b.kiep));
+        static float Tele(BossBrain b, BossMove m) { float t = b.EffTele(m); b.LastTele = t; return t; }
         static float D(BossBrain b, BossMove m) => b.e.dmg * m.dmg;
         static Vector2 P => Game.I.player.Pos;
         static float Ang(Vector2 d) => Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
@@ -151,6 +151,7 @@ namespace VK
             float len = (c - a).magnitude;
             if (len < 0.5f) yield break;
             float tele = Mathf.Max(Mathf.Max(m.tele, m.gap), KiepNum.TeleFloor(b.kiep));
+            b.LastTele = tele;
             float w = b.laneWidth > 0f ? b.laneWidth : 1.4f;
             var lane = Mark(b, m, HShape.Bar, a, tele);
             lane.angleDeg = Ang(c - a); lane.len = len; lane.width = w;

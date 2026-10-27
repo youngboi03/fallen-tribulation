@@ -286,6 +286,14 @@ namespace VK
             return n;
         }
 
+        /// <summary>Remove every hostile bullet fired by this boss.</summary>
+        public static void ClearOwner(Enemy owner)
+        {
+            if (owner == null) return;
+            foreach (var pr in new List<Projectile>(All))
+                if (pr != null && !pr.dead && pr.hostile && pr.owner == owner) pr.Kill();
+        }
+
         public static void ClearAll(bool fx)
         {
             foreach (var p in new List<Projectile>(All))

@@ -853,21 +853,29 @@ namespace VK
             boss.brain.Hold = false;
         }
 
-        /// <summary>Waits until the brain logs more than n moves (or timeout); returns via the log.</summary>
+        /// <summary>Waits until the brain logs more than n moves (or timeout).</summary>
         IEnumerator WaitLog(BossBrain b, int n, float timeout)
         {
             float t = 0f;
             while (b.Log.Count <= n && t < timeout) { yield return null; t += Game.Dt; }
         }
 
+        IEnumerator WaitPhase2(BossBrain b, float timeout)
+        {
+            float t = 0f;
+            while (b.Phase != 2 && t < timeout) { yield return null; t += Game.Dt; }
+        }
+
         IEnumerator T_boss_phase()
         {
             yield return BossArena("b1", 0, 5); var b = boss.brain;
             float spd = boss.speed; b.ForceMove("doc_nhan_xung"); yield return Sec(0.3f);   // a move in flight
-            var h = BossHazard.Spawn(boss, HShape.Circle, new Vector2(5, 5), 1f, 3f, 1f, Color.red);
+            var h = BossHazard.Spawn(boss, HShape.Circle, new Vector2(5, 5), 1f, 20f, 1f, Color.red);
             Check("p1", b.Phase == 1, ""); boss.hp = boss.maxHp * 0.49f; yield return Sec(0.1f);
+            Check("p2_deferred", b.Phase == 1 && b.PhasePending && b.Current != null && b.Current.id == "doc_nhan_xung", b.Current != null ? b.Current.id : "none");
+            yield return WaitPhase2(b, 10f);
             Check("p2", b.Phase == 2, ""); Check("hz_cleared", BossHazard.All.Count == 0, BossHazard.All.Count.ToString());
-            Check("p2_hold", b.Hold && b.Current == null, "");
+            Check("p2_hold", b.Hold && b.Current == null && b.Transitions == 1, "");
             yield return Sec(1.5f);
             Check("no_enrage_speed", Mathf.Approximately(boss.speed, spd), boss.speed + " vs " + spd);
             Check("p2_released", !b.Hold, "");
@@ -883,8 +891,9 @@ namespace VK
             Check("ult75_base", b.Log.Count > n && b.Log[n] == ub.id, b.Log.Count > n ? b.Log[n] : "none");
             yield return Sec(1f);
             boss.hp = boss.maxHp * 0.24f; n = b.Log.Count;
-            yield return WaitLog(b, n, 8f);
+            yield return WaitLog(b, n, 10f);
             Check("ult25_base", b.Log.Count > n && b.Log[n] == ub.id, b.Log.Count > n ? b.Log[n] : "none");
+            Check("ult25_after_p2", b.Phase == 2 && b.Phase2At <= b.UltStartedAt(ub.id), b.Phase2At + " vs " + b.UltStartedAt(ub.id));
             yield return Sec(3f);
             Check("ult_k0_count", b.Log.Count(id => id == ub.id) == 2, string.Join(",", b.Log));
         }
@@ -899,12 +908,12 @@ namespace VK
             Check("ult75_k3_base", b.Log.Count > n && b.Log[n] == b.kit.Ult(BTier.Base).id, b.Log.Count > n ? b.Log[n] : "none");
             yield return Sec(1f);
             boss.hp = boss.maxHp * 0.24f; n = b.Log.Count;
-            yield return WaitLog(b, n, 10f);
+            yield return WaitLog(b, n, 15f);
             Check("ult25_k3_I", b.Log.Count > n && b.Log[n] == b.kit.Ult(BTier.I).id, b.Log.Count > n ? b.Log[n] : "none");
             Check("ult_k3_noII", !b.Log.Contains(b.kit.Ult(BTier.II).id), string.Join(",", b.Log));
         }
 
-        IEnumerator T_boss_ult_multi()   // Review Focus 1
+        IEnumerator T_boss_ult_multi()   // Review Focus 1: Base ult, then phase 2 (once), then set I, then set II
         {
             yield return BossArena("b3", 5, 15); var b = boss.brain; var k = b.kit;
             Check("marks_k5", b.UltMarks.Count == 3 && Mathf.Approximately(b.UltMarks[1], 0.5f), string.Join(",", b.UltMarks));
@@ -913,12 +922,48 @@ namespace VK
             boss.Damage(boss.maxHp * 0.7f, false, Vector2.zero, 0f, null);
             int n0 = b.Log.Count; float t = 0f;
             var ultIds = new[] { k.Ult(BTier.Base).id, k.Ult(BTier.I).id, k.Ult(BTier.II).id };
-            while (t < 25f && b.Log.Skip(n0).Count(id => ultIds.Contains(id)) < 3) { yield return null; t += Game.Dt; }
+            while (t < 30f && b.Log.Skip(n0).Count(id => ultIds.Contains(id)) < 3) { yield return null; t += Game.Dt; }
             yield return Sec(1f);
             var ults = b.Log.Skip(n0).Where(id => ultIds.Contains(id)).ToList();
             Check("multi_order", ults.SequenceEqual(ultIds), string.Join(",", ults));
             Check("multi_phase_once", b.Phase == 2 && b.Transitions == 1, b.Transitions.ToString());
-            Check("multi_phase_before_I", b.Phase2At >= 0f && b.Phase2At <= b.UltStartedAt(k.Ult(BTier.I).id), b.Phase2At + " vs " + b.UltStartedAt(k.Ult(BTier.I).id));
+            float tb = b.UltStartedAt(ultIds[0]), ti = b.UltStartedAt(ultIds[1]), tii = b.UltStartedAt(ultIds[2]);
+            Check("multi_seq", tb < b.Phase2At && b.Phase2At < ti && ti < tii, tb + " < " + b.Phase2At + " < " + ti + " < " + tii);
+            Check("multi_no_regular", b.Log.Skip(n0).Take(3).SequenceEqual(ultIds), string.Join(",", b.Log.Skip(n0)));
+        }
+
+        IEnumerator T_boss_ult_nocancel()   // a running ult is never cut by the phase change
+        {
+            yield return BossArena("b2", 0, 10); var b = boss.brain; var u = b.kit.Ult(BTier.Base);
+            yield return Sec(0.3f);
+            boss.hp = boss.maxHp * 0.74f; int n = b.Log.Count;
+            yield return WaitLog(b, n, 8f);
+            Check("nocancel_started", b.Log.Count > n && b.Log[n] == u.id, b.Log.Count > n ? b.Log[n] : "none");
+            yield return Sec(0.5f);
+            int hz = BossHazard.All.Count(h => h.moveId == u.id);
+            boss.hp = boss.maxHp * 0.4f; yield return Sec(0.3f);
+            Check("nocancel_running", b.Phase == 1 && b.Current == u && BossHazard.All.Count(h => h.moveId == u.id) >= hz && hz > 0, hz + " hz, phase " + b.Phase);
+            yield return WaitPhase2(b, 12f);
+            float len = (u.reps - 1) * (b.EffTele(u) + u.gap) + b.EffTele(u) + 0.2f;   // full length of the Zones ult
+            Check("nocancel_complete", b.Phase == 2 && b.Phase2At - b.UltStartedAt(u.id) >= len - 0.1f, (b.Phase2At - b.UltStartedAt(u.id)).ToString("0.00") + " vs " + len.ToString("0.00"));
+        }
+
+        IEnumerator T_boss_ult_tele()   // every ultimate run through the brain telegraphs >= 1.0 s
+        {
+            foreach (var id in new[] { "b1", "b1b", "b2", "b2b", "b3", "b4" })
+                foreach (var kp in new[] { 0, 3, 5 })
+                {
+                    yield return BossArena(id, kp, 5); var b = boss.brain;
+                    foreach (var m in b.kit.moves.Where(x => x.ult && (x.tier == BTier.Base || (x.tier == BTier.I && BossBrain.Sets(kp) >= 1) || (x.tier == BTier.II && BossBrain.Sets(kp) == 2))))
+                        Check("ult_tele_" + m.id + "_k" + kp, b.EffTele(m) >= 1f || (m.tele2 >= 1f && b.EffTele(m) >= KiepNum.TeleFloor(kp)), b.EffTele(m).ToString("0.00"));
+                }
+            // and the implemented primitive ults really use it
+            foreach (var pair in new[] { ("b1b", "huyet_nguyet_da_yen"), ("b2", "thien_hoa_lac"), ("b1", "ta_nhan_phong_an"), ("b3", "huyet_ha_dao_luu"), ("b3", "huyet_vu") })
+            {
+                yield return BossArena(pair.Item1, 5, 15); var b = boss.brain; b.LastTele = -1f;
+                b.ForceMove(pair.Item2); yield return Sec(0.2f);
+                Check("ult_tele_run_" + pair.Item2, b.Log.Contains(pair.Item2) && b.LastTele >= 1f, b.LastTele.ToString("0.00"));
+            }
         }
 
         IEnumerator T_boss_select()
@@ -926,8 +971,9 @@ namespace VK
             yield return BossArena("b1", 0, 5); var b = boss.brain; b.Hold = true;
             var picks1 = new List<BossMove>(); var picks2 = new List<BossMove>();
             for (int i = 0; i < 20; i++) picks1.Add(b.Pick(true));
-            boss.hp = boss.maxHp * 0.49f; yield return Sec(0.1f);
-            Check("sel_phase2", b.Phase == 2, "");
+            b.Hold = false; boss.hp = boss.maxHp * 0.49f;   // the 75% ult plays first, then the transition (Hold during it)
+            yield return WaitPhase2(b, 10f);
+            Check("sel_phase2", b.Phase == 2 && b.Hold, "");
             for (int i = 0; i < 20; i++) picks2.Add(b.Pick(true));
             var all = picks1.Concat(picks2).ToList();
             bool noRepeat = true; for (int i = 1; i < all.Count; i++) if (all[i] == null || all[i] == all[i - 1]) noRepeat = false;
@@ -946,10 +992,11 @@ namespace VK
             yield return BossArena("b1", 5, 5); b = boss.brain; b.Hold = true;
             ps.Clear(); for (int i = 0; i < 40; i++) ps.Add(b.Pick(true));
             Check("unlock_k5_p1_noII", ps.All(m => m.tier != BTier.II) && !b.Unlocked(b.kit.Move("an_mu")), "");
-            boss.hp = boss.maxHp * 0.49f; yield return Sec(1.3f);
+            b.Hold = false; boss.hp = boss.maxHp * 0.49f;
+            yield return WaitPhase2(b, 10f); yield return Sec(1.1f);
             Check("unlock_k5_p2_II", b.Phase == 2 && b.Unlocked(b.kit.Move("an_mu")), "");
             b.ForceMove("doc_nhan_xung"); int n = b.Log.Count; float t = 0f;
-            while (t < 6f && !b.Log.Skip(n).Contains("an_mu")) { yield return null; t += Game.Dt; }
+            while (t < 8f && !b.Log.Skip(n).Contains("an_mu")) { yield return null; t += Game.Dt; }
             var tail = b.Log.Skip(n).ToList(); int ia = tail.IndexOf("an_mu");
             Check("unlock_rider", ia > 0 && tail[ia - 1] == "doc_nhan_xung", string.Join(",", tail));
             Check("rider_puddle", BossHazard.All.Any(h => h.moveId == "an_mu"), "");
@@ -974,13 +1021,30 @@ namespace VK
             Check("frozen_later", f[0] < 90f && f[0] - a[0] >= 0.4f, a[0].ToString("0.00") + " vs " + f[0].ToString("0.00"));
         }
 
-        /// <summary>Force one move; every damage event (hazard hit, boss hit or new bullet) must come after a boss telegraph was already on screen.</summary>
+        IEnumerator T_boss_cancel_dash()   // a cancelled dash stops writing velocity and leaves nothing behind
+        {
+            yield return BossPrep("b1", 0, 5, new Vector2(-8, 5)); var b = boss.brain;
+            b.ForceMove("doc_nhan_xung");
+            float t = 0f;
+            while (!b.Dashing && t < 4f) { yield return null; t += Game.Dt; }
+            Check("cancel_was_dashing", b.Dashing, t.ToString("0.00"));
+            yield return null;
+            b.Cancel(); b.Hold = true;
+            Vector2 p0 = boss.Pos;
+            yield return Sec(1f);
+            Check("cancel_stopped", !b.Dashing && b.vel == Vector2.zero && b.Current == null, b.vel.ToString());
+            Check("cancel_no_motion", (boss.Pos - p0).magnitude < 0.3f, (boss.Pos - p0).magnitude.ToString("0.00"));
+            Check("cancel_clean", !BossHazard.All.Any(h => h.owner == boss), BossHazard.All.Count.ToString());
+        }
+
+        /// <summary>Force one move; every damage event (hazard hit, boss hit or new bullet) must come after a boss telegraph was already
+        /// on screen for at least the Kiếp 0 floor, and the primitive must report a telegraph >= the floor.</summary>
         IEnumerator Prim(string kind, string bossId, int wave, string moveId, Vector2 bossPos, int volley)
         {
-            yield return BossPrep(bossId, 0, wave, bossPos); var b = boss.brain;
+            yield return BossPrep(bossId, 0, wave, bossPos); var b = boss.brain; b.LastTele = -1f;
             int ph0 = BossHazard.PlayerHits, bh0 = BossBrain.HitCount, pr0 = Projectile.CountHostile();
             b.ForceMove(moveId);
-            bool teleSeen = false, changed = false, teleFirst = false; int firstVolley = -1; float t = 0f;
+            bool teleSeen = false, changed = false, teleFirst = false; int firstVolley = -1; float t = 0f, teleAt = -1f;
             while (t < 8f && !changed)
             {
                 yield return null; t += Game.Dt;
@@ -989,10 +1053,12 @@ namespace VK
                 {
                     changed = true; teleFirst = teleSeen; firstVolley = pr - pr0;
                 }
-                if (BossHazard.All.Any(h => h.owner == boss && h.Telegraphing)) teleSeen = true;
+                if (!teleSeen && BossHazard.All.Any(h => h.owner == boss && h.Telegraphing)) { teleSeen = true; teleAt = t; }
             }
+            float floor = KiepNum.TeleFloor(0);
             Check("prim_" + kind + "_fires", changed && b.Log.Contains(moveId), moveId + " t=" + t.ToString("0.00"));
             Check("prim_" + kind + "_tele_first", teleFirst, moveId);
+            Check("prim_" + kind + "_tele_floor", b.LastTele >= floor && t - teleAt >= floor - 0.05f, "tele " + b.LastTele.ToString("0.00") + " shown " + (t - teleAt).ToString("0.00"));
             if (volley > 0) Check("prim_" + kind + "_volley", firstVolley == volley, firstVolley + " vs " + volley);
         }
 

@@ -24,7 +24,10 @@ namespace VK
         public readonly List<string> Log = new List<string>();
         /// <summary>Hp fractions that queue an ultimate for this Kiếp (spec 3.2), highest first.</summary>
         public readonly List<float> UltMarks = new List<float>();
-        /// <summary>When set, called instead of the short phase transition (Kiếp 5 Ma Thân cutscene).</summary>
+        /// <summary>When set, called instead of the short phase transition (Kiếp 5 Ma Thân cutscene).
+        /// The transition only starts when no move is running, so there is no cancelled move to clean up; the hook
+        /// itself must clear the boss telegraphs/hazards (BossHazard.ClearOwner) and bullets (Projectile.ClearOwner) it wants gone,
+        /// and must set Hold back to false when it ends.</summary>
         public Action<BossBrain> PhaseTwoHook;
 
         /// <summary>Seconds of gameplay since spawn.</summary>
@@ -47,7 +50,8 @@ namespace VK
         public readonly Dictionary<string, List<BossHazard>> owned = new Dictionary<string, List<BossHazard>>();
 
         readonly List<BTier> markTier = new List<BTier>();
-        readonly Queue<BossMove> ults = new Queue<BossMove>();
+        /// <summary>Queued ultimates with the hp mark that queued them (threshold order).</summary>
+        readonly Queue<KeyValuePair<BossMove, float>> ults = new Queue<KeyValuePair<BossMove, float>>();
         float[] cdLeft = new float[0];   // per kit.moves index
         readonly Dictionary<string, float> ultStart = new Dictionary<string, float>();
         int marksPassed, p2Picks;
@@ -57,6 +61,11 @@ namespace VK
         Coroutine running;
 
         public static int HitCount;
+        /// <summary>Telegraph time the last primitive actually used (tests).</summary>
+        public float LastTele = -1f;
+
+        /// <summary>Effective telegraph of a move: ultimates at least 1.0 s (two-stage ults keep stage 1, their tele2 is the 1 s+ part), others at least the Kiếp floor (spec 3.2, 3.4).</summary>
+        public float EffTele(BossMove m) => Mathf.Max(m.tele, m.ult && m.tele2 <= 0f ? 1f : KiepNum.TeleFloor(kiep));
 
         /// <summary>0 = base set (Kiếp 0-2), 1 = + set I (3-4), 2 = + set II (5).</summary>
         public static int Sets(int kiep) => kiep >= 5 ? 2 : kiep >= 3 ? 1 : 0;
@@ -108,15 +117,15 @@ namespace VK
             FightT += Game.Dt;
             for (int i = 0; i < cdLeft.Length; i++) if (cdLeft[i] > 0f) cdLeft[i] -= dt;
             CheckMarks();
-            CheckPhase();
             if (Current != null) return vel;
+            CheckPhase();
             if (Hold) return Vector2.zero;
 
             if (forced != null) { var f = forced; forced = null; Begin(f); return vel; }
             restT -= dt;
             if (restT <= 0f)
             {
-                var m = ults.Count > 0 ? ults.Dequeue() : Pick(false);
+                var m = ults.Count > 0 ? ults.Dequeue().Key : PhasePending ? null : Pick(false);
                 if (m != null) { Begin(m); return vel; }
             }
             return dir * e.speed;
@@ -128,20 +137,25 @@ namespace VK
             while (marksPassed < UltMarks.Count && frac <= UltMarks[marksPassed])
             {
                 var u = kit.Ult(markTier[marksPassed]);
-                if (u != null) ults.Enqueue(u);
+                if (u != null) ults.Enqueue(new KeyValuePair<BossMove, float>(u, UltMarks[marksPassed]));
                 marksPassed++;
             }
         }
 
+        /// <summary>Hp is at or below 50% but phase 2 has not begun yet.</summary>
+        public bool PhasePending => Phase == 1 && e.hp <= e.maxHp * 0.5f;
+
+        /// <summary>Phase 2 is deferred until no move runs and no queued ultimate from a mark above 50% is left,
+        /// so a big hit plays Base ult, then the transition, then the set I / II ults (spec 3.2, 4.4). Never cancels a move.</summary>
         void CheckPhase()
         {
-            if (Phase != 1 || e.hp > e.maxHp * 0.5f) return;
+            if (!PhasePending || Current != null) return;
+            foreach (var u in ults) if (u.Value > 0.5f) return;
             Phase = 2; Transitions++; Phase2At = FightT;
             p2Picks = 0; p2Done = false;
             Debug.Log("[BOSS] phase2 t=" + FightT.ToString("0.0"));
-            Cancel();
             if (PhaseTwoHook != null) PhaseTwoHook(this);
-            else StartCoroutine(ShortTransition());
+            else running = StartCoroutine(Flat(ShortTransition()));
         }
 
         /// <summary>Spec 3.1: 1 s stagger, boss hazards and bullets cleared, red ring, shake, banner, climax music.</summary>
@@ -158,6 +172,21 @@ namespace VK
             yield return BossMoves.Wait(this, 1f);
             Staggered = false; Hold = false;
             restT = Mathf.Min(restT, 0.3f);
+            running = null;
+        }
+
+        /// <summary>Runs nested IEnumerators inline on one Unity coroutine, so StopCoroutine stops the whole move tree.</summary>
+        static IEnumerator Flat(IEnumerator root)
+        {
+            var st = new Stack<IEnumerator>();
+            st.Push(root);
+            while (st.Count > 0)
+            {
+                var top = st.Peek();
+                if (!top.MoveNext()) { st.Pop(); continue; }
+                if (top.Current is IEnumerator sub) { st.Push(sub); continue; }
+                yield return top.Current;
+            }
         }
 
         // ------------------------------------------------------------------ selection (spec 3.3)
@@ -196,7 +225,7 @@ namespace VK
             Current = m; vel = Vector2.zero;
             Mark(m);
             if (m.ult && Game.I.ui != null) Game.I.ui.Banner("", m.name, kit.col);
-            running = StartCoroutine(RunMove(m));
+            running = StartCoroutine(Flat(RunMove(m)));
         }
 
         void Mark(BossMove m)
@@ -222,10 +251,14 @@ namespace VK
             Current = null; running = null;
         }
 
-        void Cancel()
+        /// <summary>Stops the running move and removes everything it left (telegraphs, hazards, bullets of this boss).</summary>
+        public void Cancel()
         {
             if (running != null) StopCoroutine(running);
             running = null; Current = null; vel = Vector2.zero; Dashing = false;
+            if (Staggered) { Staggered = false; Hold = false; }
+            BossHazard.ClearOwner(e);
+            Projectile.ClearOwner(e);
         }
 
         /// <summary>Boss died or vanished: stop every move coroutine and remove its hazards.</summary>
