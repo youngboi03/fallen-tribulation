@@ -10,7 +10,7 @@ namespace VK
         public static bool LastHitCrit;
         public static int CastCount, LastStrikes;
         public static Enemy LastBigTarget;
-        static float riteExt;
+        static float riteExt, tuKhiAcc;
 
         public static string FormName(CharDef c, int stage) => stage <= 0 || c.forms == null || stage > c.forms.Length ? c.skill : c.forms[stage - 1].name;
 
@@ -31,18 +31,76 @@ namespace VK
             var run = Game.I.run;
             var st = run.stats;
             float d = run.SP * coef * (1f + st[Stat.SkillPower] / 100f + st[Stat.Damage] / 200f);
-            bool crit = UnityEngine.Random.value * 100f < st[Stat.Crit];
-            if (crit) d *= 1.5f + st[Stat.CritDmg] / 100f;
+            bool eye = run.HasCard("than_nhan");   // Thần Nhãn: +15% Bạo Kích, +50% ST Bạo Kích on skill hits
+            bool crit = UnityEngine.Random.value * 100f < st[Stat.Crit] + (eye ? 15f : 0f);
+            if (crit) d *= 1.5f + (st[Stat.CritDmg] + (eye ? 50f : 0f)) / 100f;
             d *= UnityEngine.Random.Range(0.92f, 1.08f);
             if (e.boss) d *= SkillNum.BossMul;
             LastHitCrit = crit;
             e.skillHits++;
+            Vector2 ep = e.Pos;
             e.Damage(d, crit, dir, knock, null);
+            Seals(run, e, ep, d, crit, coef);
             if (UnityEngine.Random.value * 100f < st[Stat.Lifesteal] + (run.riteT > 0 ? RiteLifesteal : 0f)) Game.I.player.Heal(1);
             run.skillDmg += d;
             run.skillDmgBy.TryGetValue(src, out var acc);
             run.skillDmgBy[src] = acc + d;
             return d;
+        }
+
+        static bool sealBounce;
+        static float sealSfxT;
+
+        /// <summary>Thần Nhãn mark and the four Đạo Ấn riders on a skill hit (spec 5.3). The Lôi bounce never bounces again.</summary>
+        static void Seals(RunState run, Enemy e, Vector2 ep, float d, bool crit, float coef)
+        {
+            bool sfx = Time.time - sealSfxT > 0.08f;
+            if (crit && run.HasCard("than_nhan"))
+            {
+                Color gold = new Color(1f, 0.85f, 0.3f);
+                Fx.Ring(ep, gold, 0.1f, 0.55f, 0.25f); Fx.Burst(ep, gold, 3, 3f, 0.1f, 0.25f, true);
+            }
+            if (!e.dead)
+            {
+                if (run.HasCard("hoa_an"))
+                {
+                    e.ApplyBurn(d * 0.3f * run.BurnMul);
+                    Fx.Burst(ep, new Color(1f, 0.5f, 0.15f), 3, 2.5f, 0.12f, 0.3f, true);
+                    if (sfx) { Sfx.Play("heavy", 0.12f, 0.1f, 1.7f); sealSfxT = Time.time; }
+                }
+                if (run.HasCard("doc_an"))
+                {
+                    e.ApplyPoison(d * 0.33f * run.PoisonMul, true);
+                    Fx.Burst(ep, new Color(0.5f, 1f, 0.4f), 3, 1.5f, 0.12f, 0.45f, true);
+                    if (sfx) { Sfx.Play("pluck", 0.12f, 0.1f, 0.7f); sealSfxT = Time.time; }
+                }
+                if (run.HasCard("phu_an") && UnityEngine.Random.value < 0.25f)
+                {
+                    e.Freeze(1f);
+                    Fx.Burst(ep, new Color(0.7f, 0.95f, 1f), 4, 3.5f, 0.1f, 0.3f, true);
+                    if (sfx) { Sfx.Play("sk_chime", 0.12f, 0.1f, 1.6f); sealSfxT = Time.time; }
+                }
+            }
+            if (run.HasCard("loi_an") && !sealBounce)
+            {
+                Enemy tgt = null; float best = 3.5f * 3.5f;
+                var list = Enemy.Snapshot();
+                foreach (var o in list)
+                {
+                    if (o == null || o.dead || o == e) continue;
+                    float sq = (o.Pos - ep).sqrMagnitude;
+                    if (sq < best) { best = sq; tgt = o; }
+                }
+                Enemy.Release(list);
+                if (tgt != null)
+                {
+                    Fx.Lightning(ep, tgt.Pos, new Color(0.7f, 0.85f, 1f), 0.08f, 0.15f, 5, 0.25f);
+                    if (sfx) { Sfx.Play("tick", 0.15f, 0.1f, 1.8f); sealSfxT = Time.time; }
+                    sealBounce = true; bool lc = LastHitCrit;
+                    Hit(tgt, coef * 0.5f, "loi_an", tgt.Pos - ep, 0.3f);
+                    LastHitCrit = lc; sealBounce = false;
+                }
+            }
         }
 
         public static int Splash(Vector2 p, float r, float coef, string src, float knock, Action<Enemy, float> onHit = null)
@@ -83,6 +141,13 @@ namespace VK
         {
             var run = Game.I.run;
             if (run == null) return;
+            if (run.HasCard("tu_khi") && tuKhiAcc < 3f && Game.I.player != null)
+            {   // Tụ Khí: each kill shaves 0.15 s off the cooldown, 3 s per cooldown cycle
+                float g = Mathf.Min(0.15f, 3f - tuKhiAcc); tuKhiAcc += g;
+                Game.I.player.ReduceSkillCd(g);
+                Vector2 from = e.Pos, to = Game.I.player.Pos;
+                Fx.Particle(from, (to - from).normalized * 7f, new Color(0.6f, 1f, 0.9f, 0.9f), new Color(0.6f, 1f, 0.9f, 0f), 0.1f, 0.03f, 0.35f, Res.Glow, true, 0f);
+            }
             if (run.skillStage >= 2 && run.ch.id == "ma_tu" && run.riteT > 0f && riteExt < SkillNum.MaExtendMax)
             {
                 run.riteT += SkillNum.MaExtend; riteExt += SkillNum.MaExtend;
@@ -129,7 +194,24 @@ namespace VK
                 case "loi_tu": CastLoi(p, r, pos, k, st, rt); break;
                 case "ma_tu": CastMa(p, r, pos, k, st, rt, echo); break;
             }
-            if (!echo) SkillFx.Ladder(st, pos, r.ch.skillColor);
+            if (echo) return;
+            SkillFx.Ladder(st, pos, r.ch.skillColor);
+            tuKhiAcc = 0f;   // a new cooldown cycle starts
+            Color c = r.ch.skillColor;
+            if (rt != null && r.HasCard("du_ba"))
+            {   // Dư Ba: weapons glow in the skill color and attack 35% faster for 4 s (WeaponInst.Cooldown / Tick)
+                rt.duBaT = 4f; Fx.Ring(pos, c, 0.4f, 1.8f, 0.4f);
+            }
+            if (rt != null && r.HasCard("song_thi"))
+            {   // Song Thi: a faded shade of the hero repeats the skill at 50% after 0.6 s
+                Fx.Apparition(Res.Tile(r.ch.sprite), pos, Color.Lerp(c, Color.white, 0.4f), 5f, 0.6f);
+                rt.After(0.6f, () =>
+                {
+                    if (p == null || Game.I.run != r || !Game.I.Playing) return;
+                    Fx.Apparition(Res.Tile(r.ch.sprite), p.Pos, Color.Lerp(c, Color.white, 0.7f), 5f, 0.5f);
+                    Cast(p, r, true);
+                });
+            }
         }
 
         // ---------------------------------------------------------------- Kiếm Tu

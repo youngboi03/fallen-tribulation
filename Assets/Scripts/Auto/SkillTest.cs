@@ -290,6 +290,63 @@ namespace VK
             Check("field_paused", r.skillDmg == d0, ""); Game.I.SetPause(false);
         }
 
+        // ---------------------------------------------------------------- Ngộ Đạo (Task 8)
+        IEnumerator T_nd_roll()
+        {
+            yield return Arena(0, 8, 1); var r = Game.I.run; r.level = 10; r.pendingLevels = 1; r.RollLevelOpts();
+            var o = r.levelOpts; int stats = System.Array.FindAll(o, x => x.card == null).Length;
+            Check("nd_shape", o.Length == 4 && stats == 2 && System.Array.Exists(o, x => x.card != null && x.card.charId == "kiem_tu")
+                && System.Array.Exists(o, x => x.card != null && x.card.charId == null), stats + " stat cards");
+            var sig = System.Array.Find(o, x => x.card != null && x.card.charId != null);
+            r.ChooseLevel(System.Array.IndexOf(o, sig)); bool again = false;
+            for (int i = 0; i < 50; i++) { r.pendingLevels = 1; r.RollLevelOpts(); again |= System.Array.Exists(r.levelOpts, x => x.card == sig.card); }
+            Check("nd_norepeat", !again, "");
+            r.skillCards.AddRange(new[] { "bach_kiem", "kiem_tam", "kiem_khi" }); r.pendingLevels = 1; r.RollLevelOpts();
+            Check("nd_fallback", System.Array.FindAll(r.levelOpts, x => x.card != null && x.card.charId == null).Length == 2, "");
+        }
+
+        IEnumerator T_nd_exhausted()   // Review Focus 5
+        {
+            yield return Arena(0, 18, 3); var r = Game.I.run; foreach (var c in Content.SkillCards) r.skillCards.Add(c.id);
+            r.level = 30; r.pendingLevels = 1; r.RollLevelOpts();
+            Check("nd_exhausted", r.levelOpts.Length == 4 && System.Array.TrueForAll(r.levelOpts, x => x.card == null && x.mods.Length > 0), "");
+        }
+
+        IEnumerator T_nd_gate()
+        {
+            yield return Arena(0, 8, 1); var r = Game.I.run; r.level = 10; bool seen = false;
+            for (int i = 0; i < 100; i++) { r.pendingLevels = 1; r.RollLevelOpts(); seen |= System.Array.Exists(r.levelOpts, x => x.card != null && x.card.id == "hoa_an"); }
+            Check("nd_gate_closed", !seen, "");
+            r.AddWeapon(Content.W("hoa_truong"), 0); r.AddWeapon(Content.W("hoa_truong"), 0); seen = false;
+            for (int i = 0; i < 100; i++) { r.pendingLevels = 1; r.RollLevelOpts(); seen |= System.Array.Exists(r.levelOpts, x => x.card != null && x.card.id == "hoa_an"); }
+            Check("nd_gate_open", seen, "");
+            int sp = 0, dm = 0; r.level = 5;
+            for (int i = 0; i < 4000; i++) { r.pendingLevels = 1; r.RollLevelOpts(); foreach (var x in r.levelOpts) { if (x.mods[0].s == Stat.SkillPower) sp++; if (x.mods[0].s == Stat.Damage) dm++; } }
+            Check("level_weights", sp > dm * 0.4f && sp < dm * 0.6f, sp + "/" + dm);
+        }
+
+        IEnumerator T_nd_shared()
+        {
+            yield return Arena(0, 3, 0, "song_thi"); Pack(20, 1.5f, 4.5f); int f0 = Projectile.SkillFired; Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            yield return new WaitForSeconds(0.8f); Check("song_thi", Projectile.SkillFired - f0 == 24, (Projectile.SkillFired - f0) + "");
+            yield return Arena(0, 3, 0, "tu_khi"); var pk = Pack(6, 2f, 3f); var p = Game.I.player; p.SetSkillReady(); p.TryCast(); float cd = p.SkillCdLeft;
+            for (int i = 0; i < 4; i++) pk[i].Damage(pk[i].hp + 1f, false, Vector2.zero, 0f, null);
+            Check("tu_khi", Mathf.Abs(cd - p.SkillCdLeft - 0.6f) < 0.02f, (cd - p.SkillCdLeft).ToString("0.00"));
+            yield return Arena(0, 3, 0, "du_ba"); var r = Game.I.run; var w = r.AddWeapon(Content.W("thiet_kiem"), 0);
+            float c0 = w.Cooldown(r.stats); Game.I.player.SetSkillReady(); Game.I.player.TryCast();
+            float a0 = r.stats[Stat.AtkSpeed];
+            Check("du_ba", Mathf.Abs(w.Cooldown(r.stats) - c0 * (1f + a0 / 100f) / (1f + (a0 + 35f) / 100f)) < 0.01f, "");
+            yield return Arena(0, 10, 0, "than_nhan"); r = Game.I.run; r.levelStats[Stat.Crit] += 85; r.Recalc(); bool all = true;
+            foreach (var e in Pack(20, 2f, 4f)) { Skills.Hit(e, 0.01f, "t", Vector2.right); all &= Skills.LastHitCrit; }
+            Check("than_nhan", all, "");
+            yield return Arena(0, 10, 0, "hoa_an", "loi_an", "doc_an"); var four = Pack(4, 1f, 1.5f);
+            Skills.Hit(four[0], 0.01f, "t", Vector2.right);
+            Check("dao_an", four[0].Burning && four[0].Poisoned && Dmg("loi_an") > 0, "");
+            yield return Arena(0, 10, 0, "phu_an"); int fr = 0;
+            foreach (var e in Pack(40, 2f, 6f)) { Skills.Hit(e, 0.01f, "t", Vector2.right); if (e.Frozen) fr++; }
+            Check("phu_an", fr >= 4 && fr <= 18, fr + "/40");
+        }
+
         // ---------------------------------------------------------------- Tiến Giai, Uy Áp (Task 7)
         IEnumerator T_prog_stage()
         {

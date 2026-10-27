@@ -48,6 +48,13 @@ namespace VK
         public Mod[] mods;
     }
 
+    /// <summary>Ngộ Đạo card (spec section 5): <c>charId</c> null = shared, <c>needTag</c> = weapon Đạo with at least 2 owned weapons, -1 = none.</summary>
+    public class SkillCardDef
+    {
+        public string id, name, desc, charId;
+        public int needTag = -1;
+    }
+
     public class MetaDef
     {
         public string name, desc; public Stat stat; public float per; public bool special;

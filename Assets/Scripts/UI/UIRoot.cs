@@ -787,9 +787,19 @@ namespace VK
                 UIK.Border(card.gameObject, Content.TierColor[opt.tier], opt.tier >= 2 ? 3 : 2);
                 UIK.VL(card.gameObject, 10, 18, TextAnchor.MiddleCenter);
                 UIK.Txt(card.transform, "[" + (i + 1) + "]", 20, UIK.Dim);
-                UIK.Txt(card.transform, Content.TierName[opt.tier] + " phẩm", 28, Content.TierColor[opt.tier], TextAnchor.MiddleCenter, FontStyle.Bold);
-                UIK.Spacer(card.transform);
-                UIK.Txt(card.transform, StatInfo.Fmt(opt.mods).Replace("\n", "\n\n"), 30, Color.white);
+                if (opt.card != null)
+                {   // Ngộ Đạo card (a proper design comes with part E)
+                    UIK.Txt(card.transform, "Ngộ Đạo", 28, Content.TierColor[opt.tier], TextAnchor.MiddleCenter, FontStyle.Bold);
+                    UIK.Spacer(card.transform);
+                    UIK.Txt(card.transform, opt.card.name, 30, new Color(1f, 0.85f, 0.4f), TextAnchor.MiddleCenter, FontStyle.Bold);
+                    UIK.Txt(card.transform, opt.card.desc, 22, Color.white);
+                }
+                else
+                {
+                    UIK.Txt(card.transform, Content.TierName[opt.tier] + " phẩm", 28, Content.TierColor[opt.tier], TextAnchor.MiddleCenter, FontStyle.Bold);
+                    UIK.Spacer(card.transform);
+                    UIK.Txt(card.transform, StatInfo.Fmt(opt.mods).Replace("\n", "\n\n"), 30, Color.white);
+                }
                 UIK.Spacer(card.transform);
                 var b = card.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;

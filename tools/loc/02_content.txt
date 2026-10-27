@@ -251,3 +251,57 @@ Vòng nổ lớn hơn, Hút Máu hiến tế +40%|Bigger blast, rite Lifesteal +
 Mỗi tia sét nảy sang 2 quái gần đó|Each bolt jumps to 2 nearby enemies|每道雷电再跳向附近2名敌人
 Vùng sấm đi theo người 4 giây, liên tục giật quái bên trong|A thunder zone follows you for 4 s, shocking enemies inside|雷域跟随4秒，持续电击域内敌人
 12 tia sét và một cột sét lớn đánh quái cứng nhất|12 bolts plus a huge pillar of lightning on the toughest enemy|12道雷电，另有巨型雷柱击打最强敌人
+# Ngộ Đạo cards (Task 8)
+Ngộ Đạo|Enlightenment|悟道
+Bách Kiếm Triều|Hundred Swords Tide|百剑朝宗
+Kiếm Tâm Thông Minh|Clear Sword Heart|剑心通明
+Kiếm Khí Hộ Thể|Sword Qi Armor|剑气护体
+Cửu Chuyển Hoàn Đan|Ninefold Return Elixir|九转还丹
+Bạo Viêm Đan|Blazing Flame Elixir|爆炎丹
+Hộ Mệnh Đan|Life-Guard Elixir|护命丹
+Bất Động Minh Vương|Immovable Wisdom King|不动明王
+Thiết Bố Sam|Iron Cloth Shirt|铁布衫
+Sơn Băng Địa Hãm|Mountain Collapse|山崩地陷
+Hàn Băng Phù|Frost Talisman|寒冰符
+Hộ Thân Phù|Guardian Talisman|护身符
+Truy Hồn Phù|Soul-Chasing Talisman|追魂符
+Huyết Hải Vô Biên|Boundless Blood Sea|血海无边
+Thị Huyết|Bloodthirst|嗜血
+Huyết Ảnh Phân Thân|Blood Shadow Clone|血影分身
+Lôi Đình Vạn Quân|Ten Thousand Thunderbolts|雷霆万钧
+Lôi Linh Hộ Thể|Thunder Spirit Armor|雷灵护体
+Tích Lôi|Stored Thunder|积雷
+Song Thi|Twin Cast|双施
+Tụ Khí|Qi Gathering|聚气
+Dư Ba|Aftershock|余波
+Thần Nhãn|Divine Eye|神眼
+Hỏa Đạo Ấn|Fire Dao Seal|火道印
+Lôi Đạo Ấn|Thunder Dao Seal|雷道印
+Độc Đạo Ấn|Poison Dao Seal|毒道印
+Phù Đạo Ấn|Talisman Dao Seal|符道印
++8 kiếm; mọi kiếm ×0.7 sát thương.|+8 swords; every sword deals ×0.7 damage.|+8把剑；所有剑伤害×0.7。
+Kiếm ưu tiên tinh anh và boss; mục tiêu bị nhiều kiếm chém thì mỗi kiếm sau +15% (tối đa +150%).|Swords prefer elites and bosses; each further sword on a target already cut by this cast does +15% (max +150%).|剑优先攻击精英和首领；同一目标每多被本次剑斩一次，后续剑伤害+15%（最多+150%）。
+Mỗi kiếm của chiêu trúng quái tích 1 tầng (tối đa 12, xoá đầu đợt); đủ 12 tầng thì chặn hẳn đòn kế tiếp.|Each sword hit stores 1 stack (max 12, cleared each wave); at 12 stacks the next hit you take is fully blocked.|每把剑命中积1层（最多12层，每波清零）；满12层则完全抵挡下一次受到的攻击。
+Vụ nổ chính hồi thêm 2% máu tối đa cho mỗi quái trúng (tối đa +20%).|The main blast heals an extra 2% max HP per enemy hit (max +20%).|主爆炸每命中一只怪额外回复2%最大生命（最多+20%）。
+Bán kính nổ +0.15 cho mỗi quái trong vùng lúc thi triển (tối đa +1.5); đòn chiêu +50% lên quái đang cháy.|Blast radius +0.15 per enemy in range when cast (max +1.5); skill hits deal +50% to burning enemies.|施放时范围内每有一只怪爆炸半径+0.15（最多+1.5）；神通对燃烧中的怪伤害+50%。
+Máu xuống dưới 30% mà chiêu đã sẵn sàng thì tự thi triển (1 lần mỗi đợt).|When HP falls below 30% and the skill is ready, it casts itself (once per wave).|生命低于30%且神通就绪时自动施放（每波一次）。
+Trong lúc bất tử do chiêu, quái chạm người chịu ×0.5 sát thương và bị hất lùi.|While invulnerable from the skill, enemies touching you take ×0.5 damage and are knocked back.|神通无敌期间，接触你的怪受到×0.5伤害并被击退。
+Thi triển xong +5 Hộ Giáp trong 5 giây.|After casting, +5 Armor for 5 seconds.|施放后5秒内+5护甲。
+Trước sóng chấn 0.25 giây, hút quái trong 5 ô về phía người.|0.25 s before the shockwave, pull enemies within 5 tiles toward you.|震波前0.25秒，将5格内的怪吸向你。
+Đóng băng của chiêu lâu thêm 1.5 giây.|The skill's freeze lasts 1.5 seconds longer.|神通的冰冻时间延长1.5秒。
+Thi triển xong có 3 lá bùa quay quanh người 8 giây, mỗi lá chặn 1 viên đạn địch.|After casting, 3 talismans orbit you for 8 seconds; each blocks 1 enemy bullet.|施放后3张符咒环绕你8秒，每张抵挡1发敌弹。
+Quái đang bị chiêu đóng băng mà chết thì bắn 1 lá bùa đuổi quái gần nhất, ×0.6, đóng băng 1 giây.|An enemy frozen by the skill that dies launches a talisman at the nearest enemy, ×0.6, freezing it for 1 second.|被神通冰冻的怪死亡时会射出一张符咒追击最近的怪，×0.6，冰冻1秒。
+Hiến tế kéo dài 8 giây nhưng mất 25% máu hiện tại.|The rite lasts 8 seconds but costs 25% of current HP.|献祭持续8秒，但损失25%当前生命。
+Trong lúc hiến tế, mỗi mạng diệt hồi 1% máu tối đa.|During the rite, each kill heals 1% max HP.|献祭期间每击杀一只怪回复1%最大生命。
+Trong lúc hiến tế có bóng máu đi theo, mỗi giây lướt một đường 5 ô về phía quái gần nhất (×0.8).|During the rite a blood shadow follows you and dashes 5 tiles at the nearest enemy every second (×0.8).|献祭期间有血影跟随，每秒向最近的怪冲刺5格（×0.8）。
+Bớt 3 tia sét; mỗi tia ×2 sát thương và gây choáng 2 giây.|3 fewer bolts; each bolt deals ×2 damage and stuns for 2 seconds.|少3道雷；每道伤害×2并眩晕2秒。
+Thi triển xong 4 giây có vòng điện 1.6 ô quanh người, mỗi 0.3 giây giật quái bên trong (×0.3).|For 4 seconds after casting, a 1.6-tile lightning ring zaps enemies inside every 0.3 s (×0.3).|施放后4秒内身周1.6格雷环，每0.3秒电击范围内的怪（×0.3）。
+Mỗi đòn bạo kích của vũ khí giảm 0.3 giây hồi chiêu (tối đa 4 giây mỗi vòng hồi).|Each weapon crit reduces the cooldown by 0.3 s (max 4 s per cooldown cycle).|武器每次暴击减少0.3秒冷却（每个冷却周期最多4秒）。
+0.6 giây sau, chiêu tự lặp lại phần sát thương và hồi máu ở 50%.|0.6 s later, the skill repeats its damage and healing at 50%.|0.6秒后，神通以50%威力重复其伤害与治疗。
+Mỗi mạng diệt giảm 0.15 giây hồi chiêu (tối đa 3 giây mỗi vòng hồi).|Each kill reduces the cooldown by 0.15 s (max 3 s per cooldown cycle).|每击杀一只怪减少0.15秒冷却（每个冷却周期最多3秒）。
+Thi triển xong, vũ khí +35% Tốc Đánh trong 4 giây.|After casting, weapons gain +35% Attack Speed for 4 seconds.|施放后4秒内武器攻速+35%。
+Đòn chiêu +15% Bạo Kích, +50% Sát Thương Bạo Kích.|Skill hits gain +15% Crit and +50% Crit Damage.|神通命中+15%暴击率，+50%暴击伤害。
+Cần 2 vũ khí Đạo Hỏa. Đòn chiêu thiêu đốt (30% đòn mỗi giây).|Needs 2 Fire weapons. Skill hits ignite (30% of the hit per second).|需要2件火道武器。神通命中点燃目标（每秒造成30%该击伤害）。
+Cần 2 vũ khí Đạo Lôi. Mỗi đòn chiêu nảy sang 1 quái trong 3.5 ô với 50% đòn.|Needs 2 Thunder weapons. Each skill hit jumps to 1 enemy within 3.5 tiles for 50%.|需要2件雷道武器。每次神通命中弹射到3.5格内1只怪，伤害50%。
+Cần 2 vũ khí Đạo Độc. Đòn chiêu gây độc; quái chết vì độc này lây cho tối đa 3 quái.|Needs 2 Poison weapons. Skill hits poison; enemies killed by this poison spread it to up to 3 others.|需要2件毒道武器。神通命中施毒；因此毒而死的怪会将毒传给最多3只怪。
+Cần 2 vũ khí Đạo Phù. Đòn chiêu có 25% đóng băng 1 giây.|Needs 2 Talisman weapons. Skill hits have a 25% chance to freeze for 1 second.|需要2件符道武器。神通命中有25%几率冰冻1秒。

@@ -13,6 +13,7 @@ namespace VK
 
         Transform tf;
         SpriteRenderer sr, glowSr;
+        bool duBaGlow;
         int anim;           // 0 idle, 1 thrust out, 2 thrust back, 3 swing out, 4 swing back
         float at, adur, spinBase;
         Vector2 a0, a1, aimDir = Vector2.up;
@@ -29,6 +30,7 @@ namespace VK
             float a = s[Stat.AtkSpeed];
             var run = Game.I.run;
             if (run != null && Game.I.combo >= 30 && run.Has("sat_luc_an")) a += 25f;
+            if (run != null && SkillRuntime.I != null && SkillRuntime.I.duBaT > 0f && run.HasCard("du_ba")) a += 35f;
             float c = def.cd * Content.TierCd[tier];
             return a >= 0 ? c / (1f + a / 100f) : c * (1f - a / 100f);
         }
@@ -99,6 +101,12 @@ namespace VK
         {
             if (!tf) return;
             var st = Game.I.run.stats;
+            bool duBa = SkillRuntime.I != null && SkillRuntime.I.duBaT > 0f && Game.I.run.HasCard("du_ba");
+            if (duBa)
+            {   // Dư Ba: the weapon glows in the skill color
+                var sc = Game.I.run.ch.skillColor; glowSr.color = new Color(sc.r, sc.g, sc.b, 0.6f + Mathf.Sin(Time.time * 12f) * 0.15f); duBaGlow = true;
+            }
+            else if (duBaGlow) { duBaGlow = false; ApplyTier(); }
             switch (anim)
             {
                 case 0: Idle(home, dt, st); break;

@@ -8,7 +8,7 @@ namespace VK
         public WeaponDef w; public ItemDef it; public int tier, price; public bool locked, sold;
     }
 
-    public class LevelOpt { public Mod[] mods; public int tier; }
+    public class LevelOpt { public Mod[] mods; public int tier; public SkillCardDef card; }
 
     /// <summary>Everything about the current run: stats, inventory, economy, shop, level-ups.</summary>
     public class RunState
@@ -328,33 +328,68 @@ namespace VK
         public int ChoosingLevel => level - pendingLevels + 1;
         public bool IsBreakthrough => ChoosingLevel % 10 == 0;
 
+        /// <summary>Ngộ Đạo cards not yet taken: this character's signature cards, or the shared ones whose weapon-Đạo condition holds.</summary>
+        public List<SkillCardDef> CardPool(bool signature)
+        {
+            var res = new List<SkillCardDef>();
+            foreach (var c in Content.SkillCards)
+            {
+                if (skillCards.Contains(c.id)) continue;
+                if (signature ? c.charId != ch.id : c.charId != null) continue;
+                if (c.needTag >= 0 && TagCount((Tag)c.needTag) < 2) continue;
+                if (c.id == "song_thi" && ch.id == "ma_tu" && skillStage == 0) continue;   // stage I Huyết Tế has no damage to repeat
+                res.Add(c);
+            }
+            return res;
+        }
+
+        static Stat DrawStat(List<Stat> pool)
+        {
+            float total = 0f;
+            foreach (var s in pool) total += Content.LevelWeight(s);
+            float r = Random.value * total;
+            int k = pool.Count - 1;
+            for (int i = 0; i < pool.Count; i++) { r -= Content.LevelWeight(pool[i]); if (r <= 0f) { k = i; break; } }
+            var pick = pool[k]; pool.RemoveAt(k);
+            return pick;
+        }
+
         public void RollLevelOpts()
         {
-            levelOpts = new LevelOpt[4];
+            var opts = new List<LevelOpt>();
             var pool = new List<Stat>(Content.LevelStats);
             bool brk = IsBreakthrough;
             float l = 1f + Mathf.Max(-50f, stats[Stat.Luck]) / 100f;
             int lv = ChoosingLevel;
-            for (int i = 0; i < 4; i++)
+            if (brk)
+            {   // Ngộ Đạo (spec 5.1): 1 signature card + 1 shared card, the rest Tiên stat cards; a missing signature card becomes a second shared card
+                var cards = new List<SkillCardDef>();
+                var sig = CardPool(true);
+                if (sig.Count > 0) cards.Add(sig[Random.Range(0, sig.Count)]);
+                var shared = CardPool(false);
+                for (int need = cards.Count == 0 ? 2 : 1; need > 0 && shared.Count > 0; need--)
+                {
+                    var c = shared[Random.Range(0, shared.Count)]; shared.Remove(c); cards.Add(c);
+                }
+                while (opts.Count < 4 - cards.Count)
+                {
+                    var s1 = DrawStat(pool); var s2 = DrawStat(pool);
+                    opts.Add(new LevelOpt { tier = 3, mods = new[] { new Mod(s1, Content.LevelValue(s1, 3)), new Mod(s2, Content.LevelValue(s2, 2)) } });
+                }
+                foreach (var c in cards) opts.Add(new LevelOpt { tier = 3, mods = new Mod[0], card = c });
+            }
+            else
             {
-                int tier;
-                if (brk) tier = 3;
-                else
+                for (int i = 0; i < 4; i++)
                 {
                     float r = Random.value;
                     float p3 = 0.01f * lv * 0.2f * l, p2 = (0.03f + lv * 0.006f) * l, p1 = (0.18f + lv * 0.012f) * l;
-                    tier = r < p3 ? 3 : r < p3 + p2 ? 2 : r < p3 + p2 + p1 ? 1 : 0;
+                    int tier = r < p3 ? 3 : r < p3 + p2 ? 2 : r < p3 + p2 + p1 ? 1 : 0;
+                    var s1 = DrawStat(pool);
+                    opts.Add(new LevelOpt { tier = tier, mods = new[] { new Mod(s1, Content.LevelValue(s1, tier)) } });
                 }
-                int k = Random.Range(0, pool.Count);
-                var s1 = pool[k]; pool.RemoveAt(k);
-                if (brk)
-                {
-                    int k2 = Random.Range(0, pool.Count);
-                    var s2 = pool[k2];
-                    levelOpts[i] = new LevelOpt { tier = 3, mods = new[] { new Mod(s1, Content.LevelValue(s1, 3)), new Mod(s2, Content.LevelValue(s2, 2)) } };
-                }
-                else levelOpts[i] = new LevelOpt { tier = tier, mods = new[] { new Mod(s1, Content.LevelValue(s1, tier)) } };
             }
+            levelOpts = opts.ToArray();
         }
 
         public void ChooseLevel(int i)
@@ -362,6 +397,7 @@ namespace VK
             var o = levelOpts[i];
             float before = MaxHP;
             levelStats.Add(o.mods);
+            if (o.card != null) skillCards.Add(o.card.id);
             pendingLevels--;
             Recalc();
             if (MaxHP > before) hp += MaxHP - before;

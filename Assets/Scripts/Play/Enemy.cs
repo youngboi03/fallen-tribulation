@@ -28,6 +28,7 @@ namespace VK
         Vector2 blinkTo;
         SpriteRenderer boom;
         float burnDps, burnT, poisonDps, poisonT, dotTick, frozenT;
+        bool poisonSkill;   // poisoned by Độc Đạo Ấn: spreads on death even without the Đạo Độc synergy
         public bool Frozen => frozenT > 0;
         public bool Burning => burnT > 0;
         public int skillHits;
@@ -193,7 +194,7 @@ namespace VK
                     if (dead) return;
                 }
                 if (burnT <= 0) burnDps = 0;
-                if (poisonT <= 0) poisonDps = 0;
+                if (poisonT <= 0) { poisonDps = 0; poisonSkill = false; }
             }
 
             // visuals
@@ -484,7 +485,7 @@ namespace VK
 
         // ---------------------------------------------------------------- damage
         public void ApplyBurn(float dps) { burnDps = Mathf.Max(burnDps, dps); burnT = 2f; if (dotTick <= 0) dotTick = 0.5f; }
-        public void ApplyPoison(float dps) { poisonDps = Mathf.Max(poisonDps, dps) + dps * 0.25f; poisonDps = Mathf.Min(poisonDps, dps * 3f); poisonT = 3f; if (dotTick <= 0) dotTick = 0.5f; }
+        public void ApplyPoison(float dps, bool fromSkill = false) { poisonDps = Mathf.Max(poisonDps, dps) + dps * 0.25f; poisonDps = Mathf.Min(poisonDps, dps * 3f); poisonT = 3f; if (dotTick <= 0) dotTick = 0.5f; if (fromSkill) poisonSkill = true; }
         public bool Poisoned => poisonT > 0;
 
         public void Damage(float d, bool crit, Vector2 dir, float knockPow, WeaponInst src, Color? col = null)
@@ -564,7 +565,7 @@ namespace VK
                         e.Damage(lastDmg * 0.5f, false, e.Pos - pos, 0.5f, null, new Color(1f, 0.55f, 0.2f));
                 Release(list);
             }
-            if (poisonT > 0 && run.PoisonSpreads)
+            if (poisonT > 0 && (run.PoisonSpreads || (poisonSkill && run.HasCard("doc_an"))))
             {
                 var list = Snapshot();
                 int spread = 0;

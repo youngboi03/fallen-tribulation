@@ -75,6 +75,41 @@ namespace VK
             new[] { new Mod(Stat.Damage, 10f), new Mod(Stat.SkillPower, 10f) },
         };
 
+        // ---------------------------------------------------------------- Ngộ Đạo cards (spec section 5.2-5.3)
+        static SkillCardDef Card(string id, string name, string charId, string desc, int needTag = -1) =>
+            new SkillCardDef { id = id, name = name, charId = charId, desc = desc, needTag = needTag };
+
+        public static readonly List<SkillCardDef> SkillCards = new List<SkillCardDef>
+        {
+            Card("bach_kiem", "Bách Kiếm Triều", "kiem_tu", "+8 kiếm; mọi kiếm ×0.7 sát thương."),
+            Card("kiem_tam", "Kiếm Tâm Thông Minh", "kiem_tu", "Kiếm ưu tiên tinh anh và boss; mục tiêu bị nhiều kiếm chém thì mỗi kiếm sau +15% (tối đa +150%)."),
+            Card("kiem_khi", "Kiếm Khí Hộ Thể", "kiem_tu", "Mỗi kiếm của chiêu trúng quái tích 1 tầng (tối đa 12, xoá đầu đợt); đủ 12 tầng thì chặn hẳn đòn kế tiếp."),
+            Card("cuu_chuyen", "Cửu Chuyển Hoàn Đan", "dan_tu", "Vụ nổ chính hồi thêm 2% máu tối đa cho mỗi quái trúng (tối đa +20%)."),
+            Card("bao_viem", "Bạo Viêm Đan", "dan_tu", "Bán kính nổ +0.15 cho mỗi quái trong vùng lúc thi triển (tối đa +1.5); đòn chiêu +50% lên quái đang cháy."),
+            Card("ho_menh", "Hộ Mệnh Đan", "dan_tu", "Máu xuống dưới 30% mà chiêu đã sẵn sàng thì tự thi triển (1 lần mỗi đợt)."),
+            Card("bat_dong", "Bất Động Minh Vương", "the_tu", "Trong lúc bất tử do chiêu, quái chạm người chịu ×0.5 sát thương và bị hất lùi."),
+            Card("thiet_bo_sam", "Thiết Bố Sam", "the_tu", "Thi triển xong +5 Hộ Giáp trong 5 giây."),
+            Card("son_bang", "Sơn Băng Địa Hãm", "the_tu", "Trước sóng chấn 0.25 giây, hút quái trong 5 ô về phía người."),
+            Card("han_bang", "Hàn Băng Phù", "phu_tu", "Đóng băng của chiêu lâu thêm 1.5 giây."),
+            Card("ho_than", "Hộ Thân Phù", "phu_tu", "Thi triển xong có 3 lá bùa quay quanh người 8 giây, mỗi lá chặn 1 viên đạn địch."),
+            Card("truy_hon", "Truy Hồn Phù", "phu_tu", "Quái đang bị chiêu đóng băng mà chết thì bắn 1 lá bùa đuổi quái gần nhất, ×0.6, đóng băng 1 giây."),
+            Card("huyet_hai", "Huyết Hải Vô Biên", "ma_tu", "Hiến tế kéo dài 8 giây nhưng mất 25% máu hiện tại."),
+            Card("thi_huyet", "Thị Huyết", "ma_tu", "Trong lúc hiến tế, mỗi mạng diệt hồi 1% máu tối đa."),
+            Card("huyet_anh", "Huyết Ảnh Phân Thân", "ma_tu", "Trong lúc hiến tế có bóng máu đi theo, mỗi giây lướt một đường 5 ô về phía quái gần nhất (×0.8)."),
+            Card("loi_dinh", "Lôi Đình Vạn Quân", "loi_tu", "Bớt 3 tia sét; mỗi tia ×2 sát thương và gây choáng 2 giây."),
+            Card("loi_linh", "Lôi Linh Hộ Thể", "loi_tu", "Thi triển xong 4 giây có vòng điện 1.6 ô quanh người, mỗi 0.3 giây giật quái bên trong (×0.3)."),
+            Card("tich_loi", "Tích Lôi", "loi_tu", "Mỗi đòn bạo kích của vũ khí giảm 0.3 giây hồi chiêu (tối đa 4 giây mỗi vòng hồi)."),
+            Card("song_thi", "Song Thi", null, "0.6 giây sau, chiêu tự lặp lại phần sát thương và hồi máu ở 50%."),
+            Card("tu_khi", "Tụ Khí", null, "Mỗi mạng diệt giảm 0.15 giây hồi chiêu (tối đa 3 giây mỗi vòng hồi)."),
+            Card("du_ba", "Dư Ba", null, "Thi triển xong, vũ khí +35% Tốc Đánh trong 4 giây."),
+            Card("than_nhan", "Thần Nhãn", null, "Đòn chiêu +15% Bạo Kích, +50% Sát Thương Bạo Kích."),
+            Card("hoa_an", "Hỏa Đạo Ấn", null, "Cần 2 vũ khí Đạo Hỏa. Đòn chiêu thiêu đốt (30% đòn mỗi giây).", (int)Tag.Hoa),
+            Card("loi_an", "Lôi Đạo Ấn", null, "Cần 2 vũ khí Đạo Lôi. Mỗi đòn chiêu nảy sang 1 quái trong 3.5 ô với 50% đòn.", (int)Tag.Loi),
+            Card("doc_an", "Độc Đạo Ấn", null, "Cần 2 vũ khí Đạo Độc. Đòn chiêu gây độc; quái chết vì độc này lây cho tối đa 3 quái.", (int)Tag.Doc),
+            Card("phu_an", "Phù Đạo Ấn", null, "Cần 2 vũ khí Đạo Phù. Đòn chiêu có 25% đóng băng 1 giây.", (int)Tag.Phu),
+        };
+        public static SkillCardDef SkillCard(string id) => SkillCards.Find(c => c.id == id);
+
         public static string Realm(int level)
         {
             int r = Mathf.Min(level / 10, RealmName.Length - 1);
@@ -326,7 +361,9 @@ namespace VK
         // ---------------------------------------------------------------- level-up pool
         public static readonly Stat[] LevelStats = {
             Stat.MaxHP, Stat.Regen, Stat.Lifesteal, Stat.Damage, Stat.Melee, Stat.Spell, Stat.AtkSpeed, Stat.Crit,
-            Stat.CritDmg, Stat.Range, Stat.Armor, Stat.Dodge, Stat.Speed, Stat.Luck, Stat.Harvest };
+            Stat.CritDmg, Stat.Range, Stat.Armor, Stat.Dodge, Stat.Speed, Stat.Luck, Stat.Harvest, Stat.SkillPower, Stat.SkillHaste };
+        /// <summary>Thần Lực and Tĩnh Tâm come up half as often as the other level-up stats (spec 3.3).</summary>
+        public static float LevelWeight(Stat s) => s == Stat.SkillPower || s == Stat.SkillHaste ? 0.5f : 1f;
         public static float LevelValue(Stat s, int tier)
         {
             switch (s)
@@ -346,6 +383,8 @@ namespace VK
                 case Stat.Speed: return new[] { 3, 6, 9, 12 }[tier];
                 case Stat.Luck: return new[] { 5, 10, 15, 20 }[tier];
                 case Stat.Harvest: return new[] { 5, 8, 12, 16 }[tier];
+                case Stat.SkillPower: return new[] { 8, 12, 18, 25 }[tier];
+                case Stat.SkillHaste: return new[] { 4, 6, 9, 12 }[tier];
             }
             return 1;
         }
