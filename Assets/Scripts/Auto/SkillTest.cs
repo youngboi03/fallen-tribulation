@@ -1039,11 +1039,14 @@ namespace VK
 
         /// <summary>Force one move; every damage event (hazard hit, boss hit or new bullet) must come after a boss telegraph was already
         /// on screen for at least the Kiếp 0 floor, and the primitive must report a telegraph >= the floor.</summary>
-        IEnumerator Prim(string kind, string bossId, int wave, string moveId, Vector2 bossPos, int volley)
+        IEnumerator Prim(string kind, string bossId, int wave, string moveId, Vector2 bossPos, int volley, System.Func<BossBrain, IEnumerator> during = null)
         {
             yield return BossPrep(bossId, 0, wave, bossPos); var b = boss.brain; b.LastTele = -1f;
             int ph0 = BossHazard.PlayerHits, bh0 = BossBrain.HitCount, pr0 = Projectile.CountHostile();
             b.ForceMove(moveId);
+            for (int i = 0; i < 4 && b.Current == null; i++) yield return null;
+            b.Hold = true;   // nothing but the forced move may hurt
+            if (during != null) yield return during(b);
             bool teleSeen = false, changed = false, teleFirst = false; int firstVolley = -1; float t = 0f, teleAt = -1f;
             while (t < 8f && !changed)
             {
@@ -1071,7 +1074,192 @@ namespace VK
             yield return Prim("cone", "b2", 10, "liet_diem_tam_kich", new Vector2(0, 3), 0);
             yield return Prim("zones", "b4", 20, "thien_loi_cam_vuc", new Vector2(0, 5), 0);
             yield return Prim("pillars", "b4", 20, "thien_ma_phap_tuong", new Vector2(0, 5), 0);
+            yield return Prim("sweep", "b1", 5, "ma_nhan_quet", new Vector2(0, 5), 0);
+            yield return Prim("nova", "b2", 10, "viem_hoan", Vector2.zero, 0, NovaIntoRing);
+            yield return Prim("line", "b2b", 10, "doc_ty_troi", new Vector2(0, 5), 0);
+            yield return Prim("blink", "b3", 15, "huyet_bo", new Vector2(0, 5), 0, BlinkIntoCircle);
             BossHazard.ClearAll(); Projectile.ClearAll(false);
+        }
+
+        // ---------------------------------------------------------------- task 4 primitives
+        void Place(Vector2 p) { tankHold = false; Game.I.player.transform.position = p; }
+
+        /// <summary>Forces a move, waits until it started, then holds the brain so no other move follows.</summary>
+        IEnumerator Fire(BossBrain b, string id)
+        {
+            b.ForceMove(id);
+            for (int i = 0; i < 4 && b.Current == null; i++) yield return null;
+            b.Hold = true;
+        }
+
+        BossHazard TeleOf(HShape s) => BossHazard.All.FirstOrDefault(h => h != null && h.owner == boss && h.shape == s && h.Telegraphing);
+
+        /// <summary>Nova scenario helper: puts the player 5 units from the boss, outside every gap.</summary>
+        IEnumerator NovaIntoRing(BossBrain b)
+        {
+            BossHazard h = null;
+            for (int i = 0; i < 10 && h == null; i++) { h = TeleOf(HShape.Annulus); if (h == null) yield return null; }
+            if (h == null || h.gapDirsDeg == null || h.gapDirsDeg.Count == 0) yield break;
+            float ang = h.gapDirsDeg[0] + h.angleDeg + 0.5f * 360f / h.gapDirsDeg.Count;
+            Place(boss.Pos + new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad), Mathf.Sin(ang * Mathf.Deg2Rad)) * 5f);
+        }
+
+        /// <summary>Blink scenario helper: steps into the slash telegraph so the hit lands.</summary>
+        IEnumerator BlinkIntoCircle(BossBrain b)
+        {
+            BossHazard h = null;
+            for (int i = 0; i < 10 && h == null; i++) { h = TeleOf(HShape.Circle); if (h == null) yield return null; }
+            if (h != null) Place(h.pos);
+        }
+
+        IEnumerator T_boss_prim_sweep()
+        {
+            yield return BossPrep("b1", 0, 5, new Vector2(0, 5)); var b = boss.brain;
+            int ph0 = BossHazard.PlayerHits;
+            yield return Fire(b, "ma_nhan_quet"); yield return Sec(2.6f);
+            Check("sweep_on_arc_hit", BossHazard.PlayerHits - ph0 == 1, (BossHazard.PlayerHits - ph0).ToString());
+            yield return BossPrep("b1", 0, 5, new Vector2(0, 5)); b = boss.brain;
+            ph0 = BossHazard.PlayerHits;
+            yield return Fire(b, "ma_nhan_quet"); yield return null; Place(new Vector2(0, 8.5f)); yield return Sec(2.6f);
+            Check("sweep_behind_boss_safe", BossHazard.PlayerHits - ph0 == 0, (BossHazard.PlayerHits - ph0).ToString());
+            // the telegraph is a wedge covering the swept arc, drawn before the beam exists
+            yield return BossPrep("b1", 0, 5, new Vector2(0, 5)); b = boss.brain;
+            yield return Fire(b, "ma_nhan_quet"); yield return Sec(0.2f);
+            var w = TeleOf(HShape.Cone);
+            Check("sweep_wedge", w != null && w.arcDeg >= 90f && w.radius >= 9f, w == null ? "none" : w.arcDeg + " r" + w.radius);
+            BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_prim_nova()
+        {
+            for (int pass = 0; pass < 2; pass++)
+            {
+                yield return BossPrep("b2", 0, 10, Vector2.zero); var b = boss.brain;
+                int ph0 = BossHazard.PlayerHits;
+                yield return Fire(b, "viem_hoan");
+                BossHazard h = null;
+                for (int i = 0; i < 10 && h == null; i++) { h = TeleOf(HShape.Annulus); if (h == null) yield return null; }
+                if (h == null || h.gapDirsDeg == null) { Check("nova_tele", false, "no annulus telegraph"); continue; }
+                float step = 360f / h.gapDirsDeg.Count;
+                float ang = h.gapDirsDeg[0] + h.angleDeg + (pass == 0 ? 0f : step * 0.5f);
+                if (pass == 0) Check("nova_tele", h.gapDirsDeg.Count == 2 && Mathf.Abs(h.gapWidthDeg - 35f) < 0.1f && h.Telegraphing, h.gapDirsDeg.Count + " gaps w" + h.gapWidthDeg);
+                Place(boss.Pos + new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad), Mathf.Sin(ang * Mathf.Deg2Rad)) * 5f);
+                yield return Sec(2.5f);
+                int hits = BossHazard.PlayerHits - ph0;
+                Check(pass == 0 ? "nova_in_gap_safe" : "nova_outside_gap_hit", hits == (pass == 0 ? 0 : 1), hits.ToString());
+            }
+            BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_prim_line()
+        {
+            yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); var b = boss.brain;
+            int ph0 = BossHazard.PlayerHits;
+            yield return Fire(b, "doc_ty_troi");
+            yield return Sec(0.1f);
+            var bars = BossHazard.All.Where(h => h != null && h.owner == boss && h.shape == HShape.Bar && h.Telegraphing).ToList();
+            Check("line_three_bars", bars.Count == 3, bars.Count.ToString());
+            bool edge = bars.Count > 0 && bars.All(h => Mathf.Abs(h.len - Edge(h.pos, h.angleDeg)) < 0.2f && (h.pos - boss.Pos).magnitude < 0.3f);
+            Check("line_to_edge", edge, bars.Count > 0 ? bars[0].len.ToString("0.0") : "-");
+            var pl = Game.I.player; float t = 0f;
+            while (t < 2.5f && BossHazard.PlayerHits == ph0) { yield return null; t += Game.Dt; }
+            float slowT = pl.slowT, slowMul = pl.slowMul;
+            Check("line_hit", BossHazard.PlayerHits - ph0 == 1, (BossHazard.PlayerHits - ph0).ToString());
+            Check("line_slow", Mathf.Abs(slowMul - 0.7f) < 0.01f && slowT > 1.0f && slowT <= 1.2f, slowMul.ToString("0.00") + " t" + slowT.ToString("0.00"));
+            // grid: 5 vertical + 3 horizontal lines, floor 1.0 s for the ultimate
+            yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); b = boss.brain; b.LastTele = -1f;
+            yield return Fire(b, "thien_la_dia_vong"); yield return Sec(0.1f);
+            int n = BossHazard.All.Count(h => h != null && h.owner == boss && h.shape == HShape.Bar && h.Telegraphing);
+            Check("line_grid", n == 8 && b.LastTele >= 1f, n + " tele " + b.LastTele);
+            // between: two nearest live pools, skipped with fewer than two
+            yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); b = boss.brain;
+            BossHazard.Spawn(boss, HShape.Circle, new Vector2(-5, 0), 0.01f, 30f, 1f, Color.green, 0.5f).radius = 1f;
+            BossHazard.Spawn(boss, HShape.Circle, new Vector2(6, 3), 0.01f, 30f, 1f, Color.green, 0.5f).radius = 1f;
+            BossHazard.Spawn(boss, HShape.Circle, new Vector2(9, -8), 0.01f, 30f, 1f, Color.green, 0.5f).radius = 1f;
+            yield return Sec(0.1f);
+            yield return Fire(b, "ty_dan"); yield return Sec(0.2f);
+            var seg = TeleOf(HShape.Segment);
+            bool ok = seg != null && (((seg.a - new Vector2(-5, 0)).magnitude < 0.1f && (seg.b - new Vector2(6, 3)).magnitude < 0.1f) || ((seg.b - new Vector2(-5, 0)).magnitude < 0.1f && (seg.a - new Vector2(6, 3)).magnitude < 0.1f));
+            Check("line_between", ok, seg == null ? "none" : seg.a + " " + seg.b);
+            BossHazard.ClearAll();
+            yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); b = boss.brain;
+            BossHazard.Spawn(boss, HShape.Circle, new Vector2(-5, 0), 0.01f, 30f, 1f, Color.green, 0.5f).radius = 1f;
+            yield return Sec(0.1f);
+            yield return Fire(b, "ty_dan"); yield return Sec(0.3f);
+            Check("line_between_skip", TeleOf(HShape.Segment) == null, "");
+            BossHazard.ClearAll();
+        }
+
+        static float Edge(Vector2 o, float deg)
+        {
+            float r = deg * Mathf.Deg2Rad; Vector2 d = new Vector2(Mathf.Cos(r), Mathf.Sin(r)); float best = 999f;
+            if (d.x > 0.001f) best = Mathf.Min(best, (VK.Arena.HalfW - o.x) / d.x); else if (d.x < -0.001f) best = Mathf.Min(best, (-VK.Arena.HalfW - o.x) / d.x);
+            if (d.y > 0.001f) best = Mathf.Min(best, (VK.Arena.HalfH - o.y) / d.y); else if (d.y < -0.001f) best = Mathf.Min(best, (-VK.Arena.HalfH - o.y) / d.y);
+            return best;
+        }
+
+        IEnumerator T_boss_prim_summon()
+        {
+            yield return BossPrep("b1b", 0, 5, new Vector2(0, 5)); var b = boss.brain;
+            Game.I.dir.TeleOnly = true; Game.I.dir.enabled = true;
+            int max = 0; float t = 0f; bool markFirst = false, spawned = false; bool statsOk = false; string statDetail = "none"; b.LastTele = -1f;
+            float exp = 0.2f * WaveDirector.ExpectedTrashHp(5) * KiepNum.HpMul(0, 5);
+            System.Action sample = () =>
+            {
+                var live = Enemy.All.Where(e => e != null && !e.dead && e.summoner == b).ToList();
+                if (live.Count > max)
+                {
+                    max = live.Count;
+                    statsOk = live.All(e => e.def.id == "bat_small" && Mathf.Abs(e.maxHp - exp) < 0.01f && Mathf.Abs(e.dmg - 0.3f * boss.dmg) < 0.01f);
+                    statDetail = live[0].maxHp + " vs " + exp + " dmg " + live[0].dmg + " vs " + 0.3f * boss.dmg;
+                }
+                if (!markFirst && !spawned && BossHazard.All.Any(h => h != null && h.owner == boss && h.Telegraphing)) markFirst = true;
+                if (live.Count > 0) spawned = true;
+            };
+            for (int cast = 0; cast < 3; cast++)
+            {
+                int n0 = b.Log.Count;
+                b.Hold = false; b.ForceMove("bay_doi");
+                float w = 0f;
+                while (w < 4f && (b.Log.Count == n0 || b.Current != null)) { yield return null; w += Game.Dt; sample(); }
+                b.Hold = true;
+            }
+            while (t < 1.5f) { yield return null; t += Game.Dt; sample(); }
+            Check("summon_tele_first", markFirst && b.LastTele >= KiepNum.TeleFloor(0), "mark " + markFirst + " tele " + b.LastTele.ToString("0.00"));
+            Check("summon_cap", max == 6, "max " + max);
+            Check("summon_bat_stats", statsOk, statDetail);
+            yield return Sec(5.5f);
+            int left = Enemy.All.Count(e => e != null && !e.dead && e.summoner == b);
+            Check("summon_lifetime", left == 0, left.ToString());
+            Game.I.dir.TeleOnly = false; Game.I.dir.enabled = false;
+            BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_prim_static()   // cocoons and flags are not pushed around by the crowd separation
+        {
+            yield return BossPrep("b2b", 0, 10, new Vector2(0, 5));
+            Game.I.player.god = true;
+            var a = Enemy.Spawn(Content.Minion("cocoon"), new Vector2(6, -3), 10, 1f, 1f);
+            var c = Enemy.Spawn(Content.Minion("war_flag"), new Vector2(6.1f, -3f), 10, 1f, 1f);
+            Vector2 pa = a.Pos, pc = c.Pos;
+            yield return Sec(1f);
+            Check("static_no_drift", (a.Pos - pa).magnitude < 0.001f && (c.Pos - pc).magnitude < 0.001f, (a.Pos - pa).magnitude.ToString("0.000"));
+            Destroy(a.gameObject); Destroy(c.gameObject); Enemy.All.RemoveAll(e => e == null || e.dead);
+        }
+
+        IEnumerator T_boss_prim_blink()
+        {
+            foreach (var cfg in new[] { ("b3", 15, "huyet_bo"), ("b1b", 5, "da_hanh") })
+            {
+                yield return BossPrep(cfg.Item1, 0, cfg.Item2, new Vector2(0, 5)); var b = boss.brain;
+                Vector2 p0 = Game.I.player.Pos, from = boss.Pos;
+                yield return Fire(b, cfg.Item3);
+                float t = 0f;
+                while (t < 3f && (boss.Pos - from).magnitude < 1f) { yield return null; t += Game.Dt; }
+                float d = (boss.Pos - p0).magnitude;
+                Check("blink_land_" + cfg.Item3, t < 3f && d >= 2.45f && d <= 4.05f && Mathf.Abs(boss.Pos.x) <= VK.Arena.HalfW && Mathf.Abs(boss.Pos.y) <= VK.Arena.HalfH, d.ToString("0.00") + " t" + t.ToString("0.00"));
+            }
+            BossHazard.ClearAll();
         }
     }
 }

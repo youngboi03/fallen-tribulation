@@ -42,6 +42,17 @@ namespace VK
         public void SkillFreeze(float t, float bonus) { if (brain != null && brain.Staggered) return; Freeze(t); SkillFrozen = true; skillBonus = bonus; }
         /// <summary>Boss AI (null for normal enemies and bosses without a kit).</summary>
         public BossBrain brain;
+        /// <summary>Boss that summoned this minion (counts against kit.summonCap); null for everything else.</summary>
+        public BossBrain summoner;
+        /// <summary>Seconds left before a summoned minion vanishes (0 = no limit).</summary>
+        public float lifeT;
+        /// <summary>Vanished from sight (Blink): no contact damage, renderers off.</summary>
+        public bool Hidden { get; private set; }
+        public void SetHidden(bool hide)
+        {
+            Hidden = hide;
+            foreach (var r in GetComponentsInChildren<SpriteRenderer>(true)) r.enabled = !hide;
+        }
         Color tintCol;
         float scaleMul = 1f;
         static readonly int FlashId = Shader.PropertyToID("_Flash");
@@ -127,6 +138,7 @@ namespace VK
             var g = Game.I;
             if (!g.Playing || dead) return;
             float rawDt = Game.Dt;
+            if (lifeT > 0f) { lifeT -= rawDt; if (lifeT <= 0f) { Vanish(); return; } }
             if (frozenT > 0)
             {
                 frozenT -= rawDt;
@@ -167,14 +179,14 @@ namespace VK
                 float sq = d.sqrMagnitude;
                 if (sq < r * r && sq > 0.0001f) { float dd = Mathf.Sqrt(sq); sep += d / dd * (r - dd); }
             }
-            float sepK = boss ? 0.05f : 1f;
+            float sepK = boss ? 0.05f : def.beh == EBeh.Static ? 0f : 1f;
             pos += move * dt + knock * rawDt + sep * Mathf.Min(1f, rawDt * 12f) * sepK;
             knock *= Mathf.Max(0f, 1f - rawDt * 9f);
             var clamped = Arena.Clamp(pos, radius * 0.5f);
             pos = clamped;
             transform.position = pos;
 
-            if (frozenT <= 0 && def.beh != EBeh.Static && Vector2.Distance(pos, pp) < radius + p.radius)
+            if (frozenT <= 0 && !Hidden && def.beh != EBeh.Static && Vector2.Distance(pos, pp) < radius + p.radius)
             {
                 if (brain != null) { if (!brain.Dashing) BossBrain.HurtPlayer(this, "contact", dmg, pos); }
                 else p.Hurt(dmg, pos);

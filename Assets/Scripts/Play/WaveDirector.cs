@@ -20,7 +20,7 @@ namespace VK
 
         class Tele
         {
-            public Vector2 pos; public float t, max, radius; public EnemyDef def; public bool isBoss, strike;
+            public Vector2 pos; public float t, max, radius; public EnemyDef def; public bool isBoss, strike; public System.Action<Enemy> onSpawn;
             public SpriteRenderer ring, fill;
         }
         readonly List<Tele> teles = new List<Tele>();
@@ -58,6 +58,7 @@ namespace VK
             var g = Game.I;
             if (!g.Playing) return;
             float dt = Game.Dt;
+            if (TeleOnly) { TickTeles(dt); return; }
 
             if (!bossWave)
             {
@@ -83,6 +84,11 @@ namespace VK
                 }
             }
 
+            TickTeles(dt);
+        }
+
+        void TickTeles(float dt)
+        {
             for (int i = teles.Count - 1; i >= 0; i--)
             {
                 var t = teles[i];
@@ -144,10 +150,15 @@ namespace VK
             }
         }
 
-        public void QueueSpawn(Vector2 p, EnemyDef def)
+        /// <summary>Tests: only the pending spawn warnings tick (no wave timer, no random spawns, no strikes).</summary>
+        public bool TeleOnly;
+
+        /// <summary>Spawn warning, then the enemy. onSpawn gets the new enemy (boss summons set their bookkeeping there).</summary>
+        public void QueueSpawn(Vector2 p, EnemyDef def, System.Action<Enemy> onSpawn = null)
         {
             if (def == null) def = PickDef();
             AddTele(p, def, false, false, 0.85f, 0.45f * def.scale);
+            teles[teles.Count - 1].onSpawn = onSpawn;
         }
 
         EnemyDef PickDef()
@@ -250,7 +261,8 @@ namespace VK
                 Sfx.Play("j_boss", 0.6f, 0f, 0.8f);
                 return;
             }
-            Enemy.Spawn(t.def, t.pos, wave, HpMul, DmgMul);
+            var en = Enemy.Spawn(t.def, t.pos, wave, HpMul, DmgMul);
+            if (t.onSpawn != null) t.onSpawn(en);
         }
 
         /// <summary>Spawns a boss and attaches its BossBrain (kit by def id) at the given Kiếp; the one path for waves and tests.

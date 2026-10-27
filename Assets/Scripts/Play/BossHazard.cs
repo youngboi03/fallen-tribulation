@@ -10,7 +10,7 @@ namespace VK
     /// Fairness (spec 3.4): tick 0 = at most one hit; tick above 0 = at most one hit per max(tick, 0.5) s;
     /// tele 0 still gets a 0.5 s forming time. Timers run on Game.Dt scaled by the owner's freeze factor.
     /// For Ring/Annulus the gap directions are rotated by angleDeg (so spinDeg turns the gaps).
-    /// slow = fraction of player move speed removed for ~1 s after a hit (0.3 = 30% slower).
+    /// slow = fraction of player move speed removed for slowDur (default 1) s after a hit (0.3 = 30% slower).
     /// </summary>
     public class BossHazard : MonoBehaviour
     {
@@ -22,6 +22,8 @@ namespace VK
         public HShape shape;
         public Vector2 pos;
         public float radius, radius2, len, width, angleDeg, arcDeg, gapWidthDeg, slow;
+        /// <summary>How long the slow lasts after a hit (s).</summary>
+        public float slowDur = 1f;
         public List<float> gapDirsDeg;
         public Vector2 a, b;
         public float tele, active, dmg, tick;
@@ -172,7 +174,7 @@ namespace VK
                         hitDone = true;
                         hitCd = Mathf.Max(tick, MinTick);
                         PlayerHits++;
-                        if (slow > 0f) { float m = 1f - Mathf.Clamp01(slow); p.slowMul = p.slowT > 0f ? Mathf.Min(p.slowMul, m) : m; p.slowT = 1f; }
+                        if (slow > 0f) { float m = 1f - Mathf.Clamp01(slow); p.slowMul = p.slowT > 0f ? Mathf.Min(p.slowMul, m) : m; p.slowT = slowDur; }
                     }
                 }
             }

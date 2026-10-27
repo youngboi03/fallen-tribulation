@@ -48,6 +48,9 @@ namespace VK
         public float laneWidth;
         /// <summary>Hazards spawned per rider id, for live caps.</summary>
         public readonly Dictionary<string, List<BossHazard>> owned = new Dictionary<string, List<BossHazard>>();
+        /// <summary>Casts seen per host move id (rider cadence), and minions queued but not yet spawned per def id (Summon cap).</summary>
+        public readonly Dictionary<string, int> casts = new Dictionary<string, int>();
+        public readonly Dictionary<string, int> pending = new Dictionary<string, int>();
 
         readonly List<BTier> markTier = new List<BTier>();
         /// <summary>Queued ultimates with the hp mark that queued them (threshold order).</summary>
@@ -257,6 +260,7 @@ namespace VK
             if (running != null) StopCoroutine(running);
             running = null; Current = null; vel = Vector2.zero; Dashing = false;
             if (Staggered) { Staggered = false; Hold = false; }
+            e.SetHidden(false);
             BossHazard.ClearOwner(e);
             Projectile.ClearOwner(e);
         }
@@ -266,6 +270,7 @@ namespace VK
         {
             StopAllCoroutines();
             running = null; Current = null; vel = Vector2.zero; Dashing = false; Hold = true;
+            if (e != null) e.SetHidden(false);
             BossHazard.ClearOwner(e);
         }
 

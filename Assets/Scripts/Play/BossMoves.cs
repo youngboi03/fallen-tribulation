@@ -22,6 +22,11 @@ namespace VK
                 case BMove.Cone: return Cone(b, m);
                 case BMove.Zones: return m.after != null ? ZonesRider(b, m) : Zones(b, m);
                 case BMove.Pillars: return Pillars(b, m);
+                case BMove.Sweep: return Sweep(b, m);
+                case BMove.Nova: return Nova(b, m);
+                case BMove.Line: return Line(b, m);
+                case BMove.Blink: return m.after != null ? BlinkEcho(b, m) : Blink(b, m);
+                case BMove.Summon: return Summon(b, m);
                 case BMove.Hook: return Todo(b, "hook " + (m.hook ?? m.id));
                 default: return Todo(b, m.kind.ToString());
             }
@@ -257,11 +262,40 @@ namespace VK
             }
         }
 
-        /// <summary>Zone centres for one wave (layouts AroundPlayer, Random, Grid; others fall back to Random).</summary>
+        /// <summary>Point on the arena edge in direction deg from the centre, pulled inward by inset.</summary>
+        public static Vector2 EdgePoint(float deg, float inset) { Vector2 d = Dir(deg); return d * Mathf.Max(0f, EdgeDist(Vector2.zero, d) - inset); }
+
+        /// <summary>Quadrant cells (sx, sy = +-1) in random order, at most n of them.</summary>
+        public static List<Vector2Int> PickQuadrants(int n)
+        {
+            var q = new List<Vector2Int> { new Vector2Int(1, 1), new Vector2Int(-1, 1), new Vector2Int(-1, -1), new Vector2Int(1, -1) };
+            for (int i = q.Count - 1; i > 0; i--) { int j = Random.Range(0, i + 1); var t = q[i]; q[i] = q[j]; q[j] = t; }
+            return q.GetRange(0, Mathf.Clamp(n, 0, 4));
+        }
+
+        /// <summary>Zone centres for one wave. AroundPlayer/Random/Grid as before; EdgeRing = n points evenly round the arena edge,
+        /// Radial = n points on a ring of radius 4 round the boss, Between = n points evenly between the boss and the player.</summary>
         static List<Vector2> ZonePoints(BossBrain b, BossMove m)
         {
             var pts = new List<Vector2>();
             Vector2 pp = P;
+            if (m.layout == ZLayout.EdgeRing)
+            {
+                float a0 = Random.Range(0f, 360f);
+                for (int i = 0; i < m.n; i++) pts.Add(EdgePoint(a0 + 360f * i / Mathf.Max(1, m.n), 1.2f));
+                return pts;
+            }
+            if (m.layout == ZLayout.Radial)
+            {
+                float a0 = Random.Range(0f, 360f);
+                for (int i = 0; i < m.n; i++) pts.Add(Arena.Clamp(b.e.Pos + Dir(a0 + 360f * i / Mathf.Max(1, m.n)) * 4f, 0.5f));
+                return pts;
+            }
+            if (m.layout == ZLayout.Between)
+            {
+                for (int i = 0; i < m.n; i++) pts.Add(Arena.Clamp(Vector2.Lerp(b.e.Pos, pp, (i + 1f) / (m.n + 1f)), 0.5f));
+                return pts;
+            }
             int near = m.layout == ZLayout.AroundPlayer ? m.n : Mathf.Min(m.n, m.gaps);
             for (int i = 0; i < near; i++)
                 pts.Add(i == 0 ? pp : Arena.Clamp(pp + Random.insideUnitCircle.normalized * m.radius * Random.Range(1.6f, 2.4f), 0.5f));
@@ -300,6 +334,18 @@ namespace VK
                             var h = Hz(b, m, HShape.Bar, new Vector2(-Arena.HalfW + i * cell, -Arena.HalfH + (j + 0.5f) * cell), tele, active, D(b, m), tick);
                             h.len = cell; h.width = cell; h.angleDeg = 0f;
                         }
+                    Sfx.Play("tick", 0.5f, 0f, 0.8f);
+                    yield return Wait(b, tele + active);
+                    if (w < reps - 1) yield return Wait(b, m.gap);
+                    continue;
+                }
+                if (m.layout == ZLayout.Quadrants)
+                {   // one rectangle per picked quadrant of the arena; the rest stays safe
+                    foreach (var q in PickQuadrants(m.n))
+                    {
+                        var h = Hz(b, m, HShape.Bar, new Vector2(q.x > 0 ? 0f : -Arena.HalfW, q.y * Arena.HalfH * 0.5f), tele, active, D(b, m), tick);
+                        h.len = Arena.HalfW; h.width = Arena.HalfH; h.angleDeg = 0f;
+                    }
                     Sfx.Play("tick", 0.5f, 0f, 0.8f);
                     yield return Wait(b, tele + active);
                     if (w < reps - 1) yield return Wait(b, m.gap);
@@ -359,6 +405,273 @@ namespace VK
                 if (i < m.n - 1) yield return Wait(b, m.gap);
             }
             yield return Wait(b, tele + 0.2f);
+        }
+
+        // ------------------------------------------------------------------ Sweep
+        /// <summary>Distance from o along d to the arena edge.</summary>
+        public static float EdgeDist(Vector2 o, Vector2 d)
+        {
+            float best = 99f;
+            if (d.x > 0.001f) best = Mathf.Min(best, (Arena.HalfW - o.x) / d.x); else if (d.x < -0.001f) best = Mathf.Min(best, (-Arena.HalfW - o.x) / d.x);
+            if (d.y > 0.001f) best = Mathf.Min(best, (Arena.HalfH - o.y) / d.y); else if (d.y < -0.001f) best = Mathf.Min(best, (-Arena.HalfH - o.y) / d.y);
+            return Mathf.Max(0.5f, best);
+        }
+
+        /// <summary>n beams of length len, each rotating angle deg over dur s around the boss; the telegraph is a faint wedge over the exact swept arc.
+        /// radius = angular spacing of simultaneous beams; radius2 = safe gap (deg) behind the boss for a long arc; gap = s between consecutive beams
+        /// (they then sweep side by side); speed = start offset from the player (deg). The aim is locked when the telegraph starts.</summary>
+        static IEnumerator Sweep(BossBrain b, BossMove m)
+        {
+            float tele = Tele(b, m);
+            int n = Mathf.Max(1, m.n);
+            float aim = AimAt(b), arc = Mathf.Max(1f, m.angle), dur = Mathf.Max(0.1f, m.dur);
+            float rot = Random.value < 0.5f ? -1f : 1f;
+            bool rear = m.radius2 > 0f, seq = !rear && n > 1 && m.radius <= 0f;
+            float interval = dur + Mathf.Max(0f, m.gap);
+            var start = new float[n]; var at = new float[n];
+            var wedges = new List<BossHazard>(); var beams = new BossHazard[n];
+            float halfW = Mathf.Asin(Mathf.Clamp01(m.width * 0.5f / Mathf.Max(0.5f, m.len))) * Mathf.Rad2Deg;
+            for (int i = 0; i < n; i++)
+            {
+                if (rear) start[i] = aim + 180f + rot * m.radius2 * 0.5f;
+                else if (m.radius > 0f) start[i] = aim + i * m.radius;
+                else if (seq) start[i] = aim + rot * (i - (n - 1) * 0.5f) * arc - rot * arc * 0.5f;
+                else start[i] = aim - rot * (m.speed > 0f ? m.speed : arc * 0.5f);
+                at[i] = tele + (seq ? i * interval : 0f);
+                var w = Mark(b, m, HShape.Cone, b.e.Pos, at[i]);
+                w.radius = m.len; w.arcDeg = Mathf.Min(359f, arc + 2f * halfW + 2f); w.angleDeg = start[i] + rot * arc * 0.5f;
+                wedges.Add(w);
+            }
+            Sfx.Play("heavy", 0.5f, 0f, 0.7f);
+            float t = 0f, total = at[n - 1] + dur;
+            while (t < total)
+            {
+                yield return null; t += Step(b);
+                Vector2 c = b.e.Pos;
+                for (int i = 0; i < n; i++)
+                {
+                    if (beams[i] == null && t >= at[i])
+                    {
+                        var h = Hz(b, m, HShape.Bar, c, 0.01f, dur, D(b, m));
+                        h.len = m.len; h.width = m.width; h.angleDeg = start[i]; h.spinDeg = rot * arc / dur;
+                        beams[i] = h;
+                        if (i == 0 || seq) Sfx.Play("swing", 0.5f, 0.1f, 0.6f);
+                    }
+                    if (beams[i] != null) { beams[i].pos = c; beams[i].transform.position = c; }
+                }
+                foreach (var w in wedges) if (w != null) { w.pos = c; w.transform.position = c; }
+            }
+            yield return Wait(b, 0.2f);
+        }
+
+        // ------------------------------------------------------------------ Nova
+        public const float NovaBand = 0.9f;
+
+        /// <summary>Damaging ring that grows radius to radius2 over dur, or collapses onto the player's position at telegraph start when radius &gt; radius2.
+        /// gaps safe gaps of angle deg are fixed at telegraph time and drawn in it; reps rings gap s apart, each rotating its gaps by speed deg.
+        /// hook "annulus": fire from the arena edge (radius) closing in to the safe circle radius2, then held for life s ticking every tick s.</summary>
+        static IEnumerator Nova(BossBrain b, BossMove m)
+        {
+            float tele = Tele(b, m);
+            bool collapse = m.radius > m.radius2, annulus = m.hook == "annulus";
+            int reps = Mathf.Max(1, m.reps), gaps = Mathf.Max(0, m.gaps);
+            float r0 = m.radius, r1 = m.radius2, dur = Mathf.Max(0.1f, m.dur);
+            float interval = Mathf.Max(m.gap, KiepNum.TeleFloor(b.kiep));
+            Vector2 c = collapse ? P : b.e.Pos;
+            float baseAng = Random.Range(0f, 360f);
+            var dirs = new List<float>();
+            for (int i = 0; i < gaps; i++) dirs.Add(baseAng + 360f * i / gaps);
+            float hold = annulus ? Mathf.Max(0f, m.life) : 0f;
+
+            System.Action<int, float> telegraph = (k, time) =>
+            {
+                var mk = Mark(b, m, HShape.Annulus, c, time);
+                mk.radius = Mathf.Max(r0, r1); mk.radius2 = annulus ? Mathf.Min(r0, r1) : collapse ? 0f : Mathf.Max(0f, Mathf.Min(r0, r1) - NovaBand);
+                mk.gapDirsDeg = dirs; mk.gapWidthDeg = m.angle; mk.angleDeg = k * m.speed;
+            };
+            telegraph(0, tele);
+            Sfx.Play("heavy", 0.5f, 0f, 0.7f);
+            var live = new List<BossHazard>(); var ages = new List<float>();
+            int next = 0; float t = 0f, total = tele + (reps - 1) * interval + dur + hold;
+            while (t < total)
+            {
+                yield return null;
+                float s = Step(b); t += s;
+                while (next < reps && t >= tele + next * interval)
+                {
+                    var h = Hz(b, m, annulus ? HShape.Annulus : HShape.Ring, c, 0.01f, dur + hold, D(b, m), annulus ? m.tick : 0f);
+                    h.radius = r0; h.radius2 = annulus ? r0 : Mathf.Max(0f, r0 - NovaBand);
+                    h.gapDirsDeg = dirs; h.gapWidthDeg = m.angle; h.angleDeg = next * m.speed;
+                    live.Add(h); ages.Add(0f);
+                    Fx.Ring(c, b.kit.col, 0.4f, 2.5f, 0.3f);
+                    Sfx.Play("heavy", 0.6f, 0.05f, 0.5f);
+                    next++;
+                    if (next < reps) telegraph(next, interval);
+                }
+                for (int i = 0; i < live.Count; i++)
+                {
+                    ages[i] += s;
+                    if (live[i] == null) continue;
+                    float f = Mathf.Clamp01(ages[i] / dur);
+                    if (annulus) live[i].radius2 = Mathf.Lerp(r0, r1, f);
+                    else { live[i].radius = Mathf.Lerp(r0, r1, f); live[i].radius2 = Mathf.Max(0f, live[i].radius - NovaBand); }
+                }
+            }
+            yield return Wait(b, 0.2f);
+        }
+
+        // ------------------------------------------------------------------ Line
+        /// <summary>Straight dangers: Radial = n lines from the boss to the arena edge (one aimed at the player), Grid = n vertical x reps horizontal lines across the arena,
+        /// Between = a segment joining the two live pools nearest the player (skipped with fewer than two). Hits slow the player by slow for dur s.</summary>
+        static IEnumerator Line(BossBrain b, BossMove m)
+        {
+            float tele = Tele(b, m), active = m.life > 0f ? m.life : 0.2f;
+            System.Action<BossHazard> prep = h => { h.width = m.width; h.slow = m.slow; if (m.dur > 0f) h.slowDur = m.dur; };
+            if (m.layout == ZLayout.Grid)
+            {
+                int rows = Mathf.Max(0, m.reps);
+                for (int i = 0; i < m.n; i++)
+                {
+                    float x = -Arena.HalfW + (i + 1) * 2f * Arena.HalfW / (m.n + 1);
+                    var h = Hz(b, m, HShape.Bar, new Vector2(x, -Arena.HalfH), tele, active, D(b, m));
+                    h.angleDeg = 90f; h.len = 2f * Arena.HalfH; prep(h);
+                }
+                for (int j = 0; j < rows; j++)
+                {
+                    float y = -Arena.HalfH + (j + 1) * 2f * Arena.HalfH / (rows + 1);
+                    var h = Hz(b, m, HShape.Bar, new Vector2(-Arena.HalfW, y), tele, active, D(b, m));
+                    h.angleDeg = 0f; h.len = 2f * Arena.HalfW; prep(h);
+                }
+            }
+            else if (m.layout == ZLayout.Between)
+            {
+                var pools = BossHazard.All.FindAll(h => IsPool(b, h));
+                pools.Sort((x, y) => (x.pos - P).sqrMagnitude.CompareTo((y.pos - P).sqrMagnitude));
+                if (pools.Count < 2) { Debug.Log("[BOSS] line between skipped: pools=" + pools.Count); yield return Wait(b, 0.3f); yield break; }
+                var h = Hz(b, m, HShape.Segment, pools[0].pos, tele, active, D(b, m));
+                h.a = pools[0].pos; h.b = pools[1].pos; prep(h);
+            }
+            else
+            {
+                Vector2 o = b.e.Pos; float aim = AimAt(b);
+                for (int i = 0; i < m.n; i++)
+                {
+                    float a = aim + i * 360f / Mathf.Max(1, m.n);
+                    var h = Hz(b, m, HShape.Bar, o, tele, active, D(b, m));
+                    h.angleDeg = a; h.len = EdgeDist(o, Dir(a)); prep(h);
+                }
+            }
+            Sfx.Play("tick", 0.5f, 0f, 0.8f);
+            yield return Wait(b, tele + 0.4f);
+        }
+
+        static bool IsPool(BossBrain b, BossHazard h) => h != null && h.owner == b.e && h.shape == HShape.Circle && h.tick > 0f && !h.Telegraphing;
+
+        // ------------------------------------------------------------------ Blink
+        /// <summary>Telegraph circle (radius) at a point len..radius2 from where the player stands; the boss vanishes dur s before it goes live, reappears there and slashes.
+        /// Rider (Huyet Phan): an afterimage slashes the same place again after gap s.</summary>
+        static IEnumerator Blink(BossBrain b, BossMove m)
+        {
+            float tele = Tele(b, m);
+            float lo = m.len > 0f ? m.len : 2.5f, hi = Mathf.Max(lo, m.radius2 > 0f ? m.radius2 : 4f);
+            Vector2 pp = P, spot = Arena.Clamp(pp + Dir(Random.Range(0f, 360f)) * lo, 0.5f);
+            for (int i = 0; i < 16; i++)
+            {
+                Vector2 q = pp + Dir(Random.Range(0f, 360f)) * Random.Range(lo, hi);
+                if ((Arena.Clamp(q, 0.5f) - q).sqrMagnitude < 0.0001f) { spot = q; break; }
+            }
+            var h = Hz(b, m, HShape.Circle, spot, tele, 0.2f, D(b, m));
+            h.radius = m.radius;
+            Sfx.Play("tick", 0.5f, 0f, 0.8f);
+            float vanish = Mathf.Min(tele, Mathf.Max(0.1f, m.dur));
+            yield return Wait(b, tele - vanish);
+            b.e.SetHidden(true);
+            Fx.Burst(b.e.Pos, b.kit.col, 8, 3f, 0.1f, 0.4f, true);
+            yield return Wait(b, vanish);
+            b.e.transform.position = spot;
+            b.e.SetHidden(false);
+            b.lastPoints.Clear(); b.lastPoints.Add(spot);
+            Fx.Ring(spot, b.kit.col, 0.4f, m.radius, 0.3f);
+            Fx.Shake(0.2f, 0.2f);
+            Sfx.Play("swing", 0.7f, 0f, 0.5f);
+            yield return Wait(b, 0.35f);
+        }
+
+        static IEnumerator BlinkEcho(BossBrain b, BossMove m)
+        {
+            if (b.lastPoints.Count == 0) yield break;
+            Vector2 p = b.lastPoints[0];
+            float tele = Mathf.Max(Mathf.Max(m.tele, m.gap), KiepNum.TeleFloor(b.kiep));
+            b.LastTele = tele;
+            var h = Hz(b, m, HShape.Circle, p, tele, 0.2f, D(b, m));
+            h.radius = m.radius;
+            yield return Wait(b, tele + 0.2f);
+        }
+
+        // ------------------------------------------------------------------ Summon
+        static float MinionHpFrac(string id) => id == "bat_small" ? 0.20f : 0.15f;
+
+        static int Alive(BossBrain b, string id = null)
+        {
+            int n = 0;
+            foreach (var e in Enemy.All) if (e != null && !e.dead && e.summoner == b && (id == null || e.def.id == id)) n++;
+            return n;
+        }
+
+        /// <summary>Minions hp = fraction of the expected trash hp of the boss wave (times the Kiep factor), contact damage 0.3 x boss damage.</summary>
+        static void OnMinion(BossBrain b, BossMove m, string defId, Enemy e)
+        {
+            if (b.pending.TryGetValue(defId, out var c)) b.pending[defId] = Mathf.Max(0, c - 1);
+            if (b == null || b.e == null || b.e.dead) { e.Vanish(); return; }
+            e.summoner = b;
+            e.maxHp = e.hp = MinionHpFrac(defId) * WaveDirector.ExpectedTrashHp(b.e.wave) * KiepNum.HpMul(b.kiep, b.e.wave);
+            e.dmg = 0.3f * b.e.dmg;
+            e.lifeT = m.life;
+        }
+
+        /// <summary>Spawns n minions (def id in hook) around the boss through the wave director's spawn warning, never above kit.summonCap alive.
+        /// Rider (Phun Moi): every gaps-th cast of the host move spawns one at a live puddle, at most n alive from this move.</summary>
+        static IEnumerator Summon(BossBrain b, BossMove m)
+        {
+            var def = Content.Minion(m.hook);
+            if (def == null) { Debug.Log("[BOSS] Summon unknown minion " + m.hook); yield return Wait(b, 0.3f); yield break; }
+            bool rider = m.after != null;
+            if (rider)
+            {
+                int c = (b.casts.TryGetValue(m.after, out var v) ? v : 0) + 1; b.casts[m.after] = c;
+                if (m.gaps > 1 && c % m.gaps != 0) yield break;
+            }
+            int pend = 0; foreach (var kv in b.pending) pend += kv.Value;
+            int room = b.kit.summonCap - Alive(b) - pend;
+            if (rider) room = Mathf.Min(room, m.n - Alive(b, def.id) - (b.pending.TryGetValue(def.id, out var pi) ? pi : 0));
+            int count = Mathf.Min(rider ? 1 : m.n, room);
+            if (count <= 0) { yield return Wait(b, 0.2f); yield break; }
+
+            var spots = new List<Vector2>();
+            if (rider)
+            {
+                var pools = BossHazard.All.FindAll(h => IsPool(b, h));
+                spots.Add(pools.Count > 0 ? pools[Random.Range(0, pools.Count)].pos : Arena.Clamp(b.e.Pos + Dir(Random.Range(0f, 360f)) * (b.e.radius + 1.5f), 0.5f));
+            }
+            else
+            {
+                float a0 = Random.Range(0f, 360f), tele = Tele(b, m);
+                for (int i = 0; i < count; i++)
+                {
+                    Vector2 p = Arena.Clamp(b.e.Pos + Dir(a0 + 360f * i / count) * (b.e.radius + 1.8f), 0.5f);
+                    spots.Add(p);
+                    var mk = Mark(b, m, HShape.Circle, p, Mathf.Max(0.85f, tele));
+                    mk.radius = 0.5f;
+                }
+                Sfx.Play("bell", 0.5f, 0.1f, 1f);
+            }
+            foreach (var p in spots)
+            {
+                b.pending[def.id] = (b.pending.TryGetValue(def.id, out var q) ? q : 0) + 1;
+                string id = def.id;
+                Game.I.dir.QueueSpawn(p, def, e => OnMinion(b, m, id, e));
+            }
+            yield return Wait(b, 0.3f);
         }
     }
 }
