@@ -154,18 +154,26 @@ namespace VK
         EnemyDef PickDef()
         {
             float total = 0;
-            foreach (var e in Content.Enemies) if (!e.elite && e.minWave <= wave) total += W(e);
+            foreach (var e in Content.Enemies) if (!e.elite && e.minWave <= wave) total += W(e, wave);
             float r = Random.value * total;
             foreach (var e in Content.Enemies)
             {
                 if (e.elite || e.minWave > wave) continue;
-                r -= W(e);
+                r -= W(e, wave);
                 if (r <= 0) return e;
             }
             return Content.Enemies[0];
         }
 
-        float W(EnemyDef e) => e.weight * (e.minWave <= 2 && wave >= 10 ? 0.5f : 1f) * (e.minWave == wave ? 1.5f : 1f);
+        public static float W(EnemyDef e, int w) => e.weight * (e.minWave <= 2 && w >= 10 ? 0.5f : 1f) * (e.minWave == w ? 1.5f : 1f);
+
+        /// <summary>Weighted average trash HP at wave w (Kiếp 0), the base of the Thần Thông power scale.</summary>
+        public static float ExpectedTrashHp(int w)
+        {
+            float tot = 0, hp = 0;
+            foreach (var e in Content.Enemies) if (!e.elite && e.minWave <= w) { float x = W(e, w); tot += x; hp += x * e.hp; }
+            return tot > 0 ? hp / tot * Enemy.WaveHpMul(w) : 1f;
+        }
 
         Vector2 RandomPos()
         {

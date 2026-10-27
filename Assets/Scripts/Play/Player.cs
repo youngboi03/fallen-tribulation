@@ -10,7 +10,7 @@ namespace VK
         public bool IsDashing => dashT > 0;
         public float DashReady => Mathf.Clamp01(1f - dashCd / Mathf.Max(0.01f, DashCooldown));
         public bool god;
-        public float SkillReady => Mathf.Clamp01(1f - skillCd / Mathf.Max(0.01f, Game.I.run != null ? Game.I.run.ch.skillCd : 1f));
+        public float SkillReady => Mathf.Clamp01(1f - skillCd / Mathf.Max(0.01f, Game.I.run != null ? Game.I.run.SkillCooldown : 1f));
         float skillCd, goldT;
         public void Invuln(float t) { iframe = Mathf.Max(iframe, t); goldT = t; }
 
@@ -115,7 +115,7 @@ namespace VK
             if (skillCd <= 0 && run.wave >= 1 && Game.T > 12f) g.ui.Hint("skill", "Thần Thông đã sẵn sàng! " + GameInput.K("Nhấn <color=#FFD266>E</color> (hoặc chuột trái)", "Chạm nút <color=#FFD266>Thần Thông</color>") + ": " + run.ch.skill + " — " + run.ch.skillDesc + ".");
             if (skillCd <= 0 && ReadSkill())
             {
-                skillCd = run.ch.skillCd;
+                skillCd = run.SkillCooldown;
                 Skills.Cast(this, run);
             }
 

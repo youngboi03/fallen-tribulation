@@ -4,8 +4,16 @@ using UnityEngine;
 namespace VK
 {
     /// <summary>All balance data lives here.</summary>
+    public static class SkillNum
+    {
+        public const float BossMul = 0.5f, MinCd = 3f;
+    }
+
     public static class Content
     {
+        /// <summary>Skill power ratio vs. the average trash HP: 1.5 at wave 1 falling to 0.5 at wave 20.</summary>
+        public static float SkillR(int w) => 1.5f - (Mathf.Clamp(w, 1, 20) - 1) / 19f;
+
         public static readonly float[] TierMul = { 1f, 1.7f, 2.8f, 4.5f };
         public static readonly float[] TierCd = { 1f, 0.92f, 0.85f, 0.78f };
         public static readonly int[] TierPrice = { 1, 2, 4, 7 };

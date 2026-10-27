@@ -52,6 +52,17 @@ namespace VK
             hp = MaxHP;
         }
 
+        public int skillStage;
+        public List<string> skillCards = new List<string>();
+        public float skillDmg;
+        public Dictionary<string, float> skillDmgBy = new Dictionary<string, float>();
+        public int stageUpWave = -1;
+        public bool stageCallout;
+        public bool HasCard(string id) => skillCards.Contains(id);
+        public float SPAt(int w) => Content.SkillR(w) * WaveDirector.ExpectedTrashHp(w);
+        public float SP => SPAt(wave);
+        public float SkillCooldown => Mathf.Max(SkillNum.MinCd, ch.skillCd / (1f + Mathf.Max(0f, stats[Stat.SkillHaste]) / 100f));
+
         public float MaxHP => Mathf.Max(5f, Mathf.Round(stats[Stat.MaxHP]));
         public float XpMul => 1f + save.meta[5] * 0.07f;
         public float XpNeed => Content.XpNeed(level);

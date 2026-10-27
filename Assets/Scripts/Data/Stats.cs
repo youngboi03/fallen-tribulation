@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace VK
 {
-    public enum Stat { MaxHP, Regen, Lifesteal, Damage, Melee, Spell, AtkSpeed, Crit, CritDmg, Range, Armor, Dodge, Speed, Luck, Harvest, Pickup, COUNT }
+    public enum Stat { MaxHP, Regen, Lifesteal, Damage, Melee, Spell, AtkSpeed, Crit, CritDmg, Range, Armor, Dodge, Speed, Luck, Harvest, Pickup, SkillPower, SkillHaste, COUNT }
 
     [System.Serializable]
     public struct Mod
@@ -26,17 +26,17 @@ namespace VK
     {
         public static readonly string[] Names = {
             "Sinh Lực", "Hồi Phục", "Hút Máu", "Sát Thương", "Cận Chiến", "Pháp Thuật", "Tốc Đánh", "Bạo Kích",
-            "ST Bạo Kích", "Tầm Đánh", "Hộ Giáp", "Né Tránh", "Thân Pháp", "Cơ Duyên", "Thu Hoạch", "Thu Linh" };
+            "ST Bạo Kích", "Tầm Đánh", "Hộ Giáp", "Né Tránh", "Thân Pháp", "Cơ Duyên", "Thu Hoạch", "Thu Linh", "Thần Lực", "Tĩnh Tâm" };
 
         public static readonly string[] Help = {
             "Máu tối đa", "Hồi máu mỗi giây", "% cơ hội hồi 1 máu khi đánh trúng", "% sát thương mọi vũ khí",
             "% sát thương vũ khí cận chiến", "% sát thương vũ khí pháp thuật", "% tốc độ tấn công", "% cơ hội bạo kích",
             "% sát thương bạo kích thêm", "% tầm đánh", "Giảm sát thương nhận vào", "% né đòn (tối đa 60%)",
-            "% tốc độ di chuyển", "Tăng cơ hội gặp đồ phẩm cao", "Linh thạch nhận thêm mỗi cuối đợt", "% tầm hút linh khí" };
+            "% tốc độ di chuyển", "Tăng cơ hội gặp đồ phẩm cao", "Linh thạch nhận thêm mỗi cuối đợt", "% tầm hút linh khí", "% sát thương Thần Thông", "% giảm hồi chiêu Thần Thông" };
 
         public static bool IsPct(Stat s) =>
             s == Stat.Lifesteal || s == Stat.Damage || s == Stat.Melee || s == Stat.Spell || s == Stat.AtkSpeed ||
-            s == Stat.Crit || s == Stat.CritDmg || s == Stat.Range || s == Stat.Dodge || s == Stat.Speed || s == Stat.Pickup;
+            s == Stat.Crit || s == Stat.CritDmg || s == Stat.Range || s == Stat.Dodge || s == Stat.Speed || s == Stat.Pickup || s == Stat.SkillPower || s == Stat.SkillHaste;
 
         public static string Num(float v) =>
             Mathf.Abs(v - Mathf.Round(v)) < 0.01f ? ((int)Mathf.Round(v)).ToString() : v.ToString("0.#");

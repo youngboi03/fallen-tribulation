@@ -43,13 +43,19 @@ namespace VK
             return e;
         }
 
+        /// <summary>Trash HP multiplier by wave (before Kiếp), shared with the Thần Thông power formula.</summary>
+        public static float WaveHpMul(int w)
+        {
+            float wm = w - 1;
+            return (1f + 0.38f * wm + 0.085f * wm * wm) * (1f + Mathf.Max(0f, wm - 11f) * 0.06f);
+        }
+
         void Init(EnemyDef d, int w, float hpMul, float dmgMul, bool asBoss, int bossIdx)
         {
             def = d; boss = asBoss; elite = d.elite; bossIndex = bossIdx; wave = w;
             float wm = w - 1;
-            float waveHp = 1f + 0.38f * wm + 0.085f * wm * wm;
             float late = Mathf.Max(0f, wm - 11f);   // the last two regions push back against snowballed builds
-            maxHp = boss ? d.hp * hpMul : d.hp * waveHp * hpMul * (1f + late * 0.06f);
+            maxHp = boss ? d.hp * hpMul : d.hp * WaveHpMul(w) * hpMul;
             hp = maxHp;
             dmg = boss ? d.dmg * dmgMul : d.dmg * (1f + 0.28f * wm + 0.012f * wm * wm) * dmgMul * (1f + late * 0.035f);
             speed = d.speed * (1f + Mathf.Min(0.25f, wm * 0.012f)) * (boss ? 1f : Random.Range(0.9f, 1.1f) * Game.I.dir.SpeedMul);

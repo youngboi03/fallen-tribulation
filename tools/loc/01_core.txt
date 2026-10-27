@@ -246,3 +246,7 @@ Hợp nhất|Merge|合成
 Khóa|Lock|锁定
 Mở|Unlock|解锁
 Đạt thành tựu|Achievement unlocked|达成成就
+Thần Lực|Spirit Power|神力
+Tĩnh Tâm|Calm Mind|静心
+sát thương Thần Thông|Divine Art damage|神通伤害
+giảm hồi chiêu Thần Thông|Divine Art cooldown reduction|神通冷却缩减

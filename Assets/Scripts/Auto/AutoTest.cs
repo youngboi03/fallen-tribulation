@@ -14,7 +14,8 @@ namespace VK
     public class AutoTest : MonoBehaviour
     {
         string shotDir;
-        int maxWaves = 6, charIdx, kiep, errors;
+        int maxWaves = 6, charIdx, kiep;
+        public static int Errors;
         bool god, smart;
         int metaLv, langArg = -1;
         float speed = 2f;
@@ -42,7 +43,7 @@ namespace VK
             Directory.CreateDirectory(shotDir);
             Application.logMessageReceived += (msg, st, type) =>
             {
-                if (type == LogType.Exception || type == LogType.Error) { errors++; Debug.Log("[AUTOTEST] ERROR CAPTURED: " + msg + "\n" + st); }
+                if (type == LogType.Exception || type == LogType.Error) { Errors++; Debug.Log("[AUTOTEST] ERROR CAPTURED: " + msg + "\n" + st); }
             };
             // unlock everything in the test save so all screens can be checked
             Game.I.save.bestWave = 20; Game.I.save.totalKills = 2000; Game.I.save.bestLevel = 25; Game.I.save.wins = 1;
@@ -50,8 +51,10 @@ namespace VK
             for (int m = 0; m < Game.I.save.meta.Length; m++) Game.I.save.meta[m] = Mathf.Clamp(metaLv, 0, Content.MetaMax);
             Game.I.player.god = god;
             Game.I.ui.ApplyLanguage(langArg >= 0 ? langArg : Loc.VI);
+            if (System.Array.IndexOf(args, "-skilltest") >= 0) { skill = gameObject.AddComponent<SkillTest>(); return; }
             StartCoroutine(Run());
         }
+        SkillTest skill;
 
         static WaitForSecondsRealtime Real(float t) => new WaitForSecondsRealtime(t);
 
@@ -258,17 +261,18 @@ namespace VK
             }
         }
 
-        void Shot(string n)
+        public void Shot(string n)
         {
             ScreenCapture.CaptureScreenshot(Path.Combine(shotDir, n + ".png"));
             Debug.Log("[AUTOTEST] shot " + n);
         }
 
-        void Finish()
+        public void Finish()
         {
             var r = Game.I.run;
+            if (skill != null) Debug.Log($"[AUTOTEST] SKILL CHECKS passed={SkillTest.Pass} failed={SkillTest.Fail}");
             if (ux) Debug.Log($"[AUTOTEST] UX CHECKS passed={uxPass} failed={uxFail}");
-            Debug.Log($"[AUTOTEST] DONE errors={errors} wave={(r != null ? r.wave : 0)} level={(r != null ? r.level : 0)}");
+            Debug.Log($"[AUTOTEST] DONE errors={Errors} wave={(r != null ? r.wave : 0)} level={(r != null ? r.level : 0)}");
             Time.timeScale = 1f;
             StartCoroutine(Quit());
         }
