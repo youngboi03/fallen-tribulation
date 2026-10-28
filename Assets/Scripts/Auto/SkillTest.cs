@@ -10,7 +10,7 @@ namespace VK
     /// Launch with -skilltest [-only prefix]: deterministic scenarios for the Thần Thông rework.
     /// Scenarios are methods named T_&lt;prefix&gt;_&lt;name&gt; returning IEnumerator, run in name order.
     /// </summary>
-    public class SkillTest : MonoBehaviour
+    public partial class SkillTest : MonoBehaviour
     {
         public static int Pass, Fail;
         string only = "";

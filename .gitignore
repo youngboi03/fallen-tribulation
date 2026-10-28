@@ -13,3 +13,4 @@
 *.pidb.meta
 *.pdb.meta
 crashlytics-build.properties
+__pycache__/

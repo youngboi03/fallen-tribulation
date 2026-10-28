@@ -1,0 +1,29 @@
+# Normalize line endings so diffs stay clean.
+* text=auto
+
+*.cs   text eol=crlf
+*.md   text eol=crlf
+*.json text eol=crlf
+*.txt  text eol=crlf
+*.sh   text eol=lf
+*.py   text eol=lf
+
+# Unity YAML stays text
+*.asset      text
+*.unity      text
+*.prefab     text
+*.meta       text
+*.mat        text
+*.anim       text
+*.controller text
+
+# Binaries
+*.png binary
+*.jpg binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
+*.exe binary
+*.dll binary
