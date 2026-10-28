@@ -954,6 +954,73 @@ namespace VK
             Check("music_climax", Sfx.CurrentTrack == "boss_climax", Sfx.CurrentTrack);
         }
 
+        // ---- cutscenes (Task 8): they run on real time, gameplay Sec() would never advance
+        bool HasAura(Enemy e) { var t = e.transform.Find("aura"); var c = t ? t.GetComponent<SpriteRenderer>().color : Color.clear; return Mathf.Abs(c.r - 0.7f) < 0.02f && Mathf.Abs(c.g - 0.4f) < 0.02f && c.b > 0.98f; }   // Kiếp Biến purple
+
+        IEnumerator T_cine_kiepbien()   // frozen world, purple aura at the end, then 0.6 s grace
+        {
+            yield return BossArena("b2", 3, 10); var b = boss.brain; var c = Game.I.cinema;
+            c.testMode = true; c.Skips = 0; c.OnBossSpawn(b);
+            yield return new WaitForSecondsRealtime(0.5f);
+            Check("kb_cinematic", Game.I.cinematic && c.Active && b.Hold, "");
+            Vector2 p0 = boss.Pos;
+            yield return new WaitForSecondsRealtime(2.5f);
+            Check("kb_frozen", Vector2.Distance(boss.Pos, p0) < 0.01f, boss.Pos + " vs " + p0);
+            yield return new WaitForSecondsRealtime(2.2f);
+            Check("kb_done", !Game.I.cinematic && !c.Active && HasAura(boss) && c.Skips == 0, "");
+            yield return Sec(0.8f);
+            Check("kb_released", !b.Hold, "");
+            c.testMode = false;
+        }
+
+        IEnumerator T_cine_k0()   // Kiếp 0: no Kiếp Biến, only the grace period
+        {
+            yield return BossArena("b2", 0, 10); var b = boss.brain; var c = Game.I.cinema;
+            c.testMode = true; c.Skips = 0; c.OnBossSpawn(b);
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("k0_no_cinematic", !Game.I.cinematic && !HasAura(boss), "");
+            yield return Sec(1f);
+            Check("k0_released", !b.Hold, "");
+            c.testMode = false;
+        }
+
+        IEnumerator T_cine_skip()   // Skip at 0.6 s lands on the same end state; ESC path leaves pause usable
+        {
+            yield return BossArena("b2", 3, 10); var b = boss.brain; var c = Game.I.cinema;
+            c.testMode = true; c.Skips = 0; c.OnBossSpawn(b);
+            yield return new WaitForSecondsRealtime(0.6f);
+            c.Skip();
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("skip_end", !Game.I.cinematic && !c.Active && HasAura(boss) && c.Skips == 1, Game.I.cinematic + " " + c.Active + " " + HasAura(boss) + " " + c.Skips);
+            Check("skip_not_paused", !Game.I.paused, "");
+            Game.I.SetPause(true);
+            Check("skip_pause_ok", Game.I.paused, "");
+            Game.I.SetPause(false);
+            yield return Sec(0.8f);
+            Check("skip_released", !b.Hold, "");
+            c.testMode = false;
+        }
+
+        IEnumerator T_cine_mathan()   // Kiếp 5 at 50%: Ma Thân, then phase 2 with the set I ultimate next
+        {
+            yield return BossArena("b4", 5, 15); var b = boss.brain; var c = Game.I.cinema;
+            c.testMode = true; c.Attach(b);
+            float r0 = boss.radius; var k = b.kit;
+            yield return Sec(0.3f);
+            boss.hp = boss.maxHp * 0.49f;
+            float t = 0f;
+            while (!c.Active && t < 40f) { yield return null; t += Game.Dt; }
+            Check("mt_started", c.Active && Game.I.cinematic, t.ToString("0.0"));
+            yield return new WaitForSecondsRealtime(1f);
+            c.Skip();
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("mt_end", b.Phase == 2 && !Game.I.cinematic && Mathf.Approximately(boss.radius / r0, 1.15f) && Sfx.CurrentTrack == "boss_climax", boss.radius / r0 + " " + Sfx.CurrentTrack);
+            int n = b.Log.Count; var ui = k.Ult(BTier.I).id; t = 0f;
+            while (t < 10f && !b.Log.Skip(n).Contains(ui)) { yield return null; t += Game.Dt; }
+            Check("mt_ult_next", b.Log.Skip(n).Contains(ui), string.Join(",", b.Log.Skip(n)));
+            c.testMode = false;
+        }
+
         IEnumerator T_boss_ult_nocancel()   // a running ult is never cut by the phase change
         {
             yield return BossArena("b2", 0, 10); var b = boss.brain; var u = b.kit.Ult(BTier.Base);

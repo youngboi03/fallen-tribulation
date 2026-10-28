@@ -39,7 +39,12 @@ namespace VK
         float pickupCombo, lastPickup;
         public int combo; float comboT;
 
-        public bool Playing => state == GState.Playing && !paused;
+        /// <summary>Boss cutscene running (BossCinema): gameplay stands still, Fx keep animating.</summary>
+        public bool cinematic;
+        /// <summary>Camera looks here instead of at the player (cutscenes).</summary>
+        public Vector2? camFocus;
+        public BossCinema cinema;
+        public bool Playing => state == GState.Playing && !paused && !cinematic;
         /// <summary>Frame on which the pause menu closed (that click must not cast the skill).</summary>
         public int unpauseFrame = -1;
 
@@ -93,6 +98,7 @@ namespace VK
             ui = gameObject.AddComponent<UIRoot>();
             ui.Init();
             gameObject.AddComponent<SkillRuntime>();
+            cinema = gameObject.AddComponent<BossCinema>();
             if (auto) bot = gameObject.AddComponent<AutoTest>();
             GoMenu();
         }
@@ -106,18 +112,18 @@ namespace VK
             T += Dt;
             if (Playing && combo > 0) { comboT -= Dt; if (comboT <= 0) combo = 0; }
 
-            if (state == GState.Playing && GameInput.Pause) SetPause(!paused);
+            if (state == GState.Playing && GameInput.Pause) { if (cinematic) cinema.Skip(); else SetPause(!paused); }
             if (Input.GetKeyDown(KeyCode.F11) && !Application.isMobilePlatform)
                 Screen.fullScreenMode = Screen.fullScreen ? FullScreenMode.Windowed : FullScreenMode.FullScreenWindow;
 
-            Fx.Tick(paused ? 0 : (state == GState.Playing ? Dt : raw));
+            Fx.Tick(paused ? 0 : (state == GState.Playing && !cinematic ? Dt : raw));
             Sfx.Tick(Time.unscaledDeltaTime);
         }
 
         /// <summary>Where the camera wants to be: on the player, clamped so the view stays inside the arena walls.</summary>
         Vector3 CamTarget()
         {
-            Vector2 target = player != null && player.gameObject.activeSelf && state != GState.Menu ? player.Pos : Vector2.zero;
+            Vector2 target = camFocus.HasValue ? camFocus.Value : player != null && player.gameObject.activeSelf && state != GState.Menu ? player.Pos : Vector2.zero;
             float halfH = cam.orthographicSize, halfW = halfH * cam.aspect;
             float limX = Mathf.Max(0, Arena.HalfW + 1f - halfW), limY = Mathf.Max(0, Arena.HalfH + 1.2f - halfH);
             return new Vector3(Mathf.Clamp(target.x, -limX, limX), Mathf.Clamp(target.y, -limY, limY), -10);
@@ -197,6 +203,7 @@ namespace VK
         void ClearWorld()
         {
             if (SkillRuntime.I != null) SkillRuntime.I.ClearAll();
+            if (cinema != null) cinema.Abort();
             dir.ClearAll();
             foreach (var e in new List<Enemy>(Enemy.All)) if (e) { if (e.brain != null) e.brain.Stop(); Destroy(e.gameObject); }   // Stop: a deferred Destroy would let the boss coroutines resume once more this frame
             Enemy.All.Clear();

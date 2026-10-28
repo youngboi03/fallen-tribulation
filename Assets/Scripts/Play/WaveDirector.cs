@@ -255,6 +255,7 @@ namespace VK
                 int bi = wave / 5 - 1;
                 boss = SpawnBoss(t.def, t.pos, wave, HpMul, DmgMul, bi, kiep);
                 bossSpawned = true;
+                if (boss.brain != null) Game.I.cinema.OnBossSpawn(boss.brain);
                 Fx.Ring(t.pos, new Color(0.8f, 0.3f, 1f), 1f, 8f, 0.8f);
                 Fx.Shake(0.5f, 0.6f);
                 Sfx.Play("heavy", 1f, 0f, 0.5f);
