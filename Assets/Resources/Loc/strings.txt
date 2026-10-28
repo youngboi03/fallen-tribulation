@@ -651,6 +651,8 @@ Ta chính là Thiên Đạo!	I am the Heavenly Dao!	我即天道！
 Nhện Con	Spiderling	小蜘蛛
 Dơi Nhỏ	Small Bat	小蝠
 Chiến Kỳ	War Banner	战旗
+Kiếp Biến	Tribulation Mutation	劫变
+Ma Thân	Demon Body	魔身
 Ma Đạo Truyền Thừa	Demonic Inheritance	魔道传承
 Trong hang tối, một bộ hài cốt ôm cuốn ma công. Huyết khí cuồn cuộn mời gọi.	In a dark cave a skeleton clutches a demonic manual. Blood qi surges, beckoning you.	幽暗洞中，一具骸骨怀抱魔功秘籍。血气翻涌，似在召唤。
 Tu luyện ma công	Practise the demonic art	修炼魔功
