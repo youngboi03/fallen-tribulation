@@ -21,16 +21,15 @@ namespace VK
             band.localRotation = Quaternion.Euler(0, 0, -12f);
             for (int i = 0; i < 3; i++)   // brush streaks
             {
-                var s = UIK.Img(band, new Color(kit.col.r, kit.col.g, kit.col.b, 0.18f), "streak").rectTransform;
+                var s = UIK.Img(band, new Color(kit.col2.r, kit.col2.g, kit.col2.b, 0.24f), "streak").rectTransform;
                 s.Anchor(0.05f + i * 0.3f, 0.2f + i * 0.25f, 0.65f + i * 0.2f, 0.26f + i * 0.25f);
             }
-            UIK.Img(r, Color.black, "barTop").rectTransform.Anchor(0, 0.9f, 1, 1);
-            UIK.Img(r, Color.black, "barBot").rectTransform.Anchor(0, 0, 1, 0.1f);
-
             var pi = UIK.Img(r, Color.white, "portrait");
             pi.sprite = portraitSprite != null ? portraitSprite : Res.Tile(boss.sprite); pi.preserveAspect = true;
-            portrait = pi.rectTransform.Anchor(0.04f, 0.12f, 0.42f, 0.88f);
+            portrait = pi.rectTransform.Anchor(0.04f, -0.12f, 0.42f, 0.9f);   // the bust's cut edge sinks under the bottom bar
             var ol = pi.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0, 0, 0, 0.8f); ol.effectDistance = new Vector2(6, -6);
+            UIK.Img(r, Color.black, "barTop").rectTransform.Anchor(0, 0.9f, 1, 1);
+            UIK.Img(r, Color.black, "barBot").rectTransform.Anchor(0, 0, 1, 0.1f);
 
             var ep = UIK.Txt(r, Loc.Tr(kit.epithet), 64, new Color(1f, 0.25f, 0.25f), TextAnchor.MiddleLeft, FontStyle.BoldAndItalic);
             epithet = ep.rectTransform.Anchor(0.46f, 0.62f, 0.97f, 0.76f);

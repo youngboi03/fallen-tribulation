@@ -47,7 +47,7 @@ namespace VK
 
         public static BossKit B1b()
         {
-            var k = new BossKit { bossId = "b1b", epithet = "Chúa Tể Đêm Máu", col = H("#E6264D"), col2 = H("#E6264D"), rest = 1.3f, summonCap = 6,
+            var k = new BossKit { bossId = "b1b", epithet = "Chúa Tể Đêm Máu", col = H("#E64DB0"), col2 = H("#E64DB0"), rest = 1.3f, summonCap = 6,
                 quoteMutate = "Đêm nay... máu ngươi sẽ nhuộm đỏ trăng.", quoteMaThan = "Huyết nguyệt đã lên!" };
             var m = k.moves; BossMove x;
             m.Add(x = M("am_ba_huyet_duc", "Âm Ba Huyết Dực", BMove.Cone, BTier.Base, 0.6f, 0.5f, 4.5f));

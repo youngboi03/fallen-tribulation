@@ -97,4 +97,16 @@ Tool: `POST /v2/generate-image-v2` (Pro, 96x96, style_image = Bosses/b3.png, sty
 | `Assets/Resources/PixelLab/Bosses/b1.png` (variant 4) | towering mountain yaoguai demon king, cracked dark blue-grey stone skin with glowing violet fissures, ONE huge violet vertical eye on forehead, no beard, ox horns, tattered Taoist monk robe, bone prayer beads, yellow talisman seals, clawed hands |
 | `Assets/Resources/PixelLab/Bosses/b2.png` (variant 2) | hell general like a Peking opera warrior, lamellar scale armor black/orange, lion-head pauldrons, demon-face helmet with short red plume, four war flags on back (kao qi), burning guandao |
 | `Assets/Resources/PixelLab/Bosses/b2b.png` (variant 1) | Journey to the West spider demoness queen, pale woman torso with jade phoenix hairpin, dark teal silk robe, black spider body with toxic green spots, cluster of five white silk cocoons under abdomen, reference image = earlier Pixflux draft |
-| `Assets/Resources/PixelLab/Bosses/b4.png` (variant 3 + inpaint head and right hand, seed 1) | demon emperor in flowing black robe with gold dragon embroidery, wide sleeves, mianguan crown with bead strands, floating, head inpainted (large pale face, glowing purple eyes, flat mianguan board with gold bead strands), right hand inpainted holding a swirling purple flame (hand variant 2), left hand hidden in the sleeve by a third inpaint; no armor, no halo |
+| `Assets/Resources/PixelLab/Bosses/b4.png` (variant 3 + inpaint of the hands) | demon emperor in flowing black robe with gold dragon embroidery, wide sleeves, mianguan crown with bead strands, floating, right hand inpainted holding a swirling purple flame (hand variant 2), left hand hidden in the sleeve by a third inpaint, ORIGINAL head kept (the inpainted larger head was rejected: too big and off the neck); no armor, no halo |
+
+## Boss portraits and b3 sprite (2026-10-28, Tier 1 account, REST)
+Portraits (`Assets/Resources/PixelLab/Portraits/<id>.png`, ~80 px): source images from `POST /v2/generate-image-v2` (Pro, 160x160, 4 variants per call, reference = boss sprite, style image = Bosses/b3.png), then reduced locally with Python (box downscale to ~80 px, 20 colours, 1 px black outline) to match the sprite look. b4 cropped to drop the flame hand. Prompts: close-up bust portrait head and shoulders of the boss (same descriptions as the sprites), three-quarter view facing right, chinese mythology boss portrait, pixel art.
+| File | Source |
+|---|---|
+| `Portraits/b1.png` | Pro variant 2 |
+| `Portraits/b1b.png` | Pro variant 3, prompt: giant vampire bat demon, not humanoid, bat head with large pointed ears, flat leaf-shaped nose, curved ivory horns, glowing red eyes, small fangs, dark crimson fur, dark red bat wings framing the shoulders, close-up bust facing right, simple chunky pixel art, no moon, no armor (reference = b1b sprite, style = approved portrait). A Pro Flash version (create-image-pro-flash 160x160, same prompt) was compared and not used. |
+| `Portraits/b2.png` | Pro variant 4 |
+| `Portraits/b2b.png` | Pro variant 2 |
+| `Portraits/b3.png` | Pro variant 2 |
+| `Portraits/b4.png` | Pro variant 1, cropped to remove the hand/flame |
+| `Bosses/b3.png` | `POST /v2/generate-image-v2` (Pro, 96x96, variant 3): full-body standing tall pale xianxia demon lord, long black hair, glowing red eyes, crimson robe with a tall embroidered collar, blood mist at the hem; references = b3 portrait + old b3 sprite, style = new b4 sprite |
