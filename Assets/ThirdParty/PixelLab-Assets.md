@@ -89,3 +89,12 @@ Nhật ký các asset tạo bằng PixelLab. Mỗi dòng: file, tool, prompt, ng
 | `Assets/Resources/PixelLab/Icons/i_ngu_hanh_ban.png` | REST generate-image-pixflux 40x40 (account 1) | - | round disc with five colored element segments, filling the frame, xianxia fantasy RPG item icon, pixel art, bold black outline, vibrant colors |
 | `Assets/Resources/PixelLab/Icons/i_van_kiem_quy_tong.png` | REST generate-image-pixflux 40x40 (account 1) | - | ring of many tiny flying swords, filling the frame, xianxia fantasy RPG item icon, pixel art, bold black outline, vibrant colors |
 | `Assets/Resources/PixelLab/Icons/i_thien_dao_chi_tam.png` | REST generate-image-pixflux 40x40 (account 1) | - | glowing golden heart-shaped crystal, filling the frame, xianxia fantasy RPG item icon, pixel art, bold black outline, vibrant colors |
+
+## Boss redesign (2026-10-28, Eastern xianxia concept, Tier 1 account, REST)
+Tool: `POST /v2/generate-image-v2` (Pro, 96x96, style_image = Bosses/b3.png, style color_palette off), 4 variants per call; b4 head re-drawn with `POST /v2/inpaint-image-pro-flash` (mask over head, seed 2).
+| File | Prompt (shortened) |
+|---|---|
+| `Assets/Resources/PixelLab/Bosses/b1.png` (variant 4) | towering mountain yaoguai demon king, cracked dark blue-grey stone skin with glowing violet fissures, ONE huge violet vertical eye on forehead, no beard, ox horns, tattered Taoist monk robe, bone prayer beads, yellow talisman seals, clawed hands |
+| `Assets/Resources/PixelLab/Bosses/b2.png` (variant 2) | hell general like a Peking opera warrior, lamellar scale armor black/orange, lion-head pauldrons, demon-face helmet with short red plume, four war flags on back (kao qi), burning guandao |
+| `Assets/Resources/PixelLab/Bosses/b2b.png` (variant 1) | Journey to the West spider demoness queen, pale woman torso with jade phoenix hairpin, dark teal silk robe, black spider body with toxic green spots, cluster of five white silk cocoons under abdomen, reference image = earlier Pixflux draft |
+| `Assets/Resources/PixelLab/Bosses/b4.png` (variant 3 + inpaint head and right hand, seed 1) | demon emperor in flowing black robe with gold dragon embroidery, wide sleeves, mianguan crown with bead strands, floating, head inpainted (large pale face, glowing purple eyes, flat mianguan board with gold bead strands), right hand inpainted holding a swirling purple flame (hand variant 2), left hand hidden in the sleeve by a third inpaint; no armor, no halo |
