@@ -11,6 +11,7 @@ namespace VK
         static readonly Dictionary<string, float> last = new Dictionary<string, float>();
         static readonly Dictionary<string, AudioClip> tracks = new Dictionary<string, AudioClip>();
         static string currentTrack;
+        public static string CurrentTrack => currentTrack;
         static float musicTarget = 1f, musicFade = 1f;
 
         public static void Init(GameObject host)
@@ -42,7 +43,7 @@ namespace VK
 
         public static void Preload()
         {
-            Get("menu"); Get("battle"); Get("boss");
+            Get("menu"); Get("battle"); Get("boss"); Get("boss_climax");
             Res.RegisterClip("sk_chime", Synth.Chime()); Res.RegisterClip("sk_boom", Synth.Boom());
             Res.RegisterClip("sk_whoosh", Synth.Whoosh()); Res.RegisterClip("sk_choir", Synth.Choir());
         }
@@ -55,6 +56,7 @@ namespace VK
                 {
                     case "menu": clip = Synth.Track(7, 76, 0); break;
                     case "boss": clip = Synth.Track(23, 128, 2); break;
+                    case "boss_climax": clip = Synth.Track(23, 150, 3); break;
                     case "battle": clip = Synth.Track(11, 104, 1); break;
                     default: return null;   // unknown track names are ignored by Music
                 }
@@ -172,7 +174,7 @@ namespace VK
             {
                 motifs[m] = new int[16];
                 int idx = 4 + rng.Next(3);
-                float density = intensity == 0 ? 0.38f : intensity == 1 ? 0.55f : 0.65f;
+                float density = intensity == 0 ? 0.38f : intensity == 1 ? 0.55f : intensity == 2 ? 0.65f : 0.72f;
                 for (int s = 0; s < 16; s++)
                 {
                     bool strong = s % 4 == 0;
@@ -212,9 +214,9 @@ namespace VK
                     // drums
                     if (intensity >= 1)
                     {
-                        if (s % 4 == 0 || (intensity == 2 && s % 2 == 0)) Kick(buf, pos, intensity == 2 ? 0.75f : 0.6f);
+                        if (s % 4 == 0 || (intensity >= 2 && s % 2 == 0) || (intensity == 3 && s % 4 == 3)) Kick(buf, pos, intensity >= 2 ? 0.75f : 0.6f);
                         if (s % 2 == 1) Hat(buf, pos, 0.08f, rng);
-                        if (s == 4 && (bar % 2 == 1 || intensity == 2)) Snare(buf, pos, 0.25f, rng);
+                        if ((s == 4 || (intensity == 3 && s == 12)) && (bar % 2 == 1 || intensity >= 2)) Snare(buf, pos, 0.25f, rng);
                     }
                     else if (s == 0 && bar % 4 == 0) Kick(buf, pos, 0.25f);
                 }

@@ -942,6 +942,18 @@ namespace VK
             Check("multi_no_regular", b.Log.Skip(n0).Take(3).SequenceEqual(ultIds), string.Join(",", b.Log.Skip(n0)));
         }
 
+        IEnumerator T_boss_music()   // phase 2 switches to the climax track
+        {
+            yield return BossArena("b2", 0, 10); var b = boss.brain;
+            Sfx.Music("boss");
+            Check("music_boss", Sfx.CurrentTrack == "boss", Sfx.CurrentTrack);
+            yield return Sec(0.3f);
+            boss.hp = boss.maxHp * 0.45f;
+            yield return WaitPhase2(b, 20f);
+            yield return Sec(1f);
+            Check("music_climax", Sfx.CurrentTrack == "boss_climax", Sfx.CurrentTrack);
+        }
+
         IEnumerator T_boss_ult_nocancel()   // a running ult is never cut by the phase change
         {
             yield return BossArena("b2", 0, 10); var b = boss.brain; var u = b.kit.Ult(BTier.Base);
