@@ -47,6 +47,8 @@ namespace VK
         RunState Run => Game.I.run;
         SaveData Save => Game.I.save;
 
+        public RectTransform Root => root;
+
         public void Init()
         {
             var cgo = new GameObject("UI");

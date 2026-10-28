@@ -49,6 +49,9 @@ namespace VK
         /// <summary>Direction the art of sprite <paramref name="id"/> points, in degrees: Kenney weapons point up, PixelLab icons (400-599) to the upper right.</summary>
         public static float SpriteAngle(int id) => id >= 400 && id < 600 ? 45f : 90f;
 
+        /// <summary>Boss intro portrait (Task 12); null until the PNG exists, the card then uses the boss sprite.</summary>
+        public static Sprite BossPortrait(string id) => Resources.Load<Sprite>("PixelLab/Portraits/" + id);
+
         public static Sprite Tile(int i)
         {
             if (tiles.TryGetValue(i, out var s)) return s;

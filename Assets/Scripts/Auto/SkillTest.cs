@@ -976,7 +976,7 @@ namespace VK
         IEnumerator T_cine_k0()   // Kiếp 0: no Kiếp Biến, only the grace period
         {
             yield return BossArena("b2", 0, 10); var b = boss.brain; var c = Game.I.cinema;
-            c.testMode = true; c.Skips = 0; c.OnBossSpawn(b);
+            c.testMode = true; Game.I.save.bossIntroSeen.Add("b2"); c.Skips = 0; c.OnBossSpawn(b);
             yield return new WaitForSecondsRealtime(0.3f);
             Check("k0_no_cinematic", !Game.I.cinematic && !HasAura(boss), "");
             yield return Sec(1f);
@@ -1019,6 +1019,65 @@ namespace VK
             while (t < 10f && !b.Log.Skip(n).Contains(ui)) { yield return null; t += Game.Dt; }
             Check("mt_ult_next", b.Log.Skip(n).Contains(ui), string.Join(",", b.Log.Skip(n)));
             c.testMode = false;
+        }
+
+        IEnumerator T_cine_intro_first()   // card on the first meeting only, then remembered
+        {
+            yield return BossArena("b1", 0, 5); var b = boss.brain; var c = Game.I.cinema;
+            c.testMode = true; Game.I.save.bossIntroSeen.Clear();
+            c.OnBossSpawn(b);
+            yield return new WaitForSecondsRealtime(0.5f);
+            Check("intro_first_card", c.CardUp && Game.I.cinematic, "");
+            yield return new WaitForSecondsRealtime(2.4f);
+            Check("intro_first_seen", !c.CardUp && Game.I.save.bossIntroSeen.Contains("b1"), "");
+            yield return Sec(0.8f);
+            c.OnBossSpawn(b);
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("intro_second_none", !c.CardUp, "");
+            c.testMode = false;
+        }
+
+        IEnumerator T_cine_intro_b4()   // the final boss shows its card every time
+        {
+            yield return BossArena("b4", 0, 20); var c = Game.I.cinema;
+            c.testMode = true; Game.I.save.bossIntroSeen.Add("b4");
+            c.OnBossSpawn(boss.brain);
+            yield return new WaitForSecondsRealtime(0.5f);
+            Check("intro_b4_card", c.CardUp, "");
+            c.Skip();
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("intro_b4_skip", !c.CardUp && !Game.I.cinematic, "");
+            c.testMode = false;
+        }
+
+        IEnumerator T_cine_oldsave()   // a save without the field (null list) loads and shows the intro for an alternate boss
+        {
+            yield return BossArena("b1b", 0, 5); var c = Game.I.cinema;
+            c.testMode = true; Game.I.save.bossIntroSeen = null;
+            Check("oldsave_needs", BossCinema.NeedsIntro("b1b"), "");
+            c.OnBossSpawn(boss.brain);
+            yield return new WaitForSecondsRealtime(0.5f);
+            Check("oldsave_card", c.CardUp, "");
+            c.Skip();
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("oldsave_seen", Game.I.save.bossIntroSeen != null && Game.I.save.bossIntroSeen.Contains("b1b"), "");
+            c.testMode = false;
+        }
+
+        IEnumerator T_shot_intro()   // look at the card: b1 and the long-named b4 in the current language
+        {
+            foreach (var id in new[] { "b1", "b4" })
+            {
+                yield return BossArena(id, 0, id == "b1" ? 5 : 20); var c = Game.I.cinema;
+                c.testMode = true; Game.I.save.bossIntroSeen.Remove(id);
+                c.OnBossSpawn(boss.brain);
+                yield return new WaitForSecondsRealtime(1.4f);
+                Game.I.bot.Shot("intro_" + id + "_l" + Loc.Lang);
+                yield return new WaitForSecondsRealtime(0.4f);
+                c.Skip();
+                yield return new WaitForSecondsRealtime(0.3f);
+                c.testMode = false;
+            }
         }
 
         IEnumerator T_boss_ult_nocancel()   // a running ult is never cut by the phase change

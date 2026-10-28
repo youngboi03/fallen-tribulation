@@ -10,6 +10,14 @@ namespace VK
         public bool Active { get; private set; }
         /// <summary>The bot skips cutscenes at once so probes stay fast; scenario tests set this to watch them.</summary>
         public bool testMode;
+        public bool CardUp { get; private set; }
+
+        /// <summary>First meeting of each boss; the final boss every time (spec 4.2).</summary>
+        public static bool NeedsIntro(string bossId)
+        {
+            var seen = Game.I.save.bossIntroSeen;
+            return bossId == "b4" || seen == null || !seen.Contains(bossId);
+        }
         public int Skips;   // tests: cutscenes that ended through Skip()
 
         BossBrain cur;
@@ -83,7 +91,7 @@ namespace VK
         void Restore()
         {
             var g = Game.I;
-            Active = false; g.cinematic = false; g.camFocus = null;
+            Active = false; CardUp = false; g.cinematic = false; g.camFocus = null;
             if (g.cam != null && baseZoom > 0f) g.cam.orthographicSize = baseZoom;
             SetVeil(Color.clear);
             if (Sfx.CurrentTrack != null) Sfx.MusicLevel(1f);
@@ -92,7 +100,16 @@ namespace VK
         // ---------------------------------------------------------------- timelines
         IEnumerator Spawn(BossBrain b)
         {
-            // intro card: Task 9
+            if (NeedsIntro(b.kit.bossId))
+            {
+                CardUp = true;
+                int region = Mathf.Clamp(Game.I.run.wave / 5 - 1, 0, Arena.RegionName.Length - 1);
+                var card = new BossIntroCard(Game.I.ui.Root, b.e.def, b.kit, Arena.RegionName[region], Res.BossPortrait(b.kit.bossId));
+                for (float t = 0f; t < BossIntroCard.Length && !skipReq; t += Time.unscaledDeltaTime) { card.Apply(t); yield return null; }
+                card.Finish(); CardUp = false;
+                var seen = Game.I.save.bossIntroSeen ?? (Game.I.save.bossIntroSeen = new System.Collections.Generic.List<string>());
+                if (!seen.Contains(b.kit.bossId)) { seen.Add(b.kit.bossId); Game.I.save.Save(); }
+            }
             if (b.kiep >= 3) yield return KiepBien(b);
         }
 

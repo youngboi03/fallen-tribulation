@@ -11,6 +11,7 @@ namespace VK
         public int totalKills, bestWave, bestLevel, runs, wins, maxKiepUnlocked;
         public List<string> ach = new List<string>();
         public List<string> codex = new List<string>();
+        public List<string> bossIntroSeen = new List<string>();   // boss intro cards already shown (null-safe for old saves)
         public List<string> tips = new List<string>();      // tutorial hints already shown   // "w:id", "i:id", "e:id"
         public int[] charWinKiep = { -1, -1, -1, -1, -1, -1 };   // highest kiếp won per character
         public float sfxVol = 0.8f, musicVol = 0.5f, shake = 1f;
@@ -37,6 +38,7 @@ namespace VK
             if (d.ach == null) d.ach = new List<string>();
             if (d.codex == null) d.codex = new List<string>();
             if (d.tips == null) d.tips = new List<string>();
+            if (d.bossIntroSeen == null) d.bossIntroSeen = new List<string>();
             return d;
         }
 
