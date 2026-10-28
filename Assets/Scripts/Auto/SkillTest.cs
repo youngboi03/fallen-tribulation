@@ -1842,6 +1842,33 @@ namespace VK
             HitTrack(false);
         }
 
+        // ---------------------------------------------------------------- task 10: the bot dodges boss hazards
+        /// <summary>Smart bot (not passive, not god) fights each boss at Kiếp 0 for 25 s with and without dodging; hazard hits must drop to <= 40%.</summary>
+        IEnumerator T_bot_dodge()
+        {
+            int sumNo = 0, sumDodge = 0;
+            foreach (var id in BossIds)
+            {
+                var hits = new int[2];
+                for (int run = 0; run < 2; run++)
+                {
+                    yield return BossPrep(id, 0, BossWave(id), new Vector2(0f, 5f)); var b = boss.brain;
+                    SetRefHp(BossWave(id)); tankHold = false; AutoTest.Passive = false; AutoTest.noDodge = run == 0;
+                    Game.I.player.god = false; BossHazard.PlayerHits = 0;
+                    float t = 0f;
+                    while (t < 25f) { Game.I.run.hp = 1e6f; yield return null; t += Game.Dt; }
+                    hits[run] = BossHazard.PlayerHits;
+                    AutoTest.noDodge = false;
+                    BossHooks.ClearOwner(b); BossHazard.ClearAll(); Projectile.ClearAll(false);
+                }
+                Debug.Log("[DODGE] " + id + " nodge=" + hits[0] + " dodge=" + hits[1]);
+                Check("dodge_" + id, hits[1] <= hits[0], hits[1] + " vs " + hits[0]);
+                sumNo += hits[0]; sumDodge += hits[1];
+            }
+            AutoTest.Passive = false; AutoTest.noDodge = false;
+            Check("dodge_total", sumNo < 5 || sumDodge <= 0.4f * sumNo, sumDodge + " vs " + sumNo);
+        }
+
         // ---------------------------------------------------------------- riders and primitives that had no test yet
         IEnumerator T_boss_extra_blinkecho()   // Huyết Phản: an afterimage slashes the same spot again after the gap, with the rider damage
         {

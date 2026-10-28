@@ -435,7 +435,27 @@ namespace VK
                 if (best != null) f = ((Vector2)best.transform.position - pos).normalized;
             }
             f += new Vector2(-f.y, f.x) * 0.35f;
+            if (!noDodge && BossHazard.DangerAt(pos, 0.4f) > 0f) return Dodge(pos, f);
             return f.sqrMagnitude > 0.0001f ? f.normalized : Vector2.zero;
+        }
+
+        /// <summary>Standing in (or about to be in) a boss hazard: 8 directions x 2 steps, take the safest point; ties go to the direction closest to f.</summary>
+        static Vector2 Dodge(Vector2 pos, Vector2 f)
+        {
+            Vector2 best = Vector2.zero; float bd = 9f, bdot = -2f;
+            Vector2 fn = f.sqrMagnitude > 0.0001f ? f.normalized : Vector2.zero;
+            for (int i = 0; i < 8; i++)
+            {
+                float a = i * Mathf.PI / 4f; var dir = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+                foreach (float step in new[] { 1.5f, 3f })
+                {
+                    var pt = pos + dir * step;
+                    pt.x = Mathf.Clamp(pt.x, -VK.Arena.HalfW + 0.5f, VK.Arena.HalfW - 0.5f); pt.y = Mathf.Clamp(pt.y, -VK.Arena.HalfH + 0.5f, VK.Arena.HalfH - 0.5f);
+                    float d = BossHazard.DangerAt(pt, 0.4f), dot = Vector2.Dot(dir, fn);
+                    if (d < bd - 0.001f || (Mathf.Abs(d - bd) <= 0.001f && dot > bdot)) { bd = d; bdot = dot; best = dir; }
+                }
+            }
+            return best;
         }
 
         /// <summary>Casts like a player who presses E whenever it is ready and worth it: a boss or elite in reach, or 3 enemies inside the skill's own reach.</summary>
@@ -477,9 +497,12 @@ namespace VK
 
         /// <summary>Set by the boss tests' tank player: the bot neither walks nor dashes, so every hit lands.</summary>
         public static bool Passive;
+        /// <summary>Test switch: the bot ignores boss hazards (baseline for T_bot_dodge).</summary>
+        public static bool noDodge;
         public bool WantDash(Player p)
         {
             if (Passive) return false;
+            if (!noDodge && BossHazard.DangerAt(p.Pos, 0.15f) > 0f) return true;
             foreach (var e in Enemy.All) if (Vector2.Distance(e.Pos, p.Pos) < e.radius + 0.9f) return true;
             return false;
         }
