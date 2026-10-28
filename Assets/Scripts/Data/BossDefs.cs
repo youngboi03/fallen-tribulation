@@ -65,7 +65,7 @@ namespace VK
     /// <summary>Kiếp balance numbers (spec section 7). Stats come from Hp/Dmg/RampCap; the per-kiep boss factors never touch telegraph time (TeleFloor is the minimum).</summary>
     public static class KiepNum
     {
-        public const float Hp = 0.22f, Dmg = 0.18f, RampCap = 1.3f;
+        public const float Hp = 0.20f, Dmg = 0.16f, RampCap = 1.3f;
         /// <summary>Boss cooldown and rest factor, indexed by kiep 0-5.</summary>
         public static readonly float[] BossCd = { 1f, 1f, 1f, 0.92f, 0.92f, 0.85f };
         /// <summary>Boss bullet speed factor, indexed by kiep 0-5.</summary>

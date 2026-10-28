@@ -749,8 +749,8 @@ namespace VK
         {
             yield return Arena(0, 1, 0);
             Check("ramp_cap", Mathf.Approximately(KiepNum.Ramp(20), 1.3f), "");
-            Check("hp_k5_w20", Mathf.Abs(KiepNum.HpMul(5, 20) - 2.43f) < 0.01f, KiepNum.HpMul(5, 20).ToString("0.00"));
-            Check("dmg_k3_w10", Mathf.Abs(KiepNum.DmgMul(3, 10) - (1 + 0.18f * 3 * (0.2f + 10 / 12f))) < 0.001f, "");
+            Check("hp_k5_w20", Mathf.Abs(KiepNum.HpMul(5, 20) - 2.30f) < 0.01f, KiepNum.HpMul(5, 20).ToString("0.00"));
+            Check("dmg_k3_w10", Mathf.Abs(KiepNum.DmgMul(3, 10) - (1 + 0.16f * 3 * (0.2f + 10 / 12f))) < 0.001f, "");
             Check("hp_k0", Mathf.Approximately(KiepNum.HpMul(0, 20), 1f), "");
             Check("boss_cd", Mathf.Approximately(KiepNum.BossCd[0], 1f) && Mathf.Approximately(KiepNum.BossCd[5], 0.85f) && Mathf.Approximately(KiepNum.BossShot[3], 1.06f), "");
             Check("tele_floor", Mathf.Approximately(KiepNum.TeleFloor(2), 0.6f) && Mathf.Approximately(KiepNum.TeleFloor(3), 0.5f), "");
