@@ -46,6 +46,8 @@ namespace VK
         int used;
         static Material defMat;
 
+        /// <summary>Sprite pieces drawn last frame (performance checks in tests).</summary>
+        public int PieceCount => gone ? 0 : used;
         public bool Live => !gone && age >= tele && age < tele + active;
         /// <summary>Still in its telegraph (or forming) time.</summary>
         public bool Telegraphing => !gone && age < tele;

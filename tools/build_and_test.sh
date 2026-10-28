@@ -13,6 +13,6 @@ if grep -q "error CS" Logs/build.log; then grep "error CS" Logs/build.log | sort
 grep "\[VK\] BUILD RESULT" Logs/build.log
 
 rm -rf Logs/shots; mkdir -p Logs/shots
-timeout 900 ./Builds/Windows/VanKiepTuTien.exe -autotest -waves "$WAVES" -speed 2 -shots "$ROOT/Logs/shots" \
+timeout "${TEST_TIMEOUT:-900}" ./Builds/Windows/VanKiepTuTien.exe -autotest -waves "$WAVES" -speed 2 -shots "$ROOT/Logs/shots" \
   -screen-width 1600 -screen-height 900 -screen-fullscreen 0 -logFile "$ROOT/Logs/run.log" "$@"
 grep -E "AUTOTEST\]|\[VK\] wave|Exception" Logs/run.log | grep -v " shot " | head -80

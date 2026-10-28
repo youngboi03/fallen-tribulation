@@ -198,7 +198,7 @@ namespace VK
         {
             if (SkillRuntime.I != null) SkillRuntime.I.ClearAll();
             dir.ClearAll();
-            foreach (var e in new List<Enemy>(Enemy.All)) if (e) Destroy(e.gameObject);
+            foreach (var e in new List<Enemy>(Enemy.All)) if (e) { if (e.brain != null) e.brain.Stop(); Destroy(e.gameObject); }   // Stop: a deferred Destroy would let the boss coroutines resume once more this frame
             Enemy.All.Clear();
             foreach (var p in new List<Projectile>(Projectile.All)) if (p) Destroy(p.gameObject);
             Projectile.All.Clear();

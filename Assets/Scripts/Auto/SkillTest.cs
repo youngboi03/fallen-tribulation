@@ -48,7 +48,7 @@ namespace VK
         public IEnumerator Arena(int ci, int wave, int stage, params string[] cards)
         {
             var g = Game.I;
-            tankHold = false;
+            tankHold = false; AutoTest.Passive = false;
             g.StartRun(ci, 0);
             g.dir.enabled = false;
             g.dir.EndWave();
@@ -88,12 +88,13 @@ namespace VK
         // ---------------------------------------------------------------- boss helpers (part C)
         public Enemy boss;
         bool tankHold;
+        Vector2 tankPos;
 
         /// <summary>Like Arena, at the given kiep, then spawns the boss of that wave slot through the same numbers WaveDirector uses.</summary>
         public IEnumerator BossArena(string bossId, int kiep, int wave)
         {
             var g = Game.I;
-            tankHold = false;
+            tankHold = false; AutoTest.Passive = false;
             g.StartRun(0, kiep);
             g.dir.enabled = false;
             g.dir.EndWave();
@@ -125,13 +126,21 @@ namespace VK
             g.player.god = false;
             g.run.stats[Stat.Dodge] = 0f;
             g.run.hp = 1e6f;
+            tankPos = Vector2.zero; AutoTest.Passive = true;
             g.player.transform.position = Vector3.zero;
             if (!tankHold) { tankHold = true; StartCoroutine(HoldCentre()); }
         }
 
         IEnumerator HoldCentre()
         {
-            while (tankHold) { Game.I.player.transform.position = Vector3.zero; Game.I.run.hp = 1e6f; yield return null; }
+            while (tankHold) { Game.I.player.transform.position = tankPos; Game.I.run.hp = 1e6f; yield return null; }
+        }
+
+        /// <summary>Pins the tank player at p every frame (the bot walks away from hazards otherwise).</summary>
+        void PinAt(Vector2 p)
+        {
+            tankPos = p; Game.I.player.transform.position = p;
+            if (!tankHold) { tankHold = true; StartCoroutine(HoldCentre()); }
         }
 
         // ---------------------------------------------------------------- core (Task 1)
@@ -846,6 +855,7 @@ namespace VK
         IEnumerator BossPrep(string bossId, int kiep, int wave, Vector2 bossPos)
         {
             yield return BossArena(bossId, kiep, wave); Tank();
+            Game.I.player.ReduceSkillCd(-999f);   // no Thần Thông cast may kill a cocoon or a summoned minion that a test counts
             boss.brain.Hold = true; boss.transform.position = bossPos;
             yield return Sec(1.05f);
             BossHazard.ClearAll(); Projectile.ClearAll(false);
@@ -1490,5 +1500,448 @@ namespace VK
             Check("sea_flood_ticks", BossHazard.PlayerHits - ph0 >= 2, (BossHazard.PlayerHits - ph0).ToString());
             BossHazard.ClearAll();
         }
+
+        // ---------------------------------------------------------------- task 6: every move of every boss, hit caps, screenshots
+        static readonly string[] BossIds = { "b1", "b1b", "b2", "b2b", "b3", "b4" };
+        static int BossWave(string id) => id == "b1" || id == "b1b" ? 5 : id == "b2" || id == "b2b" ? 10 : id == "b3" ? 15 : 20;
+        static string F3(float v) => v.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture);
+
+        // [BOSSHIT] tracking: largest single hit (fraction of the player's max hp), their sum, and the move ids
+        float hitMax, hitSum; int hitN; readonly List<string> hitIds = new List<string>();
+        void OnBossLog(string msg, string st, LogType t)
+        {
+            if (!msg.StartsWith("[BOSSHIT]")) return;
+            int i = msg.LastIndexOf("pct=");
+            if (i < 0 || !float.TryParse(msg.Substring(i + 4).Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v)) return;
+            hitMax = Mathf.Max(hitMax, v); hitSum += v; hitN++;
+            var parts = msg.Split(' '); if (parts.Length > 1) hitIds.Add(parts[1]);
+        }
+        void HitTrack(bool on) { Application.logMessageReceived -= OnBossLog; if (on) Application.logMessageReceived += OnBossLog; HitReset(); }
+        void HitReset() { hitMax = hitSum = 0f; hitN = 0; hitIds.Clear(); }
+
+        /// <summary>Clears what is left, puts the boss at (0,5), forces id, holds the brain once it started and waits (bounded) until the move is over.</summary>
+        IEnumerator Exec(BossBrain b, string id, float timeout)
+        {
+            BossHazard.ClearAll(); Projectile.ClearAll(false); BossHooks.ClearOwner(b);
+            boss.transform.position = new Vector2(0f, 5f);
+            b.Hold = false; b.ForceMove(id);
+            for (int i = 0; i < 6 && b.Current == null; i++) yield return null;
+            b.Hold = true;
+            yield return WaitIdle(b, timeout);
+        }
+
+        /// <summary>Phase 2 without playing the queued ultimates: hp to 49%, the queue is emptied until the transition has run, brain held.</summary>
+        IEnumerator ForcePhase2(BossBrain b)
+        {
+            BossHazard.ClearAll(); Projectile.ClearAll(false); BossHooks.ClearOwner(b);
+            var q = (Queue<KeyValuePair<BossMove, float>>)typeof(BossBrain).GetField("ults", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(b);
+            b.Hold = true; boss.hp = boss.maxHp * 0.49f;
+            float t = 0f;
+            while (b.Phase != 2 && t < 5f) { q.Clear(); yield return null; t += Game.Dt; }
+            q.Clear();
+            while (b.Staggered && t < 8f) { yield return null; t += Game.Dt; }
+            q.Clear(); b.Hold = true;
+            BossHazard.ClearAll(); Projectile.ClearAll(false); boss.transform.position = new Vector2(0f, 5f);
+            Check("p2_forced_" + b.kit.bossId, b.Phase == 2 && !b.Staggered, "t=" + t.ToString("0.0"));
+        }
+
+        static List<string> ExpectedLog(BossBrain b, BossMove m)
+        {
+            var l = new List<string> { m.id };
+            foreach (var r in b.kit.moves) if (r.after == m.id && b.Unlocked(r)) l.Add(r.id);
+            return l;
+        }
+
+        /// <summary>Forces m (its unlocked riders follow) with the tank player at the centre and checks: telegraph before the first damage and at least
+        /// the floor (1 s for ultimate signature stages), no logged error, summon caps, Log, rider effects, everything gone again, hazards inside the arena, sprite pieces.</summary>
+        IEnumerator MoveCheck(int k, BossMove m, string tag)
+        {
+            var b = boss.brain;
+            BossHazard.ClearAll(); Projectile.ClearAll(false); BossHooks.ClearOwner(b);
+            b.casts.Clear(); b.LastTele = -1f;
+            boss.transform.position = new Vector2(0f, 5f);
+            if (m.id == "ty_dan")   // Between needs two live pools (harmless ones)
+                foreach (var pp in new[] { new Vector2(-7f, -4f), new Vector2(7f, 5f), new Vector2(8f, -6f) })
+                { var pool = BossHazard.Spawn(boss, HShape.Circle, pp, 0.01f, 6f, 0f, Color.green, 0.5f); pool.radius = 1f; }
+            if (m.id == "ty_dan") yield return Sec(0.15f);   // pools count once their 0.01 s telegraph is over
+            var exp = ExpectedLog(b, m);
+            int n0 = b.Log.Count, err0 = AutoTest.Errors, ph0 = BossHazard.PlayerHits, bh0 = BossBrain.HitCount, mins0 = BossMoves.Alive(b);
+            HitReset();
+            float floor = KiepNum.TeleFloor(k), need = m.ult && m.tele2 <= 0f ? 1f : floor;
+            b.Hold = false; b.ForceMove(m.id);
+            for (int i = 0; i < 6 && b.Current == null; i++) yield return null;
+            b.Hold = true;
+            float maxTele = -1f; bool teleSeen = false, dmgSeen = false, teleFirst = false, effect = false, clean = false, inside = true;
+            float t = 0f, teleAt = -1f, dmgAt = -1f, endT = -1f;
+            int maxAlive = 0, maxSpider = 0, maxCocoon = 0, maxFlag = 0, peakSingle = 0, peakTotal = 0;
+            string outside = "";
+            var seen = new HashSet<string>();
+            const float Tail = 5f, CleanMax = 16f, Tol = 0.35f;
+            while (t < 60f)
+            {
+                yield return null; t += Game.Dt;
+                if (endT < 0f && b.Current == null && b.Log.Count > n0) endT = t;
+                maxTele = Mathf.Max(maxTele, b.LastTele);   // a later sub-move (fire city fans) may lower LastTele
+                bool tele = false, live = false; int tot = 0, single = 0;
+                foreach (var h in BossHazard.All)
+                {
+                    if (h == null) continue;
+                    int pc = h.PieceCount; tot += pc; if (pc > single) single = pc;
+                    if (!string.IsNullOrEmpty(h.moveId)) seen.Add(h.moveId);
+                    if (h.owner == boss) { effect = true; if (h.Telegraphing) tele = true; if (h.Live && h.dmg > 0f) live = true; }
+                    if (Mathf.Abs(h.pos.x) > VK.Arena.HalfW + Tol || Mathf.Abs(h.pos.y) > VK.Arena.HalfH + Tol) { inside = false; outside = "hz " + h.moveId + " " + h.pos; }
+                }
+                foreach (var o in BossHooks.Objects(b, null))
+                    if (Mathf.Abs(o.transform.position.x) > VK.Arena.HalfW + Tol || Mathf.Abs(o.transform.position.y) > VK.Arena.HalfH + Tol) { inside = false; outside = o.kind + " " + o.transform.position; }
+                foreach (var p in Projectile.All) if (p != null && !p.Dead && p.Hostile && !string.IsNullOrEmpty(p.moveId)) seen.Add(p.moveId);
+                int pr = Projectile.CountHostile(), mins = BossMoves.Alive(b);
+                if (pr > 0 || mins > 0 || BossHooks.Count(b) > 0) effect = true;
+                if (!teleSeen && tele) { teleSeen = true; teleAt = t; }
+                if (!dmgSeen && (live || BossHazard.PlayerHits != ph0 || BossBrain.HitCount != bh0 || pr > 0 || mins > mins0)) { dmgSeen = true; dmgAt = t; teleFirst = teleSeen; }
+                maxAlive = Mathf.Max(maxAlive, mins);
+                maxSpider = Mathf.Max(maxSpider, BossMoves.Alive(b, "spiderling"));
+                maxCocoon = Mathf.Max(maxCocoon, BossMoves.Alive(b, "cocoon"));
+                maxFlag = Mathf.Max(maxFlag, BossMoves.Alive(b, "war_flag"));
+                peakSingle = Mathf.Max(peakSingle, single); peakTotal = Mathf.Max(peakTotal, tot);
+                clean = BossHazard.All.Count(h => h != null) == 0 && pr == 0 && BossHooks.Count() == 0;
+                if (endT >= 0f && t >= endT + Tail && (clean || t >= endT + CleanMax)) break;
+                if (endT < 0f && t > 40f) break;
+            }
+            string det = "t=" + t.ToString("0.0");
+            Check(tag + "_ended", endT >= 0f, det);
+            Check(tag + "_log", b.Log.Skip(n0).SequenceEqual(exp), string.Join(",", b.Log.Skip(n0)) + " vs " + string.Join(",", exp));
+            Check(tag + "_effect", dmgSeen && effect, "dmg " + dmgSeen + " effect " + effect);
+            Check(tag + "_tele_first", teleFirst && dmgAt - teleAt >= need - 0.06f, "shown " + (dmgAt - teleAt).ToString("0.00") + " need " + need.ToString("0.00"));
+            Check(tag + "_tele_floor", maxTele >= (m.ult ? 1f : floor) - 0.001f, maxTele.ToString("0.00"));
+            foreach (var r in b.kit.moves)
+                if (r.after == m.id && b.Unlocked(r) && r.id != "phun_moi") Check(tag + "_rider_" + r.id, seen.Contains(r.id), string.Join(",", seen));
+            int cap = b.kit.summonCap;
+            Check(tag + "_caps", maxAlive <= cap && maxSpider <= cap && maxCocoon <= (m.id == "ken_doc" ? BossHooks.CocoonCap : 6) && maxFlag <= 4,
+                "alive " + maxAlive + " spider " + maxSpider + " cocoon " + maxCocoon + " flag " + maxFlag + " cap " + cap);
+            Check(tag + "_noerr", AutoTest.Errors == err0, (AutoTest.Errors - err0).ToString());
+            Check(tag + "_inside", inside, outside);
+            Check(tag + "_clean", clean, Leftovers());
+            Debug.Log("[PERF] " + tag + " single=" + peakSingle + " total=" + peakTotal);
+            Check(tag + "_pieces", peakSingle <= 100 && peakTotal <= 300, "single " + peakSingle + " total " + peakTotal);
+            Debug.Log("[MOVEHIT] " + tag + " max=" + F3(hitMax) + " total=" + F3(hitSum) + " hits=" + hitN);
+            BossHooks.ClearOwner(b); BossHazard.ClearAll(); Projectile.ClearAll(false);
+        }
+
+        /// <summary>Every move unlocked at this Kiếp: set I and base in phase 1, then (phase 2 forced) the phase 2 move, the set II rider hosts and the set II ultimate.</summary>
+        IEnumerator MovesScenario(string id, int k)
+        {
+            yield return BossPrep(id, k, BossWave(id), new Vector2(0f, 5f)); var b = boss.brain; var kit = b.kit;
+            b.Hold = true; var dir = Game.I.dir; dir.TeleOnly = true; dir.enabled = true; HitTrack(true);
+            int sets = BossBrain.Sets(k); string pre = "mv_" + id + "_k" + k + "_";
+            foreach (var m in kit.moves.Where(x => x.after == null && (x.tier == BTier.Base || (x.tier == BTier.I && sets >= 1))).ToList())
+                yield return MoveCheck(k, m, pre + m.id);
+            yield return ForcePhase2(b);
+            foreach (var m in kit.moves.Where(x => x.after == null && b.Unlocked(x) && (x.tier == BTier.P2 || x.tier == BTier.II || kit.moves.Any(r => r.after == x.id && b.Unlocked(r)))).ToList())
+                yield return MoveCheck(k, m, pre + "p2_" + m.id);
+            HitTrack(false); dir.TeleOnly = false; dir.enabled = false;
+            BossHazard.ClearAll(); Projectile.ClearAll(false);
+        }
+
+        IEnumerator T_boss_moves_b1_k0() { yield return MovesScenario("b1", 0); }
+        IEnumerator T_boss_moves_b1_k3() { yield return MovesScenario("b1", 3); }
+        IEnumerator T_boss_moves_b1_k5() { yield return MovesScenario("b1", 5); }
+        IEnumerator T_boss_moves_b1b_k0() { yield return MovesScenario("b1b", 0); }
+        IEnumerator T_boss_moves_b1b_k3() { yield return MovesScenario("b1b", 3); }
+        IEnumerator T_boss_moves_b1b_k5() { yield return MovesScenario("b1b", 5); }
+        IEnumerator T_boss_moves_b2_k0() { yield return MovesScenario("b2", 0); }
+        IEnumerator T_boss_moves_b2_k3() { yield return MovesScenario("b2", 3); }
+        IEnumerator T_boss_moves_b2_k5() { yield return MovesScenario("b2", 5); }
+        IEnumerator T_boss_moves_b2b_k0() { yield return MovesScenario("b2b", 0); }
+        IEnumerator T_boss_moves_b2b_k3() { yield return MovesScenario("b2b", 3); }
+        IEnumerator T_boss_moves_b2b_k5() { yield return MovesScenario("b2b", 5); }
+        IEnumerator T_boss_moves_b3_k0() { yield return MovesScenario("b3", 0); }
+        IEnumerator T_boss_moves_b3_k3() { yield return MovesScenario("b3", 3); }
+        IEnumerator T_boss_moves_b3_k5() { yield return MovesScenario("b3", 5); }
+        IEnumerator T_boss_moves_b4_k0() { yield return MovesScenario("b4", 0); }
+        IEnumerator T_boss_moves_b4_k3() { yield return MovesScenario("b4", 3); }
+        IEnumerator T_boss_moves_b4_k5() { yield return MovesScenario("b4", 5); }
+
+        /// <summary>Max hp of a normal smart-bot run (-smart -meta 2) at that boss wave: about 39 / 100 / 230 / 450 at waves 5 / 10 / 15 / 20 (Logs f_k3 wave lines).
+        /// The level-1 hp of a bare test run says nothing about a wave 20 boss hit.</summary>
+        void SetRefHp(int wave)
+        {
+            var r = Game.I.run; float target = wave <= 5 ? 39f : wave <= 10 ? 100f : wave <= 15 ? 230f : 450f;
+            r.levelStats[Stat.MaxHP] += target - r.MaxHP; r.Recalc(); r.stats[Stat.Dodge] = 0f; r.hp = 1e6f;
+        }
+
+        // ---------------------------------------------------------------- hit caps (data for the Task 11 tuning pass)
+        /// <summary>Tank player stands still through the ultimates unlocked at each Kiếp, the Ult(II) at every Kiếp, and the biggest single moves.
+        /// Logs [HITCAP] id k=K move=M max=P; only the hard-safety bound (not one-shot) is asserted. The spec section 1 caps are tuning targets.</summary>
+        IEnumerator T_boss_hitcap()
+        {
+            HitTrack(true);
+            foreach (var id in BossIds)
+                foreach (int k in new[] { 0, 3, 5 })
+                {
+                    yield return BossPrep(id, k, BossWave(id), new Vector2(0f, 5f)); var b = boss.brain; var kit = b.kit;
+                    Game.I.dir.TeleOnly = true; Game.I.dir.enabled = true;
+                    var ids = new List<string>();
+                    foreach (var tr in k == 0 ? new[] { BTier.Base, BTier.II } : k == 3 ? new[] { BTier.I, BTier.II } : new[] { BTier.Base, BTier.I, BTier.II })
+                    { var u = kit.Ult(tr); if (u != null && !ids.Contains(u.id)) ids.Add(u.id); }
+                    if (id == "b1") ids.Add("doc_nhan_xung");
+                    float max = 0f; string maxMove = "";
+                    foreach (var mid in ids)
+                    {
+                        SetRefHp(BossWave(id));
+                        tankPos = mid == "thien_dao_tich_diet" ? new Vector2(6f, 3f) : mid == "liet_hoa_thanh" ? new Vector2(9f, 0f) : Vector2.zero;   // stage 2 / the fire city are safe at the centre
+                        Game.I.player.transform.position = tankPos;
+                        HitReset();
+                        yield return Exec(b, mid, 40f); yield return Sec(2.5f);
+                        Debug.Log("[HITCAP] " + id + " k=" + k + " move=" + mid + " max=" + F3(hitMax) + " total=" + F3(hitSum) + " hits=" + hitN);
+                        if (hitMax > max) { max = hitMax; maxMove = mid; }
+                        Check("hitcap_safe_" + id + "_k" + k + "_" + mid, hitMax <= 0.9f, F3(hitMax));
+                    }
+                    Debug.Log("[HITCAP] " + id + " k=" + k + " max=" + F3(max) + " move=" + maxMove);
+                    tankPos = Vector2.zero;
+                    BossHooks.ClearOwner(b); BossHazard.ClearAll(); Projectile.ClearAll(false);
+                    Game.I.dir.TeleOnly = false; Game.I.dir.enabled = false;
+                }
+            HitTrack(false);
+        }
+
+        // ---------------------------------------------------------------- riders and primitives that had no test yet
+        IEnumerator T_boss_extra_blinkecho()   // Huyết Phản: an afterimage slashes the same spot again after the gap, with the rider damage
+        {
+            yield return BossPrep("b3", 5, 15, new Vector2(0f, 5f)); var b = boss.brain;
+            yield return ForcePhase2(b); HitTrack(true);
+            b.Hold = false; b.ForceMove("huyet_bo");
+            for (int i = 0; i < 6 && b.Current == null; i++) yield return null;
+            b.Hold = true;
+            Vector2 slashPos = Vector2.zero, echoPos = Vector2.zero; float echoDmg = -1f, echoTele = -1f, echoR = -1f, t = 0f; bool haveSlash = false, haveEcho = false;
+            while (t < 8f && (b.Current != null || t < 0.3f))
+            {
+                yield return null; t += Game.Dt;
+                var s = BossHazard.All.FirstOrDefault(h => h != null && h.moveId == "huyet_bo" && h.shape == HShape.Circle);
+                if (s != null && !haveSlash) { haveSlash = true; slashPos = s.pos; }
+                var e = BossHazard.All.FirstOrDefault(h => h != null && h.moveId == "huyet_phan");
+                if (e != null && !haveEcho) { haveEcho = true; echoPos = e.pos; echoDmg = e.dmg; echoTele = e.tele; echoR = e.radius; PinAt(e.pos); }
+            }
+            yield return Sec(0.3f);
+            Check("echo_log", b.Log.Skip(b.Log.Count - 2).SequenceEqual(new[] { "huyet_bo", "huyet_phan" }), string.Join(",", b.Log));
+            Check("echo_same_spot", haveSlash && haveEcho && (echoPos - slashPos).magnitude < 0.01f && Mathf.Abs(echoR - 2.6f) < 0.01f, slashPos + " " + echoPos + " r" + echoR);
+            Check("echo_dmg", Mathf.Abs(echoDmg - boss.dmg * 0.5f) < 0.01f, echoDmg.ToString("0.00") + " vs " + (boss.dmg * 0.5f).ToString("0.00"));
+            Check("echo_tele", echoTele >= Mathf.Max(0.5f, KiepNum.TeleFloor(5)) - 0.001f, echoTele.ToString("0.00"));
+            HitTrack(false); BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_extra_phunmoi()   // Phun Mồi: every 2nd Nọc Phun cast spawns one spiderling, at most 3 alive from the move
+        {
+            yield return BossPrep("b2b", 5, 10, new Vector2(0f, 5f)); var b = boss.brain;
+            yield return ForcePhase2(b);
+            var dir = Game.I.dir; dir.TeleOnly = true; dir.enabled = true;
+            var series = new List<int>(); int maxAll = 0;
+            for (int c = 1; c <= 8; c++)
+            {
+                b.Hold = false; b.ForceMove("noc_phun");
+                for (int i = 0; i < 6 && b.Current == null; i++) yield return null;
+                b.Hold = true;
+                float t = 0f;
+                while (b.Current != null && t < 12f) { yield return null; t += Game.Dt; maxAll = Mathf.Max(maxAll, BossMoves.Alive(b)); }
+                yield return Sec(2f);
+                maxAll = Mathf.Max(maxAll, BossMoves.Alive(b));
+                series.Add(Summoned(b, "spiderling"));
+                boss.transform.position = new Vector2(0f, 5f);
+            }
+            int casts = b.casts.TryGetValue("noc_phun", out var cc) ? cc : -1;
+            Check("phun_cadence", series.SequenceEqual(new[] { 0, 1, 1, 2, 2, 3, 3, 3 }), string.Join(",", series));
+            Check("phun_casts", casts == 8, casts.ToString());
+            Check("phun_cap", maxAll <= b.kit.summonCap, maxAll.ToString());
+            dir.TeleOnly = false; dir.enabled = false;
+            BossHooks.ClearOwner(b); BossHazard.ClearAll();
+        }
+
+        IEnumerator RunSynth(BossBrain b, BossMove m, float settle, List<BossHazard> got)
+        {
+            BossHazard.ClearAll(); b.Hold = true; boss.transform.position = new Vector2(0f, 5f);
+            StartCoroutine(BossBrain.Flat(BossMoves.Run(b, m)));
+            yield return Sec(settle);
+            foreach (var h in BossHazard.All) if (h != null && h.moveId == m.id) got.Add(h);
+        }
+
+        static bool InArena(Vector2 p, float tol = 0.01f) => Mathf.Abs(p.x) <= VK.Arena.HalfW + tol && Mathf.Abs(p.y) <= VK.Arena.HalfH + tol;
+
+        IEnumerator T_boss_extra_zones()   // layouts no kit row uses directly: geometry stays inside the arena (HalfW 17, HalfH 10)
+        {
+            yield return BossPrep("b2b", 0, 10, new Vector2(0f, 5f)); var b = boss.brain;
+            float HW = VK.Arena.HalfW, HH = VK.Arena.HalfH;
+            Check("arena_size", Mathf.Approximately(HW, 17f) && Mathf.Approximately(HH, 10f), HW + "x" + HH);
+            foreach (int n in new[] { 1, 3, 4 })   // Quadrants: one rectangle per picked quadrant
+            {
+                var got = new List<BossHazard>();
+                var m = new BossMove { id = "t_quad" + n, name = "t", kind = BMove.Zones, tier = BTier.Base, tele = 0.7f, dmg = 0.1f, layout = ZLayout.Quadrants, n = n };
+                yield return RunSynth(b, m, 0.15f, got);
+                var cells = new HashSet<string>(); bool geo = true;
+                foreach (var h in got)
+                {
+                    geo &= h.shape == HShape.Bar && Mathf.Abs(h.len - HW) < 0.01f && Mathf.Abs(h.width - HH) < 0.01f && Mathf.Abs(h.angleDeg) < 0.01f;
+                    geo &= h.pos.x >= -HW - 0.01f && h.pos.x + h.len <= HW + 0.01f && h.pos.y - h.width * 0.5f >= -HH - 0.01f && h.pos.y + h.width * 0.5f <= HH + 0.01f;
+                    cells.Add((h.pos.x > -0.01f ? "R" : "L") + (h.pos.y > 0f ? "U" : "D"));
+                }
+                Check("zones_quadrants_" + n, got.Count == n && cells.Count == n && geo, got.Count + " cells " + cells.Count + " geo " + geo);
+                yield return Sec(1.2f);
+            }
+            {   // EdgeRing: n points evenly round the edge, inset 1.2
+                var got = new List<BossHazard>();
+                var m = new BossMove { id = "t_edge", name = "t", kind = BMove.Zones, tier = BTier.Base, tele = 0.7f, dmg = 0.1f, layout = ZLayout.EdgeRing, n = 6, radius = 1f };
+                yield return RunSynth(b, m, 0.15f, got);
+                var angs = got.Select(h => Mathf.Atan2(h.pos.y, h.pos.x) * Mathf.Rad2Deg).OrderBy(a => a).ToList();
+                bool even = angs.Count == 6; for (int i = 0; even && i < 6; i++) even &= Mathf.Abs(Mathf.DeltaAngle(angs[i], angs[(i + 1) % 6]) - 60f) < 0.6f;
+                bool onEdge = got.All(h => InArena(h.pos) && Mathf.Abs(h.pos.magnitude - (Edge(Vector2.zero, Mathf.Atan2(h.pos.y, h.pos.x) * Mathf.Rad2Deg) - 1.2f)) < 0.05f);
+                Check("zones_edgering", got.Count == 6 && even && onEdge, got.Count + " even " + even + " edge " + onEdge);
+                yield return Sec(1.2f);
+            }
+            {   // Radial: n points on a ring of radius 4 round the boss
+                var got = new List<BossHazard>();
+                var m = new BossMove { id = "t_radial", name = "t", kind = BMove.Zones, tier = BTier.Base, tele = 0.7f, dmg = 0.1f, layout = ZLayout.Radial, n = 4, radius = 1f };
+                yield return RunSynth(b, m, 0.15f, got);
+                int on4 = got.Count(h => Mathf.Abs((h.pos - boss.Pos).magnitude - 4f) < 0.05f);
+                Check("zones_radial", got.Count == 4 && got.All(h => InArena(h.pos)) && on4 >= 3, got.Count + " on ring " + on4);
+                yield return Sec(1.2f);
+            }
+            {   // Between: n points evenly on the segment boss -> player
+                var got = new List<BossHazard>();
+                var m = new BossMove { id = "t_between", name = "t", kind = BMove.Zones, tier = BTier.Base, tele = 0.7f, dmg = 0.1f, layout = ZLayout.Between, n = 3, radius = 1f };
+                Vector2 bp = boss.Pos, pp = Game.I.player.Pos;
+                yield return RunSynth(b, m, 0.15f, got);
+                bool ok = got.Count == 3;
+                for (int i = 0; ok && i < 3; i++) { int ii = i; ok &= got.Any(h => (h.pos - Vector2.Lerp(bp, pp, (ii + 1f) / 4f)).magnitude < 0.05f); }
+                Check("zones_between", ok && got.All(h => InArena(h.pos)), got.Count.ToString());
+                yield return Sec(1.2f);
+            }
+            BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_extra_annulus()   // Nova hook "annulus" (no kit row uses it): fire closes from radius to the safe radius2 round the player's spot
+        {
+            yield return BossPrep("b2", 0, 10, new Vector2(0f, 5f)); var b = boss.brain;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                var m = new BossMove { id = "t_ann" + pass, name = "t", kind = BMove.Nova, tier = BTier.Base, tele = 0.8f, dmg = 0.2f, radius = 12f, radius2 = 5f, dur = 1f, life = 1.5f, tick = 0.5f, hook = "annulus", reps = 1 };
+                BossHazard.ClearAll(); PinAt(Vector2.zero);
+                int ph0 = BossHazard.PlayerHits;
+                var got = new List<BossHazard>();
+                yield return RunSynth(b, m, 0.2f, got);
+                var tele = got.FirstOrDefault(h => h.Telegraphing);
+                if (pass == 0) Check("annulus_tele", tele != null && tele.shape == HShape.Annulus && Mathf.Abs(tele.radius - 12f) < 0.01f && Mathf.Abs(tele.radius2 - 5f) < 0.01f, tele == null ? "none" : tele.shape + " " + tele.radius + "/" + tele.radius2);
+                PinAt(new Vector2(pass == 0 ? 3f : 8f, 0f));
+                yield return Sec(3.8f);
+                int hits = BossHazard.PlayerHits - ph0;
+                Check(pass == 0 ? "annulus_inside_safe" : "annulus_outside_hit", pass == 0 ? hits == 0 : hits >= 2, hits.ToString());
+                Check("annulus_gone_" + pass, !BossHazard.All.Any(h => h != null && h.owner == boss), BossHazard.All.Count.ToString());
+            }
+            PinAt(Vector2.zero); BossHazard.ClearAll();
+        }
+
+        IEnumerator T_boss_extra_clone_dmg()   // clone bullets carry boss damage x the move factor (no ghost discount)
+        {
+            yield return BossPrep("b3", 0, 15, new Vector2(0f, 5f)); var b = boss.brain;
+            yield return Fire(b, "ma_anh_huyet_y"); yield return Sec(1.8f);
+            var ps = Projectile.All.Where(p => p != null && !p.Dead && p.Hostile && p.moveId == "ma_anh_huyet_y").ToList();
+            float exp = boss.dmg * 0.35f;
+            Check("clone_dmg_count", ps.Count >= 12, ps.Count.ToString());
+            Check("clone_dmg_value", ps.Count > 0 && ps.All(p => Mathf.Abs(p.Dmg - exp) < 0.01f), ps.Count > 0 ? ps[0].Dmg.ToString("0.00") + " vs " + exp.ToString("0.00") : "-");
+            yield return Sec(6f);
+            BossHazard.ClearAll(); Projectile.ClearAll(false);
+        }
+
+        IEnumerator T_boss_extra_phase_clean()   // phase change: hooks, minions, hazards and bullets of the boss are gone
+        {
+            yield return BossPrep("b2b", 3, 10, new Vector2(0f, 5f)); var b = boss.brain;
+            var dir = Game.I.dir; dir.TeleOnly = true; dir.enabled = true;
+            yield return Fire(b, "van_trung_phe"); yield return WaitIdle(b, 12f); yield return Sec(4f);   // cocoons hatch, spiderlings stay
+            var hz = BossHazard.Spawn(boss, HShape.Circle, new Vector2(8f, 4f), 0.2f, 60f, 0f, Color.green, 0.5f); hz.radius = 1f;
+            var pr = Projectile.FireHostile(new Vector2(-8f, 5f), Vector2.zero, 1f, Color.red); pr.owner = boss;
+            int sp = Summoned(b, "spiderling");
+            Check("pc_setup", sp > 0 && BossHazard.All.Count(h => h != null) > 0 && Projectile.CountHostile() > 0, "spiders " + sp);
+            b.Hold = false; boss.hp = boss.maxHp * 0.49f;
+            yield return WaitPhase2(b, 30f);
+            Check("pc_phase2", b.Phase == 2, b.Phase.ToString());
+            Check("pc_clean", Summoned(b) == 0 && BossHooks.Count() == 0 && !BossHazard.All.Any(h => h != null && h.owner == boss) && Projectile.CountHostile() == 0, Leftovers());
+            yield return Sec(1.5f);
+            Check("pc_still_clean", Summoned(b) == 0 && BossHooks.Count() == 0 && Projectile.CountHostile() == 0 && BossMoves.Pending(b) == 0, Leftovers());
+            dir.TeleOnly = false; dir.enabled = false;
+            BossHooks.ClearOwner(b); BossHazard.ClearAll(); Projectile.ClearAll(false);
+        }
+
+        /// <summary>Boss moves that keep creating things after the start: ghosts, a spiral, falling zones, cocoons.</summary>
+        static readonly (string id, string move, float at)[] MidUlt =
+        {
+            ("b4", "van_ma_quy_tong", 3.0f), ("b3", "huyet_ha_dao_luu", 2.0f), ("b2", "thien_hoa_lac", 1.0f), ("b2b", "van_trung_phe", 0.7f),
+        };
+
+        IEnumerator T_boss_clean_world()   // StartRun while a boss is mid-ult: nothing of it is created after ClearWorld, in that frame or the next 0.5 s
+        {
+            foreach (var cfg in MidUlt)
+            {
+                yield return BossPrep(cfg.id, 5, BossWave(cfg.id), new Vector2(0f, 5f)); var b = boss.brain;
+                yield return Fire(b, cfg.move); yield return Sec(cfg.at);
+                bool running = b.Current != null && !Clean(); string before = Leftovers();
+                var g = Game.I; tankHold = false; int err0 = AutoTest.Errors;
+                g.StartRun(0, 0); g.dir.enabled = false;
+                bool bad = !Clean(); string what = bad ? "same frame " + Leftovers() : "";
+                float t = 0f;
+                while (t < 0.6f) { yield return null; t += Game.Dt; if (!Clean() && !bad) { bad = true; what = "t=" + t.ToString("0.00") + " " + Leftovers(); } }
+                Check("cw_running_" + cfg.id, running, before);
+                Check("cw_clean_" + cfg.id, !bad && AutoTest.Errors == err0 && Enemy.All.Count(e => e != null && e.boss) == 0, what + " errors " + (AutoTest.Errors - err0));
+            }
+        }
+
+        IEnumerator T_boss_clean_menu()   // back to the menu mid-ult leaves nothing (Game.Dt is 0 outside play, so this waits in frames and real time)
+        {
+            foreach (var cfg in MidUlt)
+            {
+                yield return BossPrep(cfg.id, 5, BossWave(cfg.id), new Vector2(0f, 5f)); var b = boss.brain;
+                yield return Fire(b, cfg.move); yield return Sec(cfg.at);
+                bool running = b.Current != null && !Clean(); string before = Leftovers();
+                var g = Game.I; tankHold = false; int err0 = AutoTest.Errors;
+                g.GoMenu();
+                bool bad = !Clean(); string what = bad ? "same frame " + Leftovers() : "";
+                for (int f = 0; f < 40; f++) { yield return null; if (!Clean() && !bad) { bad = true; what = "frame " + f + " " + Leftovers(); } }
+                yield return new WaitForSecondsRealtime(0.5f);
+                if (!Clean() && !bad) { bad = true; what = "late " + Leftovers(); }
+                Check("menu_running_" + cfg.id, running, before);
+                Check("menu_clean_" + cfg.id, !bad && g.state == GState.Menu && AutoTest.Errors == err0 && Enemy.All.Count(e => e != null && e.boss) == 0, what + " state " + g.state + " errors " + (AutoTest.Errors - err0));
+            }
+        }
+
+        // ---------------------------------------------------------------- screenshots (run with -skilltest -only shot): Logs/shots/shot_*.png
+        /// <summary>Boss of id at Kiếp k forced into moveId; one shot at `at` seconds (default 0.75 x its telegraph) and optionally a second at `at2`.</summary>
+        IEnumerator ShotOf(string file, string id, int k, string moveId, float at = -1f, float at2 = -1f)
+        {
+            yield return BossPrep(id, k, BossWave(id), new Vector2(0f, 5f)); var b = boss.brain;
+            var dir = Game.I.dir; dir.TeleOnly = true; dir.enabled = true;
+            yield return Fire(b, moveId);
+            if (at < 0f) at = b.EffTele(b.kit.Move(moveId)) * 0.75f;
+            yield return Sec(at);
+            Game.I.bot.Shot(file);
+            if (at2 > at)
+            {
+                yield return new WaitForSecondsRealtime(0.4f);
+                yield return Sec(Mathf.Max(0.05f, at2 - at - 0.4f));
+                Game.I.bot.Shot(file + "_live");
+            }
+            yield return new WaitForSecondsRealtime(0.6f);   // the capture is written at end of frame: do not rebuild the arena before it lands
+            dir.TeleOnly = false; dir.enabled = false;
+            BossHazard.ClearAll(); Projectile.ClearAll(false);
+        }
+
+        IEnumerator UltShot(string id, int k, BTier tier, string suffix, float at = -1f, float at2 = -1f)
+        {
+            var u = Content.Kit(id).Ult(tier);
+            yield return ShotOf("shot_" + id + "_ult" + suffix, id, k, u.id, at, at2);
+        }
+
+        IEnumerator T_shot_b1_ultII() { yield return UltShot("b1", 5, BTier.II, "II", 1.2f, 2.8f); }
+        IEnumerator T_shot_b1b_ultII() { yield return UltShot("b1b", 5, BTier.II, "II", 0.9f, 2.4f); }
+        IEnumerator T_shot_b2_ultII() { yield return UltShot("b2", 5, BTier.II, "II", 0.9f, 3.0f); }
+        IEnumerator T_shot_b2b_ultII() { yield return UltShot("b2b", 5, BTier.II, "II", 1.1f, 3.0f); }
+        IEnumerator T_shot_b3_ultII() { yield return UltShot("b3", 5, BTier.II, "II", 0.8f, 2.4f); }
+        IEnumerator T_shot_b4_ultII() { yield return UltShot("b4", 5, BTier.II, "II", 1.5f, 4.4f); }
+
     }
 }

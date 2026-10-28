@@ -405,6 +405,7 @@ namespace VK
         // ---------------------------------------------------------------- bot input
         public Vector2 Move(Player p)
         {
+            if (Passive) return Vector2.zero;
             Vector2 pos = p.Pos, f = Vector2.zero;
             // fight: approach the nearest enemy to ~1.8 units, back off from crowds that get too close
             Enemy near = Enemy.Nearest(pos, 30f);
@@ -474,8 +475,11 @@ namespace VK
             Shot("skill_" + Game.I.run.ch.id);
         }
 
+        /// <summary>Set by the boss tests' tank player: the bot neither walks nor dashes, so every hit lands.</summary>
+        public static bool Passive;
         public bool WantDash(Player p)
         {
+            if (Passive) return false;
             foreach (var e in Enemy.All) if (Vector2.Distance(e.Pos, p.Pos) < e.radius + 0.9f) return true;
             return false;
         }
