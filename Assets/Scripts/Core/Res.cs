@@ -8,6 +8,7 @@ namespace VK
     {
         static readonly Dictionary<int, Sprite> tiles = new Dictionary<int, Sprite>();
         static readonly Dictionary<string, AudioClip[]> clips = new Dictionary<string, AudioClip[]>();
+        static readonly Dictionary<string, Sprite[]> animCache = new Dictionary<string, Sprite[]>();
         static Font font;
         static Sprite white, circle, glow, ring, diamond, slash;
         static Material flashMat, addMat;
@@ -71,6 +72,23 @@ namespace VK
             }
             tiles[i] = s;
             return s;
+        }
+
+        public static Sprite[] Anim(string id, string clip)
+        {
+            string key = id + "/" + clip;
+            if (animCache.TryGetValue(key, out var cached)) return cached;
+            var def = AnimDefs.Get(id, clip);
+            if (def == null) { animCache[key] = null; return null; }
+            var tex = Resources.Load<Texture2D>("PixelLab/Chars/" + id + "_" + clip);
+            if (tex == null || tex.width != def.frames * tex.height) { animCache[key] = null; return null; }
+            tex.filterMode = FilterMode.Point;
+            int h = tex.height;
+            var arr = new Sprite[def.frames];
+            for (int i = 0; i < def.frames; i++)
+                arr[i] = Sprite.Create(tex, new Rect(i * h, 0, h, h), new Vector2(0.5f, 0.5f), 48f);
+            animCache[key] = arr;
+            return arr;
         }
 
         public static void RegisterClip(string name, AudioClip c) { clips[name] = new[] { c }; }

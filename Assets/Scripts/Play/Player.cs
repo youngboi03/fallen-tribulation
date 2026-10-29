@@ -28,6 +28,8 @@ namespace VK
 
         Transform body;
         SpriteRenderer sr, shadow, aura;
+        SpriteAnimator anim;
+        string charId;
         MaterialPropertyBlock mpb;
         Vector2 vel, lastMove = Vector2.right, dashDir;
         public float slowT, slowMul = 1f;   // BossHazard slow: movement multiplier while slowT > 0
@@ -64,6 +66,7 @@ namespace VK
             body.SetParent(transform, false);
             sr = body.gameObject.AddComponent<SpriteRenderer>();
             sr.sharedMaterial = Res.FlashMat;
+            anim = body.gameObject.AddComponent<SpriteAnimator>();
         }
 
         public void Setup(CharDef c)
@@ -74,6 +77,9 @@ namespace VK
             dead = 0;
             sr.color = Color.white;
             body.localRotation = Quaternion.identity;
+            charId = c.id;
+            anim.Base = sr.sprite;
+            anim.Stop();
         }
 
         public void ResetForWave()
@@ -111,6 +117,7 @@ namespace VK
             if (g.state == GState.Over && dead > 0)
             {   // death animation
                 dead += Time.deltaTime;
+                anim.Stop();
                 body.localRotation = Quaternion.Euler(0, 0, Mathf.Min(90f, dead * 300f));
                 sr.color = Color.Lerp(Color.white, new Color(0.5f, 0.2f, 0.2f, 0.7f), dead);
                 return;
@@ -163,12 +170,27 @@ namespace VK
 
             // animation: hop while walking, breathe while idle
             bool moving = vel.sqrMagnitude > 0.25f;
-            animT += dt * (moving ? 13f : 3f);
-            float hop = moving ? Mathf.Abs(Mathf.Sin(animT)) * 0.1f : 0f;
-            float breathe = moving ? 1f : 1f + Mathf.Sin(animT) * 0.03f;
-            body.localPosition = new Vector3(0, hop, 0);
             const float Size = 1.3f;   // the hero reads a bit larger than ordinary monsters
-            body.localScale = new Vector3((moving ? 1f + hop * 0.6f : 1f) * Size, (moving ? 1f - hop * 0.6f : breathe) * Size, 1f);
+            if (moving && anim.Play(charId, "walk"))
+            {
+                body.localPosition = Vector3.zero;
+                body.localScale = new Vector3(Size, Size, 1f);
+            }
+            else if (moving)
+            {
+                animT += dt * 13f;
+                float hop = Mathf.Abs(Mathf.Sin(animT)) * 0.1f;
+                body.localPosition = new Vector3(0, hop, 0);
+                body.localScale = new Vector3((1f + hop * 0.6f) * Size, (1f - hop * 0.6f) * Size, 1f);
+            }
+            else
+            {
+                anim.Stop();
+                animT += dt * 3f;
+                float breathe = 1f + Mathf.Sin(animT) * 0.03f;
+                body.localPosition = Vector3.zero;
+                body.localScale = new Vector3(Size, breathe * Size, 1f);
+            }
             if (Mathf.Abs(vel.x) > 0.1f) sr.flipX = vel.x < 0;
             sr.sortingOrder = Mathf.RoundToInt(-pos.y * 5f);
 
