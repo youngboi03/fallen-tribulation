@@ -1,7 +1,8 @@
-"""QA gate for PixelLab sprites: one line per finding, exit 1 only on FAIL (meta); WARN = look at it, art call. Read-only.
+"""QA gate for PixelLab sprites: one line per finding, exit 1 only on FAIL (meta); FIXED = rewritten by --fix; WARN = look at it, art call. Read-only.
 
   python -I tools/asset_qa.py [meta|baseline|seam|palette ...]    (default: all four)
   python -I tools/asset_qa.py intake OUT.png RAW.png   (after a fetch+clean: undo an overreaching clean, log, write a compare sheet)
+  python -I tools/asset_qa.py baseline --fix FILE.png...   move the named walkers that float above their family down to the family median (rewrites files)
   python -I tools/asset_qa.py --selftest
 
 meta     .meta import settings per folder (filter, compression, mipmap, PPU, pivot), incl. platform overrides
@@ -76,7 +77,19 @@ def baseline_issues(pads, tol=BASELINE_TOL):
     return {n: (v, med) for n, v in pads.items() if abs(v - med) > tol}
 
 
-def check_baseline():
+def shift_down(im, rows):
+    """Move the picture down `rows` whole pixels on the same canvas (never crops: needs that many empty rows below)."""
+    im = im.convert("RGBA")
+    assert 0 <= rows <= bottom_pad(im), (rows, bottom_pad(im))
+    out = Image.new("RGBA", im.size)
+    out.paste(im, (0, rows))
+    return out
+
+
+def check_baseline(fix=()):
+    """fix: only the named files, and only if they float above their family (more than BASELINE_TOL rows over the median), are moved
+    down to the median. Shadows sit at -0.4 * scale of the sprite centre (Enemy.cs), i.e. about 5 empty rows under the feet of a
+    48px sprite. Never fix flyers (ma_buc, bats): they hover above their shadow on purpose, a human picks the files."""
     out = []
     for folder in FEET:
         pads = {p: bottom_pad(Image.open(p)) for p in files(folder)}
@@ -84,7 +97,12 @@ def check_baseline():
         if not pads:
             continue
         for p, (v, med) in baseline_issues(pads).items():
-            out.append(("WARN", p, f"{v} empty rows under feet, {folder} median {med:g}"))
+            target = int(med + 0.5)
+            if any(p.endswith(f) for f in fix) and v > target + BASELINE_TOL:
+                shift_down(Image.open(p), v - target).save(p)
+                out.append(("FIXED", p, f"moved down {v - target} rows ({v} -> {target} empty rows under feet)"))
+            else:
+                out.append(("WARN", p, f"{v} empty rows under feet, {folder} median {med:g}"))
     return out
 
 
@@ -155,7 +173,7 @@ def check_palette():
 CHECKS = {"meta": check_meta, "baseline": check_baseline, "seam": check_seam, "palette": check_palette}
 
 
-REVERT_AT = 0.01  # the clean step may change at most 1% of the opaque pixels, else it is undone (protects eyes, sparks)
+REVERT_AT = float(os.environ.get("ASSET_REVERT_AT", "0.01"))  # the clean step may change at most 1% of the opaque pixels, else it is undone (protects eyes, sparks)
 INTAKE = "tools/.intake"
 
 
@@ -279,6 +297,15 @@ def selftest():
     floaty.putpixel((5, 4), (90, 20, 20, 255))
     res, _ = assess(floaty, floaty, "Chars", [2, 2, 2], 40)
     assert any("empty rows under feet" in m for _, m in res), res
+    sq = Image.new("RGBA", (8, 8), (0, 0, 0, 0))
+    sq.paste((9, 9, 9, 255), (2, 1, 6, 4))  # rows 1..3 filled, 4 empty rows below
+    moved = shift_down(sq, 3)
+    assert bottom_pad(moved) == 1 and moved.size == sq.size and moved.getpixel((3, 5)) == (9, 9, 9, 255)
+    try:
+        shift_down(sq, 5)
+        raise SystemExit("shift_down must refuse to crop")
+    except AssertionError:
+        pass
     print("asset_qa selftest OK")
 
 
@@ -291,12 +318,16 @@ if __name__ == "__main__":
         if len(a) != 3:
             sys.exit("usage: asset_qa.py intake OUT.png RAW.png")
         sys.exit(intake(a[1], a[2]))
+    fix = tuple(x for x in a if x.endswith(".png")) if "--fix" in a else ()
+    if "--fix" in a and not fix:
+        sys.exit("--fix needs the files to move, e.g. baseline --fix Enemies/doc_trung.png (flyers hover on purpose)")
+    a = [x for x in a if x != "--fix" and not x.endswith(".png")]
     names = a or list(CHECKS)
     if any(n not in CHECKS for n in names):
         sys.exit(__doc__)
     fails = 0
     for n in names:
-        res = CHECKS[n]()
+        res = check_baseline(fix) if n == "baseline" else CHECKS[n]()
         for level, p, msg in res:
             print(f"{level} {n} {p.replace(ROOT + '/', '')}: {msg}")
         fails += sum(1 for r in res if r[0] == "FAIL")
