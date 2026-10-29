@@ -2,7 +2,7 @@
 Tokens come from the environment: the free trial tokens first (PIXELLAB_API_TOKEN, _2.._5), then PIXELLAB_API_TOKEN_MAIN once they are refused (402).
 Output: Assets/Resources/PixelLab/Icons/w_<id>.png / i_<id>.png, provenance appended to Assets/ThirdParty/PixelLab-Assets.md.
 Usage: python -I tools/pixellab_icons.py [size]"""
-import base64, json, os, sys, time, urllib.error, urllib.request
+import base64, json, os, subprocess, sys, time, urllib.error, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'Assets', 'Resources', 'PixelLab', 'Icons')
@@ -44,3 +44,4 @@ for key, prompt in jobs:
         except Exception as e:
             print('retry', key, repr(e)[:200], flush=True); time.sleep(10 * (attempt + 1))
 print('done', sum(os.path.exists(os.path.join(OUT, k + '.png')) for k, _ in jobs), '/', len(jobs))
+subprocess.run(['bash', 'tools/asset_backfill.sh', 'Icons'], cwd=ROOT)  # same pixel-clean + intake guard as pixellab_fetch.sh; no-op when nothing is new
