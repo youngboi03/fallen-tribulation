@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-29",
+  "benchmark": ["Bosses/b4", "Bosses/b2b", "Chars/kiem_tu", "Chars/ma_tu", "Enemies/bao_ruong_ngu", "Icons/i_bat_tu_phu"],
+  "calls": "16 PixelLab calls, ~1.6 generations (jobs in tools/.intake/bench/jobs.txt, not tracked)",
+  "tidy_and_stray_pixels": {"winner": "script (tools/ase_clean.sh)",
+    "why": "PixelLab correct_pixelart strength 0.1 failed the gates on 6/6: re-renders the sprite (48 -> 801..3346 colours, 5-26% of pixels changed outside the defect area). Do not use it on finished sprites."},
+  "reduce_colours": {"winner": "script (tools/ase_clean.sh)",
+    "why": "reduce_colors with a palette passes the gates 6/6 but only because the palette was the script's own, so it is a tie (differs from the script by 0-222 px) at 1 paid call per asset. Auto palette (no palette given) failed 4/4: 30-87% of pixels recoloured.",
+    "maybe_later": "reduce_colors with palette_image on a whole animation sheet to lock frames to one palette; not tested."},
+  "not_tested": ["inpaint_image / edit_image (10 generations each, need a defect mask we cannot detect yet)", "pixelart_workbench", "repeatability (the 4 spare calls went to the auto-palette check)"],
+  "revisit_when": "PixelLab changes these tools, or a new defect class appears (the one-off compare harness was deleted; gates: silhouette IoU >= 0.97, <= 2% pixels changed outside the defect area, <= 1% colours not in the original, no semi alpha)"
+}

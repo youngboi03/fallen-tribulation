@@ -14,3 +14,6 @@
 *.pdb.meta
 crashlytics-build.properties
 __pycache__/
+
+# asset intake: raw downloads, compare sheets, report log
+tools/.intake/
