@@ -1,0 +1,118 @@
+{
+ "kiem_tu": {
+  "hip": 40,
+  "mid": 28,
+  "arms": [
+   {
+    "box": [
+     12,
+     21,
+     22,
+     34
+    ],
+    "sg": 1,
+    "mode": "shear"
+   },
+   {
+    "box": [
+     34,
+     22,
+     40,
+     33
+    ],
+    "sg": -1,
+    "mode": "shear"
+   }
+  ]
+ },
+ "the_tu": {
+  "hip": 38,
+  "mid": 24,
+  "arms": [
+   {
+    "box": [
+     8,
+     14,
+     16,
+     32
+    ],
+    "sg": 1,
+    "mode": "shear"
+   },
+   {
+    "box": [
+     31,
+     15,
+     39,
+     32
+    ],
+    "sg": -1,
+    "mode": "shear"
+   }
+  ]
+ },
+ "dan_tu": {
+  "hip": 40,
+  "legs": false,
+  "arms": [
+   {
+    "box": [
+     35,
+     4,
+     46,
+     34
+    ],
+    "sg": -1,
+    "mode": "rigid"
+   }
+  ]
+ },
+ "phu_tu": {
+  "hip": 40,
+  "legs": false,
+  "arms": [
+   {
+    "box": [
+     32,
+     12,
+     47,
+     28
+    ],
+    "sg": -1,
+    "mode": "rigid"
+   }
+  ]
+ },
+ "loi_tu": {
+  "hip": 40,
+  "legs": false,
+  "arms": [
+   {
+    "box": [
+     30,
+     6,
+     46,
+     46
+    ],
+    "sg": -1,
+    "mode": "shear_up"
+   }
+  ]
+ },
+ "ma_tu": {
+  "hip": 38,
+  "legs": false,
+  "arms": [
+   {
+    "box": [
+     4,
+     16,
+     13,
+     36
+    ],
+    "sg": 1,
+    "mode": "shear_up"
+   }
+  ]
+ }
+}
