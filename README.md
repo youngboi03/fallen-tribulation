@@ -53,4 +53,4 @@ The exe is not code-signed, so Windows SmartScreen may warn on first launch: cho
 - **Source code:** MIT, see `LICENSE`. Third-party assets keep their own licenses.
 - **Character, enemy, boss, weapon/treasure icon and background art:** generated with PixelLab (AI pixel-art tool), then cleaned up and edited in Aseprite with a scripted clean-up and QA pipeline; the tool and prompt for each image are logged in `Assets/ThirdParty/PixelLab-Assets.md`.
 - **Tiles and sound packs:** [Kenney](https://kenney.nl) (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. Licenses in `Assets/ThirdParty/`.
-- **Font:** Baloo 2 by Ek Type, SIL Open Font License 1.1 (`Assets/ThirdParty/Baloo2-OFL.txt`). The Chinese UI uses an installed system font; none is bundled.
+- **Fonts:** Baloo 2 by Ek Type (UI text), Comforter Brush by Robert Leuschke (Latin titles) and Zhi Mang Xing (Chinese titles), all SIL Open Font License 1.1 (`Assets/ThirdParty/*-OFL.txt`). Chinese body text uses an installed system font.

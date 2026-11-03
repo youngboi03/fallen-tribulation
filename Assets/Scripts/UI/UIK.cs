@@ -139,6 +139,28 @@ namespace VK
             return t;
         }
 
+        /// <summary>Big title in the brush face with a dark ink outline. Brush script reads badly in ALL CAPS: pass Title Case strings.</summary>
+        public static Text Title(Transform p, string s, int size, Color c, TextAnchor a = TextAnchor.MiddleCenter)
+        {
+            var t = Txt(p, s, size, c, a, FontStyle.Normal, true);
+            t.font = Res.TitleFont;
+            t.lineSpacing = 1f;
+            var ol = t.gameObject.AddComponent<Outline>();
+            ol.effectColor = new Color(0.04f, 0.02f, 0.02f, 0.95f);
+            ol.effectDistance = new Vector2(Mathf.Max(2f, size / 30f), -Mathf.Max(2f, size / 30f));
+            return t;
+        }
+
+        /// <summary>Ink blot that splashes in behind <paramref name="title"/> and then reveals it. Self-driven on unscaled time; dies with its parent.</summary>
+        public static InkSplatFx InkSplat(Text title, Color tint, int seed = 0)
+        {
+            var rt = R(title.transform.parent, "inkSplat");
+            rt.SetSiblingIndex(title.transform.GetSiblingIndex());
+            var fx = rt.gameObject.AddComponent<InkSplatFx>();
+            fx.Init(title, tint, seed);
+            return fx;
+        }
+
         public static Button Btn(Transform p, string label, Action onClick, Color bg, int size = 26, float w = -1, float h = -1)
         {
             var img = Img(p, bg, "btn");
@@ -276,6 +298,153 @@ namespace VK
         {
             float s = Mathf.Lerp(transform.localScale.x, target, 1f - Mathf.Exp(-18f * Time.unscaledDeltaTime));
             transform.localScale = new Vector3(s, s, 1);
+        }
+    }
+
+    /// <summary>Procedural ink splash (see <see cref="UIK.InkSplat"/>): blot punch 0 to 1.15 to 1 in 0.25 s, droplets fly out and settle, then the title fades and scales in.</summary>
+    public class InkSplatFx : MonoBehaviour
+    {
+        static readonly Sprite[] blots = new Sprite[3];
+        static Sprite drop;
+        Text title; CanvasGroup titleCg; RectTransform blot;
+        RectTransform[] drops; Vector2[] target; float[] delay, size;
+        float age, hw, hh;
+
+        public float Age => age;
+        public bool hold;   // true: wait (invisible) until the owner releases it
+
+        static float Cap(float px, float py, float ax, float ay, float bx, float by, float ra, float rb)
+        {   // coverage of a tapered capsule from a (radius ra) to b (radius rb)
+            float dx = bx - ax, dy = by - ay, k = Mathf.Clamp01(((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy + 0.0001f));
+            float d = Mathf.Sqrt((px - ax - dx * k) * (px - ax - dx * k) + (py - ay - dy * k) * (py - ay - dy * k)) - Mathf.Lerp(ra, rb, k);
+            return Mathf.Clamp01(0.5f - d);
+        }
+
+        public static Sprite Blot(int variant)
+        {
+            variant = ((variant % 3) + 3) % 3;
+            if (blots[variant] != null) return blots[variant];
+            const int W = 512, H = 192;
+            var rnd = new System.Random(7919 * (variant + 1));
+            float F() => (float)rnd.NextDouble();
+            float ph1 = F() * 6.28f, ph2 = F() * 6.28f, ph3 = F() * 6.28f, ox = F() * 90f, oy = F() * 90f;
+            float cx = W / 2f, cy = H / 2f, ea = W * 0.40f, eb = H * 0.30f;
+            var spikes = new float[9, 4];   // angle, start, length, width
+            for (int i = 0; i < 9; i++)
+            {
+                float ang = (i / 9f) * 6.283f + F() * 0.5f;
+                spikes[i, 0] = ang; spikes[i, 1] = 0.7f; spikes[i, 2] = 1.12f + F() * 0.3f; spikes[i, 3] = 5f + F() * 8f;
+            }
+            var drips = new float[3, 3];    // x, length, width
+            for (int i = 0; i < 3; i++) { drips[i, 0] = cx + (F() - 0.5f) * ea * 1.5f; drips[i, 1] = 18f + F() * 16f; drips[i, 2] = 4f + F() * 4f; }
+            var px = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+                for (int x = 0; x < W; x++)
+                {
+                    float u = (x + 0.5f - cx) / ea, v = (y + 0.5f - cy) / eb;
+                    float th = Mathf.Atan2(v, u), e = Mathf.Sqrt(u * u + v * v);
+                    float rb = 1f + 0.16f * Mathf.Sin(3f * th + ph1) + 0.11f * Mathf.Sin(5f * th + ph2) + 0.07f * Mathf.Sin(9f * th + ph3)
+                             + (Mathf.PerlinNoise(x * 0.09f + ox, y * 0.09f + oy) - 0.5f) * 0.28f;
+                    float a = Mathf.Clamp01((rb - e) / 0.07f + 0.5f);
+                    for (int i = 0; i < 9 && a < 1f; i++)
+                    {
+                        float c = Mathf.Cos(spikes[i, 0]), sn = Mathf.Sin(spikes[i, 0]);
+                        a = Mathf.Max(a, Cap(x + 0.5f, y + 0.5f, cx + c * ea * spikes[i, 1], cy + sn * eb * spikes[i, 1],
+                                             cx + c * ea * spikes[i, 2], cy + sn * eb * spikes[i, 2], spikes[i, 3], 0.8f));
+                    }
+                    for (int i = 0; i < 3 && a < 1f; i++)
+                    {
+                        float top = cy - eb * 0.55f, end = Mathf.Max(8f, top - drips[i, 1] - eb * 0.3f);   // image y grows upward, so drips run toward y = 0
+                        a = Mathf.Max(a, Cap(x + 0.5f, y + 0.5f, drips[i, 0], top, drips[i, 0], end, drips[i, 2], drips[i, 2] * 0.55f));
+                        a = Mathf.Max(a, Cap(x + 0.5f, y + 0.5f, drips[i, 0], end, drips[i, 0], end - 0.1f, drips[i, 2] * 1.15f, drips[i, 2] * 1.15f));
+                    }
+                    a *= 1f - 0.22f * Mathf.SmoothStep(0.55f, 0.9f, Mathf.PerlinNoise(x * 0.17f + oy, y * 0.17f + ox));   // dry-brush mottling
+                    px[y * W + x] = new Color32(255, 255, 255, (byte)(a * 255f));
+                }
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            tex.SetPixels32(px); tex.Apply();
+            return blots[variant] = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        static Sprite Drop()
+        {
+            if (drop != null) return drop;
+            const int n = 32;
+            var px = new Color32[n * n];
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float d = new Vector2(x + 0.5f - n / 2f, y + 0.5f - n / 2f).magnitude;
+                    px[y * n + x] = new Color32(255, 255, 255, (byte)(Mathf.Clamp01(n / 2f - 1f - d + 0.5f) * 255f));
+                }
+            var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            tex.SetPixels32(px); tex.Apply();
+            return drop = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        public void Init(Text t, Color tint, int seed)
+        {
+            title = t;
+            var rt = (RectTransform)transform; var trt = t.rectTransform;
+            float tw = Mathf.Min(t.preferredWidth, trt.rect.width);
+            float w = tw * 1.2f + 150f, h = Mathf.Max(trt.rect.height, t.fontSize * 1.3f) * 1.3f;
+            float cx = t.alignment == TextAnchor.MiddleLeft || t.alignment == TextAnchor.UpperLeft || t.alignment == TextAnchor.LowerLeft ? trt.rect.xMin + tw / 2f - 20f
+                     : t.alignment == TextAnchor.MiddleRight ? trt.rect.xMax - tw / 2f + 20f : trt.rect.center.x;
+            var par = (RectTransform)trt.parent;
+            rt.anchorMin = rt.anchorMax = par.pivot; rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = (Vector2)trt.localPosition + new Vector2(cx, trt.rect.center.y);
+            hw = w / 2f; hh = h / 2f;
+
+            var bi = UIK.Img(rt, tint, "blot"); bi.sprite = InkSplatFx.Blot(seed); bi.raycastTarget = false;
+            blot = bi.rectTransform.Fill();
+            blot.localScale = Vector3.zero;
+
+            var rnd = new System.Random(seed * 31 + 5);
+            int n = 10 + rnd.Next(11);
+            drops = new RectTransform[n]; target = new Vector2[n]; delay = new float[n]; size = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float ang = (i + (float)rnd.NextDouble()) / n * 6.283f, f = 0.9f + (float)rnd.NextDouble() * 0.45f;
+                target[i] = new Vector2(Mathf.Cos(ang) * hw * f * 0.8f, Mathf.Sin(ang) * hh * f * 1.15f);
+                delay[i] = (float)rnd.NextDouble() * 0.08f;
+                size[i] = 5f + (float)rnd.NextDouble() * (i % 5 == 0 ? 20f : 9f);
+                var di = UIK.Img(rt, tint, "drop"); di.sprite = Drop(); di.raycastTarget = false;
+                drops[i] = di.rectTransform; drops[i].anchorMin = drops[i].anchorMax = new Vector2(0.5f, 0.5f);
+                drops[i].localScale = Vector3.zero;
+            }
+            titleCg = t.GetComponent<CanvasGroup>() ?? t.gameObject.AddComponent<CanvasGroup>();   // a back-to-back banner reuses the group the previous splat left
+            titleCg.alpha = 0f; t.rectTransform.localScale = Vector3.one * 0.6f;
+        }
+
+        static float Out(float k) => 1f - (1f - Mathf.Clamp01(k)) * (1f - Mathf.Clamp01(k));
+
+        void Update()
+        {
+            if (hold) return;
+            age += Time.unscaledDeltaTime;
+            float s = age < 0.15f ? Mathf.Lerp(0f, 1.15f, Out(age / 0.15f)) : age < 0.25f ? Mathf.Lerp(1.15f, 1f, (age - 0.15f) / 0.1f) : 1f + 0.02f * Mathf.Min(age - 0.25f, 2f);
+            blot.localScale = new Vector3(s, s, 1f);
+            for (int i = 0; i < drops.Length; i++)
+            {
+                float k = Mathf.Clamp01((age - 0.04f - delay[i]) / 0.4f), e = Out(k);
+                var d = drops[i];
+                d.anchoredPosition = target[i] * e;
+                d.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(target[i].y, target[i].x) * Mathf.Rad2Deg);
+                d.sizeDelta = new Vector2(size[i] * (1f + (1f - k) * 1.6f), size[i]);
+                d.localScale = Vector3.one * (k <= 0f ? 0f : Mathf.Lerp(0.5f, 1f, e));
+            }
+            if (title != null)
+            {
+                float k = Out((age - 0.12f) / 0.3f);
+                titleCg.alpha = k;
+                title.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.6f, 1f, k);
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (title != null) { titleCg.alpha = 1f; title.rectTransform.localScale = Vector3.one; }
         }
     }
 }

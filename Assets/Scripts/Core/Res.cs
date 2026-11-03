@@ -124,7 +124,18 @@ namespace VK
             }
         }
 
-        public static void ResetFont() => font = null;
+        static Font titleFont;
+        /// <summary>Brush face for big titles only: Zhi Mang Xing for Chinese, Comforter Brush otherwise (both OFL); falls back to <see cref="Font"/>.</summary>
+        public static Font TitleFont
+        {
+            get
+            {
+                if (titleFont == null) titleFont = Resources.Load<Font>(Loc.Lang == Loc.ZH ? "Fonts/ZhiMangXing" : "Fonts/ComforterBrush");
+                return titleFont != null ? titleFont : Font;
+            }
+        }
+
+        public static void ResetFont() { font = null; titleFont = null; }
 
         public static Material FlashMat
         {

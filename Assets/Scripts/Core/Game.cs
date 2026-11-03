@@ -260,8 +260,8 @@ namespace VK
             Sfx.Music(bossWave ? "boss" : "battle");
             Sfx.MusicLevel(1f);
             if (bossWave) { var bd = run.Boss(n / 5 - 1); if (bot != null || !BossCinema.NeedsIntro(bd.id)) ui.Banner("", bd.name, new Color(1f, 0.4f, 0.4f)); }   // the intro card names the boss
-            else if (run.activeRoute > 0) ui.Banner("ĐỢT " + n + " — " + Content.RouteName[run.activeRoute].ToUpper(), Content.RouteDesc[run.activeRoute], new Color(1f, 0.55f, 0.45f));
-            else if (newRegion || n == 1) ui.Banner("ĐỢT " + n, "Tiến vào " + Arena.RegionName[region] + (n == 1 ? GameInput.K("  ·  WASD di chuyển · SPACE lướt · E thần thông", "  ·  Joystick trái di chuyển · nút phải để lướt") : ""), Color.white);
+            else if (run.activeRoute > 0) ui.Banner("Đợt " + n + " — " + Content.RouteName[run.activeRoute], Content.RouteDesc[run.activeRoute], new Color(1f, 0.55f, 0.45f));
+            else if (newRegion || n == 1) ui.Banner("Đợt " + n, "Tiến vào " + Arena.RegionName[region] + (n == 1 ? GameInput.K("  ·  WASD di chuyển · SPACE lướt · E thần thông", "  ·  Joystick trái di chuyển · nút phải để lướt") : ""), Color.white);
             if (n == 1) ui.Hint("move", GameInput.K("WASD / phím mũi tên", "Kéo joystick bên trái") + " để di chuyển. <color=#FFD266>Vũ khí tự tấn công</color> kẻ địch gần nhất — hãy giữ khoảng cách vừa tầm.");
             if (bossWave) ui.Hint("boss", "BOSS! Né <color=#FF7070>vạch đỏ</color> (lao húc) và vòng đạn. Vòng vàng là sét Thiên Kiếp — đứng ngoài vòng!");
         }
@@ -415,7 +415,7 @@ namespace VK
                 Fx.Shake(0.35f, 0.4f);
                 Sfx.Play("breakthrough", 0.9f, 0f);
                 Sfx.Play("j_levelup", 0.6f, 0f);
-                ui.Banner("ĐỘT PHÁ " + Content.RealmOnly(level).ToUpper() + "!", "Máu hồi đầy · phần thưởng phẩm Tiên" + UyApText(level), new Color(1f, 0.85f, 0.4f));
+                ui.Banner("Đột Phá " + Content.RealmOnly(level) + "!", "Máu hồi đầy · phần thưởng phẩm Tiên" + UyApText(level), new Color(1f, 0.85f, 0.4f), true, new Color(0.08f, 0.05f, 0.02f, 0.93f));
                 if (level >= 10) Ach.Unlock("lv10");
                 if (level >= 20) Ach.Unlock("lv20");
                 if (level >= 30) Ach.Unlock("lv30");
@@ -437,7 +437,7 @@ namespace VK
                 run.reviveUsed = true;
                 run.hp = run.MaxHP * 0.5f;
                 player.Revive();
-                ui.Banner("BẤT TỬ PHÙ!", "Nghịch thiên cải mệnh", new Color(1f, 0.85f, 0.4f));
+                ui.Banner("Bất Tử Phù!", "Nghịch thiên cải mệnh", new Color(1f, 0.85f, 0.4f));
                 return;
             }
             state = GState.Over;
@@ -445,7 +445,7 @@ namespace VK
             Fx.Shake(0.6f, 0.6f);
             Sfx.Play("j_lose", 0.7f, 0f);
             Sfx.MusicLevel(0.2f);
-            if (Auto) { ui.Banner("THÂN TỬ ĐẠO TIÊU", "", new Color(1f, 0.35f, 0.35f)); StartCoroutine(Delay(2f, () => FinishRun(false))); }
+            if (Auto) { ui.Banner("Thân Tử Đạo Tiêu", "", new Color(1f, 0.35f, 0.35f)); StartCoroutine(Delay(2f, () => FinishRun(false))); }
             else endSeq.Play(false, () => FinishRun(false));
         }
 

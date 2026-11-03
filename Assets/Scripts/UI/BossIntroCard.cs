@@ -9,6 +9,8 @@ namespace VK
         public const float Length = 2.5f;
         readonly GameObject root;
         readonly RectTransform band, portrait, epithet, nameRt, region;
+        readonly InkSplatFx splat;   // the name's ink blot, a child of the card: destroyed with it
+        public bool InkUp => splat != null;   // tests
         readonly CanvasGroup cg;
         bool slammed;
 
@@ -33,11 +35,14 @@ namespace VK
 
             var ep = UIK.Txt(r, Loc.Tr(kit.epithet), 64, new Color(1f, 0.25f, 0.25f), TextAnchor.MiddleLeft, FontStyle.BoldAndItalic);
             epithet = ep.rectTransform.Anchor(0.46f, 0.62f, 0.97f, 0.76f);
-            var nm = UIK.Txt(r, Loc.Tr(boss.name), 150, UIK.Gold, TextAnchor.MiddleLeft, FontStyle.Bold);
-            nm.resizeTextForBestFit = true; nm.resizeTextMinSize = 50; nm.resizeTextMaxSize = 150;
+            nameRt = UIK.R(r, "nameWrap").Anchor(0.46f, 0.24f, 0.97f, 0.62f);
+            var nm = UIK.Title(nameRt, Loc.Tr(boss.name), 170, UIK.Gold, TextAnchor.MiddleLeft);
+            nm.rectTransform.Fill();
+            nm.resizeTextForBestFit = true; nm.resizeTextMinSize = 50; nm.resizeTextMaxSize = 170;
             nm.horizontalOverflow = HorizontalWrapMode.Wrap; nm.verticalOverflow = VerticalWrapMode.Truncate;
-            var no = nm.gameObject.AddComponent<Outline>(); no.effectColor = new Color(0.4f, 0.04f, 0.06f); no.effectDistance = new Vector2(5, -5);
-            nameRt = nm.rectTransform.Anchor(0.46f, 0.24f, 0.97f, 0.62f);
+            var no = nm.GetComponent<Outline>(); no.effectColor = new Color(0.4f, 0.04f, 0.06f); no.effectDistance = new Vector2(5, -5);
+            var ink = kit.col * 0.22f; ink.a = 0.93f;
+            splat = UIK.InkSplat(nm, ink, 2); splat.hold = true;
             var rg = UIK.Txt(r, Loc.Tr(regionName), 42, Color.white, TextAnchor.MiddleLeft, FontStyle.Italic);
             region = rg.rectTransform.Anchor(0.04f, 0.1f, 0.5f, 0.2f);
             Apply(0f);
@@ -58,7 +63,7 @@ namespace VK
             float sc = nameK < 0f ? 0f : nameK < 1f ? Mathf.Lerp(1.5f, 1f, nameK) : 1f;
             nameRt.localScale = Vector3.one * sc;
             nameRt.anchoredPosition = new Vector2(900f * outK, 0);
-            if (nameK >= 0f && !slammed) { slammed = true; Sfx.Play("heavy", 0.9f, 0f, 0.8f); }
+            if (nameK >= 0f && !slammed) { slammed = true; splat.hold = false; Sfx.Play("heavy", 0.9f, 0f, 0.8f); }
             region.anchoredPosition = new Vector2(-900f * outK, 0);
             cg.alpha = 1f - outK * 0.5f;
         }

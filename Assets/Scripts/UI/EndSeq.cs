@@ -94,10 +94,9 @@ namespace VK
             band2.rectTransform.Anchor(0, 0.5f, 1, 0.5f, -60, -78, -60, -102); band2.rectTransform.pivot = new Vector2(0, 0.5f); band2.raycastTarget = false;
             band2.rectTransform.localRotation = Quaternion.Euler(0, 0, 0.7f);
             var tcg = UIK.R(box, "t").Fill().gameObject.AddComponent<CanvasGroup>();
-            var title = UIK.Txt(tcg.transform, win ? "PHI THĂNG THÀNH TIÊN!" : "THÂN TỬ ĐẠO TIÊU", 120, win ? UIK.Gold : new Color(1f, 0.38f, 0.34f), TextAnchor.MiddleCenter, FontStyle.Bold);
+            var title = UIK.Title(tcg.transform, win ? "Phi Thăng Thành Tiên!" : "Thân Tử Đạo Tiêu", 130, win ? UIK.Gold : new Color(1f, 0.38f, 0.34f));
             title.rectTransform.Place(0.5f, 0.5f, 1800, 150, 0, 22);
-            title.resizeTextForBestFit = true; title.resizeTextMinSize = 50; title.resizeTextMaxSize = 120;
-            var ol = title.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0.1f, 0.03f, 0f, 0.9f); ol.effectDistance = new Vector2(3, -3);
+            title.resizeTextForBestFit = true; title.resizeTextMinSize = 50; title.resizeTextMaxSize = 130;
             var scg = UIK.R(box, "s").Fill().gameObject.AddComponent<CanvasGroup>();
             var subT = UIK.Txt(scg.transform, win ? "Vạn Kiếp đã tận, đạo quả viên mãn" : LoseSub[UnityEngine.Random.Range(0, LoseSub.Length)], 36, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
             subT.rectTransform.Place(0.5f, 0.5f, 1600, 50, 0, -62);
@@ -176,10 +175,12 @@ namespace VK
                 band.rectTransform.localScale = new Vector3(bk, 1, 1);
                 band2.rectTransform.localScale = new Vector3(Ease(Mathf.Clamp01((t - tb - 0.08f) / 0.4f)), 1, 1);
                 float tk = Mathf.Clamp01((t - tb - 0.15f) / 0.3f);
-                tcg.alpha = tk;
-                title.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.8f, 1f, Ease(tk));
-                title.rectTransform.anchoredPosition = new Vector2(Mathf.Lerp(-260f, 0f, Ease(tk)), 22);
-                if (!hit && tk > 0f) { hit = true; Sfx.Play("heavy", 1f, 0f, 0.6f); Fx.Shake(0.35f, 0.3f); }
+                if (!hit && tk > 0f)
+                {   // the ink splashes in, then reveals the title (InkSplatFx drives the title's own alpha and scale)
+                    hit = true; Sfx.Play("heavy", 1f, 0f, 0.6f); Fx.Shake(0.35f, 0.3f);
+                    UIK.InkSplat(title, win ? new Color(0.42f, 0.27f, 0.04f, 0.94f) : new Color(0.30f, 0.02f, 0.05f, 0.94f), win ? 1 : 0);
+                }
+                tcg.alpha = hit ? 1f : 0f;
                 scg.alpha = Mathf.Clamp01((t - tb - 0.7f) / 0.4f);
                 yield return null;
             }

@@ -390,7 +390,7 @@ namespace VK
             Random.InitState(7); float da = Skills.Hit(a, 1f, "t", Vector2.right); Random.InitState(7); float db = Skills.Hit(b, 1f, "t", Vector2.right);
             Check("bao_viem_burning", Mathf.Abs(da / db - 1.5f) < 0.01f, (da / db).ToString("0.000"));
             yield return Arena(1, 10, 0, "ho_menh"); r = Game.I.run; p = Game.I.player; p.god = false;
-            yield return new WaitForSeconds(1.2f);   // wave-start grace
+            for (float w = 0f; Game.I.player.InvulnLeft > 0f && w < 5f; w += Time.unscaledDeltaTime) yield return null;   // wave-start grace: wait out the i-frames (game time can run slow)
             r.hp = r.MaxHP * 0.35f; p.SetSkillReady(); int c0 = Skills.CastCount; p.Hurt(0.1f * r.MaxHP, p.Pos + Vector2.right);
             Check("ho_menh_cast", Skills.CastCount == c0 + 1 && r.hoMenhUsed, (Skills.CastCount - c0) + "");
             yield return new WaitForSeconds(0.6f); p.SetSkillReady(); c0 = Skills.CastCount; p.Hurt(0.02f * r.MaxHP, p.Pos + Vector2.right);
@@ -422,7 +422,7 @@ namespace VK
             var pk = Pack(3, 2f, 3f); Tough(pk); p.SetSkillReady(); p.TryCast(); yield return new WaitForSeconds(3.5f);
             Check("han_bang", pk[0].Frozen, "");
             yield return Arena(3, 10, 0, "ho_than"); var r = Game.I.run; p = Game.I.player; p.god = false;
-            yield return new WaitForSeconds(1.2f);   // wave-start grace
+            for (float w = 0f; Game.I.player.InvulnLeft > 0f && w < 5f; w += Time.unscaledDeltaTime) yield return null;   // wave-start grace: wait out the i-frames (game time can run slow)
             p.SetSkillReady(); p.TryCast(); float hp0 = r.hp;
             for (int i = 0; i < 3; i++) { float a = i * 2.0944f; Projectile.FireHostile(p.Pos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 3f, new Vector2(-Mathf.Cos(a), -Mathf.Sin(a)) * 6f, 5f, Color.red); }
             yield return new WaitForSeconds(1.5f);
@@ -547,12 +547,36 @@ namespace VK
             return n;
         }
 
+        IEnumerator T_ui_title_ink()   // brush font on big titles in every language; the ink splash exists only for emphasis and dies with its banner
+        {
+            yield return Arena(1, 12, 0); var g = Game.I;
+            for (int l = 0; l < 3; l++)
+            {
+                g.ui.ApplyLanguage(l); g.ui.ShowMenu(); yield return null; yield return null;
+                bool any = false; foreach (var t in Object.FindObjectsOfType<UnityEngine.UI.Text>()) if (t.font == Res.TitleFont && t.text.Length > 0) any = true;
+                Check("title_font_" + l, any && Res.TitleFont != Res.Font && Res.TitleFont.name.Contains(l == Loc.ZH ? "Zhi" : "Comforter"), Res.TitleFont.name);
+                { g.bot.Shot("menu_lang" + l); yield return new WaitForSecondsRealtime(0.4f); }
+            }
+            g.ui.ApplyLanguage(Loc.VI); yield return null; g.bot.Shot("menu_vi"); yield return new WaitForSecondsRealtime(0.4f); g.ui.HideScreen();
+            g.ui.Banner("Đợt 3", "x", Color.white);
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("banner_plain_no_ink", !g.ui.InkUp && Object.FindObjectsOfType<InkSplatFx>().Length == 0, "");
+            Check("banner_brush", g.ui.BannerFont == Res.TitleFont, "");
+            g.ui.Banner("Đột Phá Trúc Cơ!", "x", new Color(1f, 0.85f, 0.4f), true, new Color(0.08f, 0.05f, 0.02f, 0.93f));
+            yield return new WaitForSecondsRealtime(0.12f); g.bot.Shot("banner_splat");
+            yield return new WaitForSecondsRealtime(0.4f); g.bot.Shot("banner_breakthrough");
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("banner_ink_up", g.ui.InkUp && Object.FindObjectsOfType<InkSplatFx>().Length == 1, "");
+            yield return new WaitForSecondsRealtime(2.6f);
+            Check("banner_ink_gone", !g.ui.InkUp && Object.FindObjectsOfType<InkSplatFx>().Length == 0, "");
+        }
+
         IEnumerator T_ui_ngodao()
         {
             yield return Arena(0, 8, 1); var r = Game.I.run; r.level = 10; r.pendingLevels = 1; r.RollLevelOpts(); Game.I.ui.ShowLevelUp();
             yield return new WaitForSecondsRealtime(0.4f);
             Check("ui_ngodao_cards", UiCount("Thần Thông · ") >= 2, UiCount("Thần Thông · ") + " card labels");
-            Check("ui_ngodao_title", UiCount("NGỘ ĐẠO") >= 1, "");
+            Check("ui_ngodao_title", UiCount("Ngộ Đạo") >= 1, "");
             Check("ui_ngodao_uyap", UiCount("Uy Áp") >= 1, "");
             Game.I.bot.Shot("ui_ngodao"); yield return new WaitForSecondsRealtime(0.6f);
         }
@@ -698,7 +722,7 @@ namespace VK
         IEnumerator T_prog_guard()
         {
             yield return Arena(0, 18, 3); var r = Game.I.run; var p = Game.I.player; p.god = false; r.level = 30; r.hp = 5f;
-            yield return new WaitForSeconds(1.2f);   // wave-start grace (ResetForWave gives 1 s of i-frames)
+            for (float w = 0f; p.InvulnLeft > 0f && w < 5f; w += Time.unscaledDeltaTime) yield return null;   // wave-start grace: wait out the i-frames, not a fixed time (game time can run slow)
             p.Hurt(1000f, p.Pos + Vector2.right);
             Check("nguyen_anh", Mathf.Approximately(r.hp, 1f) && Game.I.state == GState.Playing && r.guardUsed && p.InvulnLeft >= 0.9f, r.hp + "");
             Skills.OnWaveStart(r); Check("guard_reset", !r.guardUsed, "");
@@ -1111,11 +1135,14 @@ namespace VK
         {
             yield return Arena(1, 12, 0); var g = Game.I; FillBuild(); int nw = g.run.weapons.Count;
             g.endSeq.testMode = true; g.OnPlayerDeath();
-            yield return new WaitForSecondsRealtime(1.2f); g.bot.Shot("end_death");
+            yield return new WaitForSecondsRealtime(1.17f); g.bot.Shot("end_death_splat");
+            yield return new WaitForSecondsRealtime(0.3f); g.bot.Shot("end_death");
+            Check("end_lose_ink", Object.FindObjectsOfType<InkSplatFx>().Length == 1, "");
             yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_death_title");
             float w = 0f; while (g.ui.screen != UIScreen.GameOver && w < 8f) { yield return null; w += Time.unscaledDeltaTime; }
             Check("end_lose_summary", g.ui.screen == UIScreen.GameOver && Mathf.Approximately(Time.timeScale, 1f), Time.timeScale.ToString());
             yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_lose");
+            Check("end_lose_ink_gone", Object.FindObjectsOfType<InkSplatFx>().Length == 0, "");
             yield return new WaitForSecondsRealtime(0.3f);   // the capture happens at the end of the frame: do not let the next test start first
             g.endSeq.testMode = false;
             yield return SummaryChecks("end_lose", nw, 1, true);
@@ -1130,6 +1157,7 @@ namespace VK
             float w = 0f; while (g.ui.screen != UIScreen.GameOver && w < 8f) { yield return null; w += Time.unscaledDeltaTime; }
             Check("end_win_summary", g.ui.screen == UIScreen.GameOver && Mathf.Approximately(Time.timeScale, 1f), Time.timeScale.ToString());
             yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_win");
+            Check("end_win_ink_gone", Object.FindObjectsOfType<InkSplatFx>().Length == 0, "");
             yield return new WaitForSecondsRealtime(0.3f);   // the capture happens at the end of the frame: do not let the next test start first
             g.endSeq.testMode = false;
             yield return SummaryChecks("end_win", nw, 0, false);
@@ -1142,7 +1170,9 @@ namespace VK
             c.OnBossSpawn(b);
             yield return new WaitForSecondsRealtime(1.3f);
             Game.I.bot.Shot("boss_intro");
+            Check("intro_ink", Object.FindObjectsOfType<InkSplatFx>().Length == 1, "");
             yield return new WaitForSecondsRealtime(1.5f);
+            Check("intro_ink_gone", Object.FindObjectsOfType<InkSplatFx>().Length == 0, "");
             c.testMode = false;
         }
 

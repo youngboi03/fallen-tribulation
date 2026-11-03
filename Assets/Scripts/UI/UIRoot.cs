@@ -100,13 +100,10 @@ namespace VK
 
         Text Title(Transform p, string s, float y, int size = 64, Color? c = null)
         {
-            var t = UIK.Txt(p, s, size, c ?? UIK.Gold, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var t = UIK.Title(p, s, size, c ?? UIK.Gold);
             t.rectTransform.Place(0.5f, 1f, 1800, size + 30, 0, -y);
             t.horizontalOverflow = HorizontalWrapMode.Wrap;   // long translations shrink to one line instead of wrapping over what is below
             t.resizeTextForBestFit = true; t.resizeTextMinSize = size / 2; t.resizeTextMaxSize = size;
-            var ol = t.gameObject.AddComponent<Outline>();
-            ol.effectColor = new Color(0.25f, 0.1f, 0f, 0.8f);
-            ol.effectDistance = new Vector2(2, -2);
             return t;
         }
 
@@ -115,22 +112,27 @@ namespace VK
             var b = UIK.R(top, "banner").Place(0.5f, 0.72f, 1600, 200);
             bannerCg = b.gameObject.AddComponent<CanvasGroup>();
             bannerCg.blocksRaycasts = false; bannerCg.interactable = false; bannerCg.alpha = 0;
-            bannerTitle = UIK.Txt(b, "", 72, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            bannerTitle = UIK.Title(b, "", 84, Color.white);
             bannerTitle.rectTransform.Anchor(0, 0.4f, 1, 1);
-            var ol = bannerTitle.gameObject.AddComponent<Outline>();
-            ol.effectColor = new Color(0, 0, 0, 0.8f); ol.effectDistance = new Vector2(3, -3);
             bannerSub = UIK.Txt(b, "", 30, UIK.Dim);
             bannerSub.rectTransform.Anchor(0, 0, 1, 0.42f);
         }
 
         public bool BannerUp => bannerCg != null && bannerCg.alpha > 0.02f;   // tests
 
-        public void Banner(string title, string sub, Color c)
+        /// <summary>The title line is the brush face; emphasis adds the ink splash behind it (tinted by ink).</summary>
+        public void Banner(string title, string sub, Color c, bool emphasis = false, Color? ink = null)
         {
+            if (bannerInk != null) Destroy(bannerInk.gameObject);
+            bannerInk = null;
             if (!string.IsNullOrEmpty(title)) { bannerTitle.text = title; bannerTitle.color = c; bannerSub.text = sub; }
             else { bannerTitle.text = sub; bannerTitle.color = c; bannerSub.text = ""; }
             bannerT = 0;
+            if (emphasis) bannerInk = UIK.InkSplat(bannerTitle, ink ?? new Color(0.06f, 0.03f, 0.05f, 0.9f), Time.frameCount);
         }
+        InkSplatFx bannerInk;
+        public bool InkUp => bannerInk != null;   // tests
+        public Font BannerFont => bannerTitle.font;   // tests
 
         public void Toast(string title, string sub)
         {
@@ -224,6 +226,7 @@ namespace VK
             bannerT += dt;
             float a = bannerT < 0.2f ? bannerT / 0.2f : bannerT < 2f ? 1f : Mathf.Max(0, 1f - (bannerT - 2f) / 0.5f);
             bannerCg.alpha = a;
+            if (bannerT > 2.5f && bannerInk != null) { Destroy(bannerInk.gameObject); bannerInk = null; }
             bannerCg.transform.localScale = Vector3.one * (bannerT < 0.2f ? Mathf.Lerp(1.3f, 1f, bannerT / 0.2f) : 1f);
             // toasts
             for (int i = toasts.Count - 1; i >= 0; i--)
@@ -429,9 +432,7 @@ namespace VK
             hpFill = null;
             var o = Overlay(0.4f);
             LangButton(o);
-            Title(o, "LỤC ĐẠO ĐỌA KIẾP", 110, 110);
-            var sub = UIK.Txt(o, "Một kiếm phá vạn kiếp  ·  Roguelite tu tiên", 32, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
-            sub.rectTransform.Place(0.5f, 1, 1200, 50, 0, -235);
+            Title(o, "Lục Đạo Đọa Kiếp", 110, 110);
 
             var col = UIK.R(o, "menu").Place(0.5f, 0.5f, 420, 640, 0, -115);
             UIK.VL(col.gameObject, 14, 0, TextAnchor.MiddleCenter);
@@ -453,9 +454,10 @@ namespace VK
         public void ApplyLanguage(int lang)
         {
             Save.lang = lang; Save.Save();
+            var oldTitle = Res.TitleFont;
             Loc.SetLang(lang);
-            var font = Res.Font;   // swap the font on every live text (CJK needs an OS font)
-            foreach (var t in FindObjectsByType<Text>(FindObjectsInactive.Include, FindObjectsSortMode.None)) t.font = font;
+            var font = Res.Font;   // swap the font on every live text (CJK needs an OS font); titles keep a brush face
+            foreach (var t in FindObjectsByType<Text>(FindObjectsInactive.Include, FindObjectsSortMode.None)) t.font = t.font == oldTitle ? Res.TitleFont : font;
             if (screen == UIScreen.Pause) ShowPause(); else if (screen == UIScreen.Settings) ShowSettings(setFromPause); else ShowMenu();
         }
 
@@ -490,7 +492,7 @@ namespace VK
             UIK.Clear(hud); hpFill = null;
             var o = Overlay(0.9f);
             LangButton(o);
-            Title(o, "CÀI ĐẶT", 50, 64);
+            Title(o, "Cài Đặt", 50, 64);
             var left = UIK.Img(o, UIK.Panel, "card").rectTransform.Place(0.5f, 1, 820, 700, -430, -150);
             UIK.VL(left.gameObject, 8, 24, TextAnchor.UpperCenter);
             var right = UIK.Img(o, UIK.Panel, "card").rectTransform.Place(0.5f, 1, 820, 700, 430, -150);
@@ -528,7 +530,7 @@ namespace VK
             var back = UIK.Btn(o, "Quay Lại", CloseSettings, UIK.BtnGrey, 28);
             back.GetComponent<RectTransform>().Place(0.5f, 0, 300, 64, 0, 90);
             PadDefault.Mark(back);
-            var cred = UIK.Txt(o, "Đồ họa & âm thanh: PixelLab AI, Kenney.nl (CC0) · Font: Baloo 2", 20, new Color(0.5f, 0.48f, 0.56f));
+            var cred = UIK.Txt(o, "Đồ họa & âm thanh: PixelLab AI, Kenney.nl (CC0) · Font: Baloo 2, Comforter Brush", 20, new Color(0.5f, 0.48f, 0.56f));
             cred.rectTransform.Place(0.5f, 0, 1600, 30, 0, 36);
         }
 
@@ -566,7 +568,7 @@ namespace VK
             }
             if (!Content.CharUnlocked(selChar, Save)) selChar = 0;
             selKiep = Mathf.Clamp(selKiep, 0, Save.maxKiepUnlocked);
-            Title(o, "CHỌN ĐẠO LỘ", 60, 64);
+            Title(o, "Chọn Đạo Lộ", 60, 64);
 
             var row = UIK.R(o, "cards").Place(0.5f, 0.5f, 1820, 560, 0, 60);
             UIK.HL(row.gameObject, Content.Chars.Count > 5 ? 12 : 18, 0, TextAnchor.MiddleCenter, false);
@@ -633,7 +635,7 @@ namespace VK
         {
             screen = UIScreen.Meta;
             var o = Overlay(0.9f);
-            Title(o, "TÀNG KINH CÁC", 60, 64);
+            Title(o, "Tàng Kinh Các", 60, 64);
             var dh = UIK.Txt(o, "Đạo Hạnh: <color=#FFD266><b>" + Save.daoHanh + "</b></color>   <size=20>(nhận sau mỗi lượt chơi và từ thành tựu)</size>", 30, UIK.Dim);
             dh.rectTransform.Place(0.5f, 1, 1400, 44, 0, -150);
             var list = UIK.R(o, "list").Place(0.5f, 0.5f, 1100, 640, 0, -40);
@@ -676,7 +678,7 @@ namespace VK
         {
             screen = UIScreen.Achievements;
             var o = Overlay(0.92f);
-            Title(o, "THÀNH TỰU", 50, 60);
+            Title(o, "Thành Tựu", 50, 60);
             int got = 0; foreach (var a in Content.Achs) if (Save.Has(a.id)) got++;
             var pct = UIK.Txt(o, "Hoàn thành tổng: <color=#7CF0FF><b>" + Mathf.FloorToInt(Save.Completion() * 100) + "%</b></color>    ·    Thành tựu " + got + "/" + Content.Achs.Length, 28, UIK.Dim);
             pct.rectTransform.Place(0.5f, 1, 1400, 40, 0, -130);
@@ -715,7 +717,7 @@ namespace VK
         {
             screen = UIScreen.Codex;
             var o = Overlay(0.93f);
-            Title(o, "ĐỒ GIÁM", 50, 60);
+            Title(o, "Đồ Giám", 50, 60);
             var pct = UIK.Txt(o, "Đã ghi chép: <color=#7CF0FF><b>" + Save.CodexSeen() + "/" + SaveData.CodexTotal + "</b></color>", 28, UIK.Dim);
             pct.rectTransform.Place(0.5f, 1, 1000, 40, 0, -125);
             var body = UIK.R(o, "body").Place(0.5f, 1, 1500, 760, 0, -175);
@@ -878,7 +880,7 @@ namespace VK
             bool brk = run.IsBreakthrough;
             bool ngo = System.Array.Exists(run.levelOpts, q => q.card != null);
             if (ngo) Hint("ngodao", "<color=#FFD266>Ngộ Đạo</color>: mỗi lần Đột Phá bạn được chọn thẻ <color=#FFD266>Thần Thông</color> — thẻ Đặc trưng chỉ dành cho nhân vật này, thẻ Chung dùng được cho mọi người.");
-            Title(o, brk ? "ĐỘT PHÁ " + Content.RealmOnly(run.ChoosingLevel).ToUpper() + (ngo ? " — NGỘ ĐẠO" : "!") : "LÊN CẤP — CHỌN CÔNG PHÁP", 70, brk ? (ngo ? 52 : 76) : 60,
+            Title(o, brk ? "Đột Phá " + Content.RealmOnly(run.ChoosingLevel) + (ngo ? " — Ngộ Đạo" : "!") : "Lên Cấp — Chọn Công Pháp", 70, brk ? (ngo ? 52 : 76) : 60,
                 brk ? new Color(1f, 0.75f, 0.3f) : UIK.Cyan);
             if (brk)
             {
@@ -939,7 +941,7 @@ namespace VK
             if (Run.routeOffer > 0) Hint("route", "Lộ Tuyến: <color=#FF8A70>Đường Hiểm</color> khó hơn nhưng thưởng lớn (thêm linh khí, rương). " + GameInput.K("Bấm R để làm mới shop.", "") + "");
             var run = Run;
             var o = Overlay(0.84f);
-            Title(o, "LINH THỊ", 24, 56);
+            Title(o, "Linh Thị", 24, 56);
             var sub = UIK.Txt(o, "Chuẩn bị cho đợt " + (run.wave + 1) + ((run.wave + 1) % 5 == 0 ? "  —  <color=#FF7070>BOSS: " + run.Boss((run.wave + 1) / 5 - 1).name + "</color>" : ""), 26, UIK.Dim);
             sub.rectTransform.Place(0.5f, 1, 1200, 40, 0, -98);
 
@@ -1118,7 +1120,7 @@ namespace VK
             var run = Run;
             var it = run.chestItem;
             var o = Overlay(0.82f);
-            Title(o, "BẢO RƯƠNG", 120, 72);
+            Title(o, "Bảo Rương", 120, 72);
             var sub = UIK.Txt(o, run.chests > 1 ? "Còn " + run.chests + " rương" : "Tinh anh để lại bảo vật", 26, UIK.Dim);
             sub.rectTransform.Place(0.5f, 1, 1000, 40, 0, -220);
             var glow = UIK.Img(o, new Color(Content.TierColor[it.tier].r, Content.TierColor[it.tier].g, Content.TierColor[it.tier].b, 0.12f), "glow");
@@ -1146,7 +1148,7 @@ namespace VK
             screen = UIScreen.Relic;
             var run = Run;
             var o = Overlay(0.86f);
-            Title(o, "BẢO KHỐ", 120, 72, new Color(0.95f, 0.62f, 0.42f));
+            Title(o, "Bảo Khố", 120, 72, new Color(0.95f, 0.62f, 0.42f));
             var sub = UIK.Txt(o, run.Boss(run.wave / 5 - 1).name + " để lại kho báu — chọn một món", 26, UIK.Dim);
             sub.rectTransform.Place(0.5f, 1, 1100, 40, 0, -220);
             if (run.stageUpWave == run.wave)
@@ -1188,8 +1190,8 @@ namespace VK
             Hint("event", "Kỳ Ngộ: mỗi lựa chọn là một canh bạc. Đọc kỹ cái giá trước khi chọn (phím 1-3).");
             var run = Run;
             var o = Overlay(0.95f);
-            Title(o, "KỲ NGỘ", 70, 48, UIK.Dim);
-            Title(o, ev.title.ToUpper(), 130, 70);
+            Title(o, "Kỳ Ngộ", 70, 48, UIK.Dim);
+            Title(o, ev.title, 130, 70);
             var por = UIK.Img(o, Color.white, "art");
             por.sprite = Res.Tile(ev.sprite); por.preserveAspect = true; por.raycastTarget = false;
             por.rectTransform.Place(0.5f, 1, 160, 160, 0, -240);
@@ -1231,7 +1233,7 @@ namespace VK
             screen = UIScreen.Pause;
             var o = Overlay(0.75f);
             LangButton(o);
-            Title(o, "TẠM DỪNG", 200, 72);
+            Title(o, "Tạm Dừng", 200, 72);
             var info = UIK.Txt(o, "Đợt " + Run.wave + "  ·  Lv." + Run.level + "  ·  " + Run.ch.name, 26, UIK.Dim);
             info.rectTransform.Place(0.5f, 1, 1200, 40, 0, -300);
             var col = UIK.R(o, "col").Place(0.5f, 0.5f, 420, 440, 0, -90);
@@ -1271,8 +1273,9 @@ namespace VK
             var o = Overlay(0.95f);
             var ocg = o.gameObject.AddComponent<CanvasGroup>(); ocg.alpha = 0f;
             StartCoroutine(FadeIn(ocg));
-            Title(o, (s.win ? "PHI THĂNG THÀNH TIÊN!" : "THÂN TỬ ĐẠO TIÊU") + "  <size=30><color=#C7B294>" + s.charName + "  ·  Kiếp " + s.kiep + "  ·  "
-                + (s.win ? "Vượt qua cả 20 đợt" : "Gục ngã ở đợt " + s.wave) + "</color></size>", 24, 60, s.win ? UIK.Gold : new Color(1f, 0.4f, 0.4f));
+            Title(o, s.win ? "Phi Thăng Thành Tiên!" : "Thân Tử Đạo Tiêu", 10, 58, s.win ? UIK.Gold : new Color(1f, 0.4f, 0.4f));
+            UIK.Txt(o, s.charName + "  ·  Kiếp " + s.kiep + "  ·  " + (s.win ? "Vượt qua cả 20 đợt" : "Gục ngã ở đợt " + s.wave), 28, new Color(0.78f, 0.7f, 0.58f))
+                .rectTransform.Place(0.5f, 1f, 1800, 34, 0, -98);
 
             // left: every stat of the run
             var left = UIK.Img(o, UIK.Panel, "stats");

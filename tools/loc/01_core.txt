@@ -50,7 +50,7 @@ rương|chests|宝箱
 Còn|Remaining:|剩余
 còn|left|剩余
 Tinh anh để lại bảo vật|An elite left a treasure|精英留下了宝物
-BẢO KHỐ|TREASURY|宝库
+Bảo Khố|Treasury|宝库
 để lại kho báu — chọn một món|left a treasury — choose one|留下宝库——选择一件
 Nhận|Take|领取
 Bán|Sell|出售
@@ -62,14 +62,13 @@ Thiếu linh thạch|Not enough Spirit Stones|灵石不足
 ĐÃ MUA|BOUGHT|已购买
 KỲ NGỘ|ENCOUNTER|奇遇
 Kỳ Ngộ|Encounter|奇遇
-LINH THỊ|SPIRIT MARKET|灵市
+Linh Thị|Spirit Market|灵市
 Làm mới [R|Reroll [R|刷新 [R
 Làm mới|Reroll|刷新
 Lĩnh ngộ|Comprehend|领悟
-LÊN CẤP — CHỌN CÔNG PHÁP|LEVEL UP — CHOOSE A TECHNIQUE|升级——选择功法
+Lên Cấp — Chọn Công Pháp|Level Up — Choose a Technique|升级——选择功法
 lần chọn|picks left|次选择
 Đột Phá|Breakthrough|突破
-ĐỘT PHÁ|BREAKTHROUGH|突破
 Cảnh giới|Realm|境界
 tầng|layer|层
 Luyện Khí|Qi Refining|炼气
@@ -154,7 +153,6 @@ BOSS! Né|BOSS! Dodge|BOSS！闪避
 vạch đỏ|the red lines|红线
 lao húc) và vòng đạn. Vòng vàng là sét Thiên Kiếp — đứng ngoài vòng|charges) and bullet rings. Gold circles are Heavenly Tribulation lightning — stay outside them|冲撞)和弹幕环。金色圆圈是天劫雷——站在圈外
 THIÊN KIẾP|HEAVENLY TRIBULATION|天劫
-BẤT TỬ PHÙ|IMMORTAL TALISMAN|不死符
 Nghịch thiên cải mệnh|Defying heaven, rewriting fate|逆天改命
 HƯỚNG DẪN|TUTORIAL|教程
 bấm để ẩn|click to hide|点击隐藏
@@ -209,13 +207,11 @@ Hoàn thành|Completion|完成度
 HOÀN THÀNH|COMPLETE|完成
 Thắng|Wins|胜场
 Lượt chơi|Runs|局数
-LỤC ĐẠO ĐỌA KIẾP|FALLEN TRIBULATION|六道堕劫
-Một kiếm phá vạn kiếp|One sword breaks a myriad tribulations|一剑破万劫
-Roguelite tu tiên|Cultivation roguelite|修仙肉鸽
+Lục Đạo Đọa Kiếp|Fallen Tribulation|六道堕劫
 Nhập Đạo|Enter the Dao|入道
 Rời Khỏi|Quit|退出
 Quay Lại|Back|返回
-CHỌN ĐẠO LỘ|CHOOSE YOUR PATH|选择道途
+Chọn Đạo Lộ|Choose Your Path|选择道途
 Khởi đầu|Starts with|初始武器
 CHƯA MỞ KHÓA|LOCKED|未解锁
 Máu gốc|Base HP|基础生命
@@ -227,11 +223,11 @@ Số sát thương|Damage numbers|伤害数字
 Tất cả|All|全部
 Chỉ bạo kích|Crits only|仅暴击
 Tắt|Off|关
-TẠM DỪNG|PAUSED|暂停
+Tạm Dừng|Paused|暂停
 Tiếp Tục|Resume|继续
 Bỏ Cuộc|Give Up|放弃
-PHI THĂNG THÀNH TIÊN|ASCENDED TO IMMORTALITY|飞升成仙
-THÂN TỬ ĐẠO TIÊU|BODY AND DAO PERISHED|身死道消
+Phi Thăng Thành Tiên|Ascended to Immortality|飞升成仙
+Thân Tử Đạo Tiêu|Body and Dao Perished|身死道消
 Kẻ địch bị diệt|Enemies slain|击杀敌人
 Tổng sát thương|Total damage|总伤害
 Đòn mạnh nhất|Biggest hit|最高一击
