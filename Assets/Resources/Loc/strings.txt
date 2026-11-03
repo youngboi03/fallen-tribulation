@@ -312,6 +312,43 @@ Nút II / Back	II button / Back	II键 / 返回键
 Chạm thẻ	Tap a card	点击卡牌
 Chạm biểu tượng	Tap an icon	点击图标
 Xem chi tiết	Details	查看详情
+Hồ Sơ	Profiles	档案
+Hồ sơ	Profile	档案
+Hồ sơ trống	Empty slot	空档案
+Tạo hồ sơ	Create Profile	创建档案
+Tên hồ sơ	Profile name	档案名称
+Đặt tên hồ sơ mới	Name the new profile	为新档案命名
+Đổi tên hồ sơ	Rename profile	修改档案名称
+Đang dùng	In use	使用中
+Đạo Hữu	Fellow Cultivator	道友
+Chọn	Select	选择
+Đổi tên	Rename	改名
+Xoá	Delete	删除
+Huỷ	Cancel	取消
+Ngẫu nhiên	Random	随机
+Đợt tốt nhất	Best wave	最高波次
+Xoá hồ sơ này?	Delete this profile?	删除此档案？
+Đặt lại hồ sơ này?	Reset this profile?	重置此档案？
+Toàn bộ tiến trình của hồ sơ này sẽ mất vĩnh viễn.	All progress of this profile will be lost for good.	此档案的全部进度将永久丢失。
+Mọi tiến trình sẽ bị xoá, cài đặt được giữ. Không thể hoàn tác.	All progress will be erased, settings are kept. This cannot be undone.	所有进度将被清除，设置保留。此操作无法撤销。
+Xoá toàn bộ tiến trình	Erase all progress	清除全部进度
+Xoá Tiến Trình?	Erase Progress?	清除进度？
+Xoá toàn bộ tiến trình của hồ sơ	Erase all progress of profile	清除档案的全部进度
+Đạo Hạnh, nâng cấp, mở khoá, thành tựu, đồ giám và thống kê sẽ mất hết. Cài đặt được giữ. Không thể hoàn tác.	Dao Merit, upgrades, unlocks, achievements, codex and stats will all be lost. Settings are kept. This cannot be undone.	道行、升级、解锁、成就、图鉴和统计将全部丢失。设置保留。此操作无法撤销。
+Đã xoá tiến trình	Progress erased	进度已清除
+Hồ sơ bắt đầu lại từ đầu.	The profile starts over.	档案已重新开始。
+Thanh Phong	Azure Wind	青风
+Vân Hạc	Cloud Crane	云鹤
+Nguyệt Ảnh	Moon Shade	月影
+Hàn Sương	Cold Frost	寒霜
+Tử Điện	Violet Bolt	紫电
+Huyền Minh	Dark Dawn	玄冥
+Bạch Liên	White Lotus	白莲
+Xích Diệm	Crimson Flame	赤焰
+Thiên Kiếm	Heaven Blade	天剑
+Mặc Trúc	Ink Bamboo	墨竹
+Kim Ô	Golden Crow	金乌
+Lăng Tiêu	Sky Piercer	凌霄
 Hoang Sơn	Barren Mountains	荒山
 Hàn Băng Cốc	Frost Valley	寒冰谷
 Huyết Sát Hải	Blood Sea	血煞海

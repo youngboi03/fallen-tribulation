@@ -6,9 +6,9 @@ using UnityEngine.UI;
 
 namespace VK
 {
-    public enum UIScreen { None, Menu, CharSelect, Meta, Achievements, LevelUp, Shop, Pause, GameOver, Chest, Event, Codex, Relic, Settings }
+    public enum UIScreen { None, Menu, CharSelect, Meta, Achievements, LevelUp, Shop, Pause, GameOver, Chest, Event, Codex, Relic, Settings, Profiles }
 
-    public class UIRoot : MonoBehaviour
+    public partial class UIRoot : MonoBehaviour
     {
         public UIScreen screen;
         RectTransform root, hud, scr, top;
@@ -298,7 +298,6 @@ namespace VK
             {
                 for (int i = 0; i < 4; i++) if (Input.GetKeyDown(KeyCode.Alpha1 + i)) Game.I.ChooseLevel(i);
             }
-            else if (screen == UIScreen.Settings && Input.GetKeyDown(KeyCode.Escape)) { Sfx.Play("click", 0.5f); CloseSettings(); }
             else if (screen == UIScreen.Shop && (Input.GetKeyDown(KeyCode.R) || Input.GetKeyDown(KeyCode.JoystickButton3))) DoReroll();
             else if ((screen == UIScreen.CharSelect || screen == UIScreen.Meta || screen == UIScreen.Achievements || screen == UIScreen.Codex)
                      && Input.GetKeyDown(KeyCode.Escape)) { Sfx.Play("click", 0.5f); ShowMenu(); }
@@ -465,6 +464,8 @@ namespace VK
             var o = Overlay(0.4f);
             LangButton(o);
             Title(o, "Lục Đạo Đọa Kiếp", 110, 110);
+            var pn = UIK.Txt(o, "Hồ Sơ: <color=#FFD266>" + Profiles.Name(Profiles.Active) + "</color>", 26, UIK.Dim);
+            pn.rectTransform.Place(0.5f, 1, 800, 36, 0, -34);
 
             var col = UIK.R(o, "menu").Place(0.5f, 0.5f, 420, 640, 0, -115);
             UIK.VL(col.gameObject, 14, 0, TextAnchor.MiddleCenter);
@@ -472,6 +473,7 @@ namespace VK
             UIK.Btn(col, "Tàng Kinh Các", ShowMeta, UIK.BtnBlue, 28, -1, 60);
             UIK.Btn(col, "Thành Tựu", ShowAchievements, UIK.BtnBlue, 28, -1, 60);
             UIK.Btn(col, "Đồ Giám", ShowCodex, UIK.BtnBlue, 28, -1, 60);
+            UIK.Btn(col, "Hồ Sơ", ShowProfiles, UIK.BtnBlue, 28, -1, 60);
             UIK.Btn(col, "Cài Đặt", () => ShowSettings(false), UIK.BtnBlue, 28, -1, 60);
             UIK.Btn(col, "Rời Khỏi", () => { Save.Save(); Application.Quit(); }, UIK.BtnRed, 26, -1, 56);
 
@@ -520,7 +522,7 @@ namespace VK
         public void ShowSettings(bool fromPause)
         {
             setFromPause = fromPause;
-            screen = UIScreen.Settings;
+            screen = UIScreen.Settings; resetConfirm = false;
             UIK.Clear(hud); hpFill = null;
             var o = Overlay(0.9f);
             LangButton(o);
@@ -566,13 +568,14 @@ namespace VK
 
             var back = UIK.Btn(o, "Quay Lại", CloseSettings, UIK.BtnGrey, 28);
             back.GetComponent<RectTransform>().Place(0.5f, 0, 300, 64, 0, 90);
+            if (!fromPause)
+                UIK.Btn(o, "Xoá toàn bộ tiến trình", ShowResetConfirm, UIK.BtnRed, 24).GetComponent<RectTransform>().Place(0.5f, 0, 440, 56, -620, 94);
             PadDefault.Mark(back);
-            var cred = UIK.Txt(o, "Đồ họa & âm thanh: PixelLab AI, Kenney.nl (CC0) · Font: Baloo 2, Comforter Brush", 20, new Color(0.5f, 0.48f, 0.56f));
-            cred.rectTransform.Place(0.5f, 0, 1600, 30, 0, 36);
         }
 
         public int settingsClosed;
-        public void CloseSettings() { settingsClosed = Time.frameCount; Save.Save(); if (setFromPause) ShowPause(); else ShowMenu(); }
+        public void SettingsBack() { if (resetConfirm) ShowSettings(setFromPause); else CloseSettings(); }
+        public void CloseSettings() { resetConfirm = false; settingsClosed = Time.frameCount; Save.Save(); if (setFromPause) ShowPause(); else ShowMenu(); }
 
         void SetHead(Transform p, string s)
         {

@@ -51,7 +51,31 @@ namespace VK
         public static float SpriteAngle(int id) => id >= 400 && id < 600 ? 45f : 90f;
 
         /// <summary>Boss intro portrait (Task 12); null until the PNG exists, the card then uses the boss sprite.</summary>
-        public static Sprite BossPortrait(string id) => Resources.Load<Sprite>("PixelLab/Portraits/" + id);
+        public static Sprite BossPortrait(string id)
+        {
+            if (portraits.TryGetValue(id, out var cached) && cached != null) return cached;
+            var src = Resources.Load<Sprite>("PixelLab/Portraits/" + id);
+            if (src == null) return null;
+            return portraits[id] = Upscale(src, 8);
+        }
+        static readonly Dictionary<string, Sprite> portraits = new Dictionary<string, Sprite>();
+        public const int PortraitScale = 8;
+
+        /// <summary>Nearest-neighbour <paramref name="k"/>x copy of a pixel sprite (bilinear, no mips): the UI then shrinks it smoothly to any size without uneven pixels.</summary>
+        static Sprite Upscale(Sprite src, int k)
+        {
+            var t = src.texture; int w = t.width * k, h = t.height * k;
+            var prevFilter = t.filterMode; t.filterMode = FilterMode.Point;
+            var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            var prev = RenderTexture.active;
+            Graphics.Blit(t, rt);
+            var big = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            RenderTexture.active = rt; big.ReadPixels(new Rect(0, 0, w, h), 0, 0); big.Apply(false);
+            RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt); t.filterMode = prevFilter;
+            big.filterMode = FilterMode.Bilinear; big.wrapMode = TextureWrapMode.Clamp;
+            var r = src.rect;
+            return Sprite.Create(big, new Rect(r.x * k, r.y * k, r.width * k, r.height * k), new Vector2(src.pivot.x / r.width, src.pivot.y / r.height), src.pixelsPerUnit * k);
+        }
 
         public static Sprite Tile(int i)
         {

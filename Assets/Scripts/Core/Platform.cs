@@ -11,6 +11,7 @@ namespace VK
         string Name { get; }
         string LoadString(string key);
         void SaveString(string key, string value);
+        void DeleteKey(string key);
         void UnlockAchievement(string id);
     }
 
@@ -20,6 +21,7 @@ namespace VK
         public string Name => "Local";
         public string LoadString(string key) => PlayerPrefs.GetString(key, "");
         public void SaveString(string key, string value) { PlayerPrefs.SetString(key, value); PlayerPrefs.Save(); }
+        public void DeleteKey(string key) { PlayerPrefs.DeleteKey(key); PlayerPrefs.Save(); }
         public void UnlockAchievement(string id) { }
     }
 

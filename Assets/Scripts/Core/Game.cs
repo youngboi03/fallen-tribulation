@@ -68,7 +68,13 @@ namespace VK
             Application.runInBackground = true;
 
             bool auto = Array.IndexOf(Environment.GetCommandLineArgs(), "-autotest") >= 0;
-            if (auto) { SaveData.Key = "vk_save_autotest"; PlayerPrefs.DeleteKey(SaveData.Key); }
+            if (auto)   // the bot and tests live in their own key space: profiles included, never the real vk_save_v1 ones
+            {
+                Profiles.Base = "vk_save_autotest";
+                for (int i = 0; i < Profiles.Max; i++) PlayerPrefs.DeleteKey(Profiles.SlotKey(i));
+                PlayerPrefs.DeleteKey(Profiles.IndexKey);
+            }
+            Profiles.Init();   // SaveData.Key = the active profile's slot
             Content.ApplyIcons();
             save = SaveData.Load();
             if (save.lang < 0) { save.lang = save.runs > 0 ? Loc.VI : Loc.SystemDefault(); save.Save(); }   // existing players keep Vietnamese

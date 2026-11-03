@@ -59,8 +59,10 @@ namespace VK
             if ((mouse - lastMouse).sqrMagnitude > 25f) { lastMouse = mouse; Hide(); }
 
             Vector2 dir = Vector2.zero;
+            var es = UnityEngine.EventSystems.EventSystem.current; var cs = es != null ? es.currentSelectedGameObject : null;
+            bool typing = cs != null && cs.TryGetComponent(out InputField fld) && fld.isFocused;   // WASD types, it does not move the frame
             float h = Input.GetAxisRaw("Horizontal"), v = Input.GetAxisRaw("Vertical");
-            if (Mathf.Abs(h) > 0.5f || Mathf.Abs(v) > 0.5f) dir = Mathf.Abs(h) > Mathf.Abs(v) ? new Vector2(Mathf.Sign(h), 0) : new Vector2(0, Mathf.Sign(v));
+            if (!typing && (Mathf.Abs(h) > 0.5f || Mathf.Abs(v) > 0.5f)) dir = Mathf.Abs(h) > Mathf.Abs(v) ? new Vector2(Mathf.Sign(h), 0) : new Vector2(0, Mathf.Sign(v));
             repeatT -= Time.unscaledDeltaTime;
             if (dir == Vector2.zero) repeatT = 0;
             else if (repeatT <= 0)
@@ -135,13 +137,17 @@ namespace VK
         /// <summary>Puts the frame on <paramref name="b"/>.</summary>
         public void Select(Button b) { sel = b; active = b != null; }
 
+        /// <summary>A dialog replaced the content of the same screen: the frame starts on its main button, not near the old spot.</summary>
+        public void Forget() { hasMem = false; sel = null; }
+
         public void Hide() { active = false; if (frame) frame.gameObject.SetActive(false); }
 
         static void Back(Game g)
         {
             var s = g.ui.screen;
             if (s == UIScreen.Pause) { if (g.ui.pauseConfirm) g.ui.ShowPause(); else g.SetPause(false); }
-            else if (s == UIScreen.Settings) { Sfx.Play("click", 0.5f); g.ui.CloseSettings(); }
+            else if (s == UIScreen.Settings) { Sfx.Play("click", 0.5f); g.ui.SettingsBack(); }
+            else if (s == UIScreen.Profiles) { Sfx.Play("click", 0.5f); g.ui.ProfileBack(); }
             else if (s == UIScreen.Shop) g.ui.PadCancel();
             else if (s == UIScreen.GameOver) g.GoMenu();   // the main menu ignores back: no accidental quit
             else if (s == UIScreen.CharSelect || s == UIScreen.Meta || s == UIScreen.Achievements || s == UIScreen.Codex) { Sfx.Play("click", 0.5f); g.ui.ShowMenu(); }

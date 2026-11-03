@@ -24,9 +24,9 @@ namespace VK
 
         public static string Key = "vk_save_v1";
 
-        public static SaveData Load()
+        public static SaveData Load(string key = null)
         {
-            string s = Platform.Services.LoadString(Key);
+            string s = Platform.Services.LoadString(key ?? Key);
             SaveData d = null;
             if (!string.IsNullOrEmpty(s)) { try { d = JsonUtility.FromJson<SaveData>(s); } catch { d = null; } }
             if (d == null) d = new SaveData();

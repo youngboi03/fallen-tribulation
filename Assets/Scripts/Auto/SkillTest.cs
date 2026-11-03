@@ -1289,12 +1289,12 @@ namespace VK
             int c0 = UiCount(wn); nav.Select(wb); yield return null; yield return null;
             Check("pad_tip_weapon", UiCount(wn) > c0, c0 + " -> " + UiCount(wn));
             var ib = GameObject.Find("irow").transform.GetChild(0).GetComponent<UnityEngine.UI.Button>(); string inm = g.run.items[0].name;
-            c0 = UiCount(inm); nav.Select(ib); yield return null; yield return null;
+            c0 = UiCount(inm); nav.Select(ib); for (float w = 0f; UiCount(inm) <= c0 && w < 1.5f; w += Time.unscaledDeltaTime) yield return null;   // under load the tooltip can land a few frames late
             Check("pad_tip_item", UiCount(inm) > c0, c0 + " -> " + UiCount(inm));
             nav.Select(wb); yield return null; yield return new WaitForSecondsRealtime(0.3f);
             g.bot.Shot("pad_shop_tip"); yield return new WaitForSecondsRealtime(0.3f);
             // sell with the pad: A on the weapon selects it (same as a click), the Bán button appears; B drops the selection
-            nav.Submit(); yield return null; yield return null;
+            nav.Submit(); for (float w = 0f; UiCount("Bán  +") < 1 && w < 1.5f; w += Time.unscaledDeltaTime) yield return null;
             Check("pad_sell_offer", UiCount("Bán  +") >= 1, "");
             g.ui.PadCancel(); yield return null; yield return null;
             Check("pad_back_shop", UiCount("Bán  +") == 0, "");
@@ -1304,7 +1304,7 @@ namespace VK
             var si = GameObject.Find("sumitems").transform.GetChild(0).GetComponent<UnityEngine.UI.Button>();
             Check("pad_sum_targets", sw != null && si != null && GameObject.Find("srow").GetComponent<UnityEngine.UI.Button>() != null, "");
             string sn = g.run.weapons[0].def.name; c0 = UiCount(sn);
-            nav = g.GetComponent<PadNav>(); nav.Select(sw); yield return null; yield return null;
+            nav = g.GetComponent<PadNav>(); nav.Select(sw); for (float w = 0f; UiCount(sn) <= c0 && w < 1.5f; w += Time.unscaledDeltaTime) yield return null;
             Check("pad_tip_summary", UiCount(sn) > c0, c0 + " -> " + UiCount(sn));
             yield return new WaitForSecondsRealtime(0.3f); g.bot.Shot("pad_summary_tip"); yield return new WaitForSecondsRealtime(0.3f);
             GameInput.Pad = false;
