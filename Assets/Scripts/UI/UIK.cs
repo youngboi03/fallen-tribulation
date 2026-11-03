@@ -8,16 +8,44 @@ namespace VK
     /// <summary>Tiny helpers to build uGUI from code.</summary>
     public static class UIK
     {
-        public static readonly Color Bg = new Color(0.06f, 0.05f, 0.09f, 0.94f);
-        public static readonly Color Panel = new Color(0.11f, 0.09f, 0.16f, 0.96f);
-        public static readonly Color Panel2 = new Color(0.16f, 0.13f, 0.23f, 0.98f);
-        public static readonly Color Gold = new Color(1f, 0.82f, 0.4f);
-        public static readonly Color Dim = new Color(0.66f, 0.63f, 0.74f);
-        public static readonly Color Cyan = new Color(0.45f, 0.95f, 1f);
-        public static readonly Color BtnBlue = new Color(0.22f, 0.3f, 0.5f);
-        public static readonly Color BtnGold = new Color(0.62f, 0.45f, 0.12f);
-        public static readonly Color BtnRed = new Color(0.5f, 0.18f, 0.2f);
-        public static readonly Color BtnGrey = new Color(0.25f, 0.23f, 0.3f);
+        // Hand-made look: warm ink and leather browns, cream "paper" text, cinnabar red and jade instead of neon.
+        public static readonly Color Bg = new Color(0.10f, 0.08f, 0.06f, 0.93f);
+        public static readonly Color Panel = new Color(0.21f, 0.16f, 0.12f, 0.97f);
+        public static readonly Color Panel2 = new Color(0.29f, 0.22f, 0.16f, 0.98f);
+        public static readonly Color Gold = new Color(0.96f, 0.77f, 0.38f);
+        public static readonly Color Dim = new Color(0.78f, 0.70f, 0.58f);
+        public static readonly Color Cyan = new Color(0.56f, 0.86f, 0.70f);
+        public static readonly Color BtnBlue = new Color(0.30f, 0.43f, 0.38f);
+        public static readonly Color BtnGold = new Color(0.74f, 0.50f, 0.15f);
+        public static readonly Color BtnRed = new Color(0.72f, 0.23f, 0.17f);
+        public static readonly Color BtnGrey = new Color(0.38f, 0.31f, 0.25f);
+        static readonly Color Cream = new Color(1f, 0.96f, 0.87f);
+        static readonly Color Ink = new Color(0.07f, 0.04f, 0.02f, 0.9f);
+
+        static Sprite cut;
+
+        /// <summary>A rounded rectangle with a slightly uneven edge, 9-sliced, so panels look cut by hand instead of ruled.</summary>
+        public static Sprite Cut
+        {
+            get
+            {
+                if (cut != null) return cut;
+                const int n = 96; const float half = 44f, rad = 18f;
+                var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+                var px = new Color32[n * n];
+                for (int y = 0; y < n; y++)
+                    for (int x = 0; x < n; x++)
+                    {
+                        float qx = Mathf.Abs(x + 0.5f - n / 2f) - (half - rad), qy = Mathf.Abs(y + 0.5f - n / 2f) - (half - rad);
+                        float d = new Vector2(Mathf.Max(qx, 0), Mathf.Max(qy, 0)).magnitude + Mathf.Min(Mathf.Max(qx, qy), 0) - rad;
+                        d += (Mathf.PerlinNoise(x * 0.11f + 3.7f, y * 0.11f + 1.3f) - 0.5f) * 3.4f;
+                        px[y * n + x] = new Color32(255, 255, 255, (byte)(Mathf.Clamp01(0.5f - d) * 255));
+                    }
+                tex.SetPixels32(px); tex.Apply();
+                cut = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(32, 32, 32, 32));
+                return cut;
+            }
+        }
 
         public static RectTransform R(Transform parent, string name = "r")
         {
@@ -53,12 +81,23 @@ namespace VK
             var rt = R(p, name);
             var img = rt.gameObject.AddComponent<Image>();
             img.color = c;
+            if (c.a >= 0.5f && c != Bg)   // not a full-screen dimmer or a faint overlay
+            {
+                img.sprite = Cut; img.type = Image.Type.Sliced; img.pixelsPerUnitMultiplier = 1.5f;
+                if (c == Panel || c == Panel2)
+                {
+                    var sh = rt.gameObject.AddComponent<Shadow>();   // hard offset shadow, like a sticker
+                    sh.effectColor = new Color(0.04f, 0.02f, 0.01f, 0.55f);
+                    sh.effectDistance = new Vector2(5, -5);
+                }
+            }
             return img;
         }
 
         public static Image Icon(Transform p, Sprite s, Color c, float size)
         {
             var img = Img(p, c, "icon");
+            img.type = Image.Type.Simple; img.pixelsPerUnitMultiplier = 1f;
             img.sprite = s;
             img.preserveAspect = true;
             img.raycastTarget = false;
@@ -72,19 +111,20 @@ namespace VK
             var t = rt.gameObject.AddComponent<LocText>();
             t.font = Res.Font;
             t.text = s;
-            t.fontSize = size;
-            t.color = c;
+            bool cjk = Loc.Lang == Loc.ZH;   // Baloo 2 is wider and taller than the old font: shrink a little so layouts still fit
+            t.fontSize = cjk ? size : Mathf.Max(8, Mathf.RoundToInt(size * 0.92f));
+            t.color = c == Color.white ? Cream : c;
             t.alignment = a;
             t.fontStyle = st;
             t.supportRichText = true;
             t.horizontalOverflow = HorizontalWrapMode.Wrap;
             t.verticalOverflow = VerticalWrapMode.Overflow;
             t.raycastTarget = false;
-            t.lineSpacing = 1.05f;
+            t.lineSpacing = cjk ? 1.05f : 0.9f;
             if (shadow)
             {
                 var sh = rt.gameObject.AddComponent<Shadow>();
-                sh.effectColor = new Color(0, 0, 0, 0.85f);
+                sh.effectColor = Ink;
                 sh.effectDistance = new Vector2(2, -2);
             }
             return t;
@@ -103,9 +143,11 @@ namespace VK
             cb.fadeDuration = 0.06f;
             b.colors = cb;
             b.navigation = new Navigation { mode = Navigation.Mode.None };
-            var ol = img.gameObject.AddComponent<Outline>();
-            ol.effectColor = new Color(1f, 1f, 1f, 0.12f);
-            ol.effectDistance = new Vector2(2, -2);
+            var ol = img.gameObject.AddComponent<Shadow>();   // chunky hard shadow under the button
+            ol.effectColor = new Color(0.04f, 0.02f, 0.01f, 0.85f);
+            ol.effectDistance = new Vector2(0, -6);
+            // slight, stable tilt per button so the row never looks ruled
+            img.rectTransform.localRotation = Quaternion.Euler(0, 0, ((p.childCount * 37 + label.Length * 11) % 17 - 8) / 8f * 0.9f);
             var t = Txt(img.transform, label, size, Color.white);
             t.rectTransform.Fill();
             t.name = "label";

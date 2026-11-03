@@ -93,7 +93,7 @@ namespace VK
             UIK.Clear(scr);
             detailTxt = null;
             bannerT = 99f;
-            var o = UIK.Img(scr, new Color(0.03f, 0.02f, 0.06f, a), "overlay");
+            var o = UIK.Img(scr, new Color(0.05f, 0.03f, 0.02f, a), "overlay");
             o.rectTransform.Fill();
             return o.rectTransform;
         }
@@ -159,7 +159,7 @@ namespace VK
 
         void BuildHint()
         {
-            var img = UIK.Img(top, new Color(0.08f, 0.06f, 0.12f, 0.96f), "hint");
+            var img = UIK.Img(top, new Color(0.18f, 0.13f, 0.09f, 0.97f), "hint");
             hintBox = img.rectTransform;
             hintBox.Place(0.5f, 0f, 900, 104, 0, 112);
             UIK.Border(img.gameObject, UIK.Gold, 2);
@@ -268,12 +268,12 @@ namespace VK
             UIK.Clear(hud);
             weaponKey = ""; synKey = "";
             // top-left vitals
-            var box = UIK.Img(hud, new Color(0.05f, 0.04f, 0.08f, 0.7f), "vitals");
+            var box = UIK.Img(hud, new Color(0.10f, 0.07f, 0.05f, 0.72f), "vitals");
             box.rectTransform.Place(0, 1, 470, 182, 16, -16);
             box.raycastTarget = false;
             hpFill = UIK.Bar(box.transform, new Color(0.2f, 0.05f, 0.07f), new Color(0.85f, 0.18f, 0.22f), out hpTxt, 24);
             hpFill.parent.GetComponent<RectTransform>().Place(0, 1, 440, 38, 15, -14);
-            xpFill = UIK.Bar(box.transform, new Color(0.04f, 0.12f, 0.15f), new Color(0.3f, 0.85f, 0.95f), out xpTxt, 19);
+            xpFill = UIK.Bar(box.transform, new Color(0.08f, 0.13f, 0.10f), new Color(0.45f, 0.82f, 0.62f), out xpTxt, 19);
             xpFill.parent.GetComponent<RectTransform>().Place(0, 1, 440, 28, 15, -58);
             var gIcon = UIK.Img(box.transform, new Color(1f, 0.85f, 0.35f), "gold");
             gIcon.sprite = Res.Diamond;
@@ -281,7 +281,7 @@ namespace VK
             gIcon.raycastTarget = false;
             goldTxt = UIK.Txt(box.transform, "0", 30, UIK.Gold, TextAnchor.MiddleLeft, FontStyle.Bold);
             goldTxt.rectTransform.Place(0, 1, 200, 40, 54, -94);
-            dashFill = UIK.Bar(box.transform, new Color(0.1f, 0.1f, 0.15f), new Color(0.6f, 0.9f, 1f), out var dashLbl, 16);
+            dashFill = UIK.Bar(box.transform, new Color(0.12f, 0.10f, 0.08f), new Color(0.78f, 0.90f, 0.76f), out var dashLbl, 16);
             dashFill.parent.GetComponent<RectTransform>().Place(1, 1, 150, 22, -15, -104);
             dashLbl.text = GameInput.K("Lướt [Space]", "Lướt");
             skillFill = UIK.Bar(box.transform, new Color(0.15f, 0.1f, 0.05f), new Color(1f, 0.75f, 0.3f), out var skLbl, 18);
@@ -295,7 +295,7 @@ namespace VK
             timerTxt.rectTransform.Place(0.5f, 1, 300, 80, 0, -46);
 
             bossBox = UIK.R(hud, "boss").Place(0.5f, 1, 900, 60, 0, -120);
-            bossFill = UIK.Bar(bossBox, new Color(0.15f, 0.04f, 0.15f), new Color(0.75f, 0.2f, 0.9f), out bossTxt, 22);
+            bossFill = UIK.Bar(bossBox, new Color(0.15f, 0.04f, 0.06f), new Color(0.72f, 0.15f, 0.2f), out bossTxt, 22);
             bossFill.parent.GetComponent<RectTransform>().Anchor(0, 0, 1, 1);
             for (int i = 0; i < bossTicks.Length; i++)
             {   // ultimate thresholds (spec 3.1): thin gold marks over the bar
@@ -380,7 +380,7 @@ namespace VK
                 UIK.Clear(weaponRow);
                 foreach (var w in run.weapons)
                 {
-                    var slot = UIK.Img(weaponRow, new Color(0.08f, 0.07f, 0.12f, 0.85f), "w");
+                    var slot = UIK.Img(weaponRow, new Color(0.13f, 0.10f, 0.07f, 0.9f), "w");
                     UIK.LE(slot.gameObject, 72, 72);
                     UIK.Border(slot.gameObject, Content.TierColor[w.tier], 2);
                     var ic = UIK.Img(slot.transform, w.def.tint, "i");
@@ -516,7 +516,7 @@ namespace VK
                 UIK.Txt(card.transform, c.title, en ? 19 : 22, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
                 if (unlocked)
                 {
-                    UIK.Txt(card.transform, c.desc, fs, new Color(0.88f, 0.86f, 0.92f));
+                    UIK.Txt(card.transform, c.desc, fs, new Color(0.96f, 0.91f, 0.81f));
                     UIK.Txt(card.transform, StatInfo.Fmt(c.mods), fs, Color.white);
                     var w = Content.W(c.startWeapon);
                     UIK.Txt(card.transform, "Khởi đầu: <color=#FFD266>" + w.name + "</color>", fs, UIK.Dim);
@@ -664,7 +664,7 @@ namespace VK
                 {
                     var e = get(i);
                     bool seen = Save.Seen(e.key);
-                    var cell = UIK.Img(grid, seen ? UIK.Panel2 : new Color(0.06f, 0.05f, 0.08f), "c");
+                    var cell = UIK.Img(grid, seen ? UIK.Panel2 : new Color(0.11f, 0.08f, 0.06f), "c");
                     UIK.Border(cell.gameObject, seen ? new Color(1f, 0.82f, 0.4f, 0.5f) : new Color(1, 1, 1, 0.06f), 1);
                     var ic = UIK.Img(cell.transform, seen ? e.tint : new Color(0, 0, 0, 0.9f), "i");
                     ic.sprite = e.spr; ic.preserveAspect = true; ic.raycastTarget = false;
@@ -904,7 +904,7 @@ namespace VK
             {
                 var ww = w;
                 bool sel = w == selWeapon;
-                var slot = UIK.Img(wrow, sel ? UIK.Panel2 : new Color(0.07f, 0.06f, 0.1f), "w");
+                var slot = UIK.Img(wrow, sel ? UIK.Panel2 : new Color(0.13f, 0.10f, 0.07f), "w");
                 UIK.LE(slot.gameObject, 88, 88);
                 UIK.Border(slot.gameObject, sel ? Color.white : Content.TierColor[w.tier], sel ? 3 : 2);
                 var ic = UIK.Img(slot.transform, w.def.tint, "i"); ic.sprite = w.Icon; ic.preserveAspect = true; ic.raycastTarget = false;
@@ -933,7 +933,7 @@ namespace VK
                 seen.Add(it);
                 var itc = it;
                 int cnt = run.Count(it.id);
-                var slot = UIK.Img(irow, new Color(0.07f, 0.06f, 0.1f), "it");
+                var slot = UIK.Img(irow, new Color(0.13f, 0.10f, 0.07f), "it");
                 UIK.LE(slot.gameObject, 54, 54);
                 UIK.Border(slot.gameObject, Content.TierColor[it.tier], 1);
                 var ic = UIK.Img(slot.transform, it.tint, "i"); ic.sprite = Res.Tile(it.sprite); ic.preserveAspect = true; ic.raycastTarget = false;
@@ -974,10 +974,10 @@ namespace VK
                 lt.rectTransform.Place(1, 0, 380, 30, -24, 222);
                 var safe = UIK.Btn(o, "", () => { selWeapon = null; Game.I.NextWave(0); }, UIK.BtnGold, 26);
                 safe.SetLabel("<b>Đường Bằng ▶</b>\n<size=17>Bình thường</size>");
-                safe.GetComponent<RectTransform>().Place(1, 0, 380, 80, -24, 136);
+                safe.GetComponent<RectTransform>().Place(1, 0, 380, 84, -24, 142);
                 var risk = UIK.Btn(o, "", () => { selWeapon = null; Game.I.NextWave(ro); }, UIK.BtnRed, 26);
                 risk.SetLabel("<b>Đường Hiểm ▶</b>\n<size=20>" + Content.RouteName[ro] + "</size>\n<size=16>" + Content.RouteDesc[ro] + "</size>");
-                risk.GetComponent<RectTransform>().Place(1, 0, 380, 96, -24, 30);
+                risk.GetComponent<RectTransform>().Place(1, 0, 380, 116, -24, 22);
             }
         }
 
@@ -993,7 +993,7 @@ namespace VK
         {
             var run = Run;
             var s = run.shop[i];
-            var card = UIK.Img(row, s.sold ? new Color(0.08f, 0.07f, 0.1f, 0.6f) : UIK.Panel2, "card");
+            var card = UIK.Img(row, s.sold ? new Color(0.12f, 0.09f, 0.07f, 0.6f) : UIK.Panel2, "card");
             UIK.LE(card.gameObject, 268, 430);
             UIK.Border(card.gameObject, s.locked ? UIK.Gold : Content.TierColor[s.tier], s.locked ? 4 : (s.tier >= 2 ? 3 : 2));
             if (s.sold)
@@ -1075,7 +1075,7 @@ namespace VK
             screen = UIScreen.Relic;
             var run = Run;
             var o = Overlay(0.86f);
-            Title(o, "BẢO KHỐ", 120, 72, new Color(0.85f, 0.6f, 1f));
+            Title(o, "BẢO KHỐ", 120, 72, new Color(0.95f, 0.62f, 0.42f));
             var sub = UIK.Txt(o, run.Boss(run.wave / 5 - 1).name + " để lại kho báu — chọn một món", 26, UIK.Dim);
             sub.rectTransform.Place(0.5f, 1, 1100, 40, 0, -220);
             if (run.stageUpWave == run.wave)
@@ -1122,7 +1122,7 @@ namespace VK
             var por = UIK.Img(o, Color.white, "art");
             por.sprite = Res.Tile(ev.sprite); por.preserveAspect = true; por.raycastTarget = false;
             por.rectTransform.Place(0.5f, 1, 160, 160, 0, -240);
-            var tx = UIK.Txt(o, "<i>" + ev.text + "</i>", 28, new Color(0.9f, 0.88f, 0.95f));
+            var tx = UIK.Txt(o, "<i>" + ev.text + "</i>", 28, new Color(0.96f, 0.91f, 0.81f));
             tx.rectTransform.Place(0.5f, 1, 1100, 110, 0, -420);
             var col = UIK.R(o, "opts").Place(0.5f, 0, 900, 120 * ev.options.Length, 0, 90);
             UIK.VL(col.gameObject, 14, 0, TextAnchor.LowerCenter);
@@ -1131,7 +1131,7 @@ namespace VK
                 int oi = i;
                 var op = ev.options[i];
                 bool can = op.can(run);
-                var b = UIK.Btn(col, "", () => Game.I.ChooseEvent(oi), can ? UIK.Panel2 : new Color(0.1f, 0.09f, 0.12f), 26, -1, 100);
+                var b = UIK.Btn(col, "", () => Game.I.ChooseEvent(oi), can ? UIK.Panel2 : new Color(0.14f, 0.11f, 0.08f), 26, -1, 100);
                 b.SetLabel("<b>[" + (i + 1) + "] " + op.label + "</b>\n<size=21>" + (can ? CostColors(op.desc) : "<color=#706878>" + op.desc + "</color>") + "</size>");
                 b.interactable = can;
                 UIK.Border(b.gameObject, can ? new Color(1f, 0.82f, 0.4f, 0.5f) : new Color(1, 1, 1, 0.08f), 2);

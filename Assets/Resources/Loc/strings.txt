@@ -269,6 +269,7 @@ Mỗi boss hạ gục sẽ	Each boss defeated will	每击败一名首领将
 Thần Thông: chiêu đổi dạng, mạnh hơn. Xem tên dạng ở thanh chiêu.	your Divine Art to a new form: stronger. See the form name on the skill bar.	你的神通变换形态，威力更强。形态名见技能条。
 Chặn!	Blocked!	挡住！
 Hộ Mệnh!	Life-Guard!	护命！
+Mua	Buy	购买
 Hoang Sơn	Barren Mountains	荒山
 Hàn Băng Cốc	Frost Valley	寒冰谷
 Huyết Sát Hải	Blood Sea	血煞海

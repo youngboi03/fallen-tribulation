@@ -113,10 +113,11 @@ namespace VK
             {
                 if (font == null)
                 {
-                    // Chinese uses an installed OS CJK font (nothing is shipped); other languages use Unity's built-in font.
+                    // Chinese uses an installed OS CJK font (nothing is shipped); other languages use the bundled rounded Baloo 2 (OFL).
                     if (Loc.Lang == Loc.ZH)
                         font = Font.CreateDynamicFontFromOSFont(new[] { "Microsoft YaHei", "Microsoft YaHei UI", "SimHei", "SimSun", "PingFang SC",
                             "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "Droid Sans Fallback", "Arial Unicode MS", "Arial" }, 32);
+                    else font = Resources.Load<Font>("Fonts/Baloo2");
                     if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 }
                 return font;
