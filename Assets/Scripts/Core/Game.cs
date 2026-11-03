@@ -127,11 +127,13 @@ namespace VK
         }
 
         /// <summary>Where the camera wants to be: on the player, clamped so the view stays inside the arena walls.</summary>
+        /// <summary>Boss cutscenes let the view overshoot the arena walls by this much (world units).</summary>
+        public float camSlack;
         Vector3 CamTarget()
         {
             Vector2 target = camFocus.HasValue ? camFocus.Value : player != null && player.gameObject.activeSelf && state != GState.Menu ? player.Pos : Vector2.zero;
             float halfH = cam.orthographicSize, halfW = halfH * cam.aspect;
-            float limX = Mathf.Max(0, Arena.HalfW + 1f - halfW), limY = Mathf.Max(0, Arena.HalfH + 1.2f - halfH);
+            float limX = Mathf.Max(0, Arena.HalfW + 1f + camSlack - halfW), limY = Mathf.Max(0, Arena.HalfH + 1.2f + camSlack - halfH);
             return new Vector3(Mathf.Clamp(target.x, -limX, limX), Mathf.Clamp(target.y, -limY, limY), -10);
         }
 
@@ -259,10 +261,10 @@ namespace VK
             bool bossWave = n % 5 == 0;
             Sfx.Music(bossWave ? "boss" : "battle");
             Sfx.MusicLevel(1f);
-            if (bossWave) { var bd = run.Boss(n / 5 - 1); if (bot != null || !BossCinema.NeedsIntro(bd.id)) ui.Banner("", bd.name, new Color(1f, 0.4f, 0.4f)); }   // the intro card names the boss
+            if (bossWave) { var bd = run.Boss(n / 5 - 1); if (bot != null || !BossCinema.NeedsIntro(bd.id)) { var kc = Content.Kit(bd.id)?.col ?? new Color(0.9f, 0.2f, 0.2f); var ink = kc * 0.22f; ink.a = 0.93f; ui.Banner("", bd.name, Color.Lerp(kc, Color.white, 0.55f), true, ink); } }   // the intro card names the boss
             else if (run.activeRoute > 0) ui.Banner("Đợt " + n + " — " + Content.RouteName[run.activeRoute], Content.RouteDesc[run.activeRoute], new Color(1f, 0.55f, 0.45f));
-            else if (newRegion || n == 1) ui.Banner("Đợt " + n, "Tiến vào " + Arena.RegionName[region] + (n == 1 ? GameInput.K("  ·  WASD di chuyển · SPACE lướt · E thần thông", "  ·  Joystick trái di chuyển · nút phải để lướt") : ""), Color.white);
-            if (n == 1) ui.Hint("move", GameInput.K("WASD / phím mũi tên", "Kéo joystick bên trái") + " để di chuyển. <color=#FFD266>Vũ khí tự tấn công</color> kẻ địch gần nhất — hãy giữ khoảng cách vừa tầm.");
+            else if (newRegion || n == 1) ui.Banner("Đợt " + n, "Tiến vào " + Arena.RegionName[region] + (n == 1 ? GameInput.K("  ·  WASD di chuyển · SPACE lướt · E thần thông", "  ·  Joystick trái di chuyển · nút phải để lướt", "  ·  Cần trái di chuyển · (A) lướt · (X) thần thông") : ""), Color.white);
+            if (n == 1) ui.Hint("move", GameInput.K("WASD / phím mũi tên", "Kéo joystick bên trái", "Cần trái") + " để di chuyển. <color=#FFD266>Vũ khí tự tấn công</color> kẻ địch gần nhất — hãy giữ khoảng cách vừa tầm.");
             if (bossWave) ui.Hint("boss", "BOSS! Né <color=#FF7070>vạch đỏ</color> (lao húc) và vòng đạn. Vòng vàng là sét Thiên Kiếp — đứng ngoài vòng!");
         }
 

@@ -26,7 +26,8 @@ namespace VK
         // HUD
         RectTransform hpFill, xpFill, bossFill, bossBox, weaponRow, dashFill, skillFill;
         readonly RectTransform[] bossTicks = new RectTransform[3];
-        Text skLblTxt; CharDef skLblCh; int skLblStage = -1;
+        Text skLblTxt, dashLblTxt; CharDef skLblCh; int skLblStage = -1; bool skLblPad; Button rerollBtn; int rerollCost;
+        static string DashLabel() => GameInput.K("Lướt [Space]", "Lướt", "Lướt (A)");
         Text hpTxt, xpTxt, goldTxt, waveTxt, timerTxt, bossTxt, synTxt, killTxt, comboTxt;
         int lastCombo; float comboPop;
         string weaponKey = "", synKey = "";
@@ -223,6 +224,8 @@ namespace VK
         void Update()
         {
             float dt = Time.unscaledDeltaTime;
+            GameInput.PollDevice();
+            if (screen == UIScreen.Shop && rerollBtn) rerollBtn.SetLabel(RerollLabel(rerollCost));
             // banner
             bannerT += dt;
             float a = bannerT < 0.2f ? bannerT / 0.2f : bannerT < 2f ? 1f : Mathf.Max(0, 1f - (bannerT - 2f) / 0.5f);
@@ -269,7 +272,7 @@ namespace VK
                 for (int i = 0; i < 4; i++) if (Input.GetKeyDown(KeyCode.Alpha1 + i)) Game.I.ChooseLevel(i);
             }
             else if (screen == UIScreen.Settings && Input.GetKeyDown(KeyCode.Escape)) { Sfx.Play("click", 0.5f); CloseSettings(); }
-            else if (screen == UIScreen.Shop && Input.GetKeyDown(KeyCode.R)) DoReroll();
+            else if (screen == UIScreen.Shop && (Input.GetKeyDown(KeyCode.R) || Input.GetKeyDown(KeyCode.JoystickButton3))) DoReroll();
             else if ((screen == UIScreen.CharSelect || screen == UIScreen.Meta || screen == UIScreen.Achievements || screen == UIScreen.Codex)
                      && Input.GetKeyDown(KeyCode.Escape)) { Sfx.Play("click", 0.5f); ShowMenu(); }
             else if (screen == UIScreen.Event)
@@ -301,9 +304,9 @@ namespace VK
             gIcon.raycastTarget = false;
             goldTxt = UIK.Txt(box.transform, "0", 30, UIK.Gold, TextAnchor.MiddleLeft, FontStyle.Bold);
             goldTxt.rectTransform.Place(0, 1, 200, 40, 54, -94);
-            dashFill = UIK.Bar(box.transform, new Color(0.12f, 0.10f, 0.08f), new Color(0.78f, 0.90f, 0.76f), out var dashLbl, 16);
+            dashFill = UIK.Bar(box.transform, new Color(0.12f, 0.10f, 0.08f), new Color(0.78f, 0.90f, 0.76f), out dashLblTxt, 16);
             dashFill.parent.GetComponent<RectTransform>().Place(1, 1, 150, 22, -15, -104);
-            dashLbl.text = GameInput.K("Lướt [Space]", "Lướt");
+            dashLblTxt.text = DashLabel();
             skillFill = UIK.Bar(box.transform, new Color(0.15f, 0.1f, 0.05f), new Color(1f, 0.75f, 0.3f), out var skLbl, 18);
             skillFill.parent.GetComponent<RectTransform>().Place(0, 1, 440, 28, 15, -140);
             skLblTxt = skLbl; skLblCh = null; skLblStage = -1;   // text filled in Update (the form changes with Tiến Giai)
@@ -352,12 +355,13 @@ namespace VK
             xpTxt.text = Content.Realm(run.level) + (run.pendingLevels > 0 ? "  <color=#FFD266>(+" + run.pendingLevels + ")</color>" : "");
             goldTxt.text = run.gold.ToString();
             UIK.SetFill(dashFill, Game.I.player.DashReady);
+            if (dashLblTxt) dashLblTxt.text = DashLabel();
             float skr = Game.I.player.SkillReady;
             UIK.SetFill(skillFill, skr);
-            if (skLblTxt && (skLblCh != run.ch || skLblStage != run.skillStage))
+            if (skLblTxt && (skLblCh != run.ch || skLblStage != run.skillStage || skLblPad != GameInput.Pad))
             {
-                skLblCh = run.ch; skLblStage = run.skillStage;
-                skLblTxt.text = GameInput.K("[E] ", "") + Skills.FormName(run.ch, run.skillStage) + " · " + Skills.StageLabel(run.skillStage);
+                skLblPad = GameInput.Pad; skLblCh = run.ch; skLblStage = run.skillStage;
+                skLblTxt.text = GameInput.K("[E] ", "", "(X) ") + Skills.FormName(run.ch, run.skillStage) + " · " + Skills.StageLabel(run.skillStage);
             }
             skillFill.GetComponent<Image>().color = skr >= 1f ? new Color(1f, 0.8f, 0.3f + Mathf.Sin(Time.unscaledTime * 6f) * 0.15f) : new Color(0.55f, 0.42f, 0.2f);
             var d = Game.I.dir;
@@ -594,7 +598,7 @@ namespace VK
                     UIK.Txt(card.transform, StatInfo.Fmt(c.mods), fs, Color.white);
                     var w = Content.W(c.startWeapon);
                     UIK.Txt(card.transform, "Khởi đầu: <color=#FFD266>" + w.name + "</color>", fs, UIK.Dim);
-                    UIK.Txt(card.transform, "<color=#FFB347><b>[E] " + c.skill + "</b></color>\n<size=" + (fs - 2) + ">" + c.skillDesc + "</size>", fs, new Color(1f, 0.9f, 0.75f));
+                    UIK.Txt(card.transform, "<color=#FFB347><b>" + GameInput.K("[E]", "[E]", "(X)") + " " + c.skill + "</b></color>\n<size=" + (fs - 2) + ">" + c.skillDesc + "</size>", fs, new Color(1f, 0.9f, 0.75f));
                     UIK.Spacer(card.transform);
                     var sbk = new StringBuilder("Kiếp đã vượt: ");
                     for (int k = 0; k <= Content.MaxKiep; k++) sbk.Append(Save.charWinKiep[i] >= k ? "<color=#FFD266>■</color> " : "<color=#4A4558>■</color> ");
@@ -875,7 +879,7 @@ namespace VK
         public void ShowLevelUp()
         {
             screen = UIScreen.LevelUp;
-            Hint("levelup", "Mỗi lần lên cấp: chọn 1 công pháp (phím 1-4). Cứ 10 cấp là <color=#FFD266>Đột Phá</color> cảnh giới — phần thưởng phẩm Tiên!");
+            Hint("levelup", GameInput.PadKeys("Mỗi lần lên cấp: chọn 1 công pháp (phím 1-4). Cứ 10 cấp là <color=#FFD266>Đột Phá</color> cảnh giới — phần thưởng phẩm Tiên!"));
             var run = Run;
             var o = Overlay(0.8f);
             bool brk = run.IsBreakthrough;
@@ -888,7 +892,7 @@ namespace VK
                 string ua = Game.UyApText(run.ChoosingLevel).Replace(" · ", "");
                 if (ua.Length > 0) UIK.Txt(o, ua, 24, new Color(1f, 0.85f, 0.4f)).rectTransform.Place(0.5f, 1, 1200, 36, 0, -208);
             }
-            var info = UIK.Txt(o, Content.Realm(run.ChoosingLevel) + "    ·    còn " + run.pendingLevels + " lần chọn    ·    phím 1-4", 26, UIK.Dim);
+            var info = UIK.Txt(o, Content.Realm(run.ChoosingLevel) + "    ·    còn " + run.pendingLevels + " lần chọn    ·    " + GameInput.PadKeys("phím 1-4"), 26, UIK.Dim);
             info.rectTransform.Place(0.5f, 1, 1200, 40, 0, -170);
 
             var place = UIK.R(o, "p").Place(0, 0.5f, 380, 720, 30, 0);
@@ -939,7 +943,7 @@ namespace VK
         {
             screen = UIScreen.Shop;
             Hint("shop", "Linh Thị: mua vũ khí/pháp bảo. <color=#FFD266>2 vũ khí cùng loại cùng phẩm → hợp nhất</color> lên phẩm cao hơn. Gom 2/4/6 vũ khí cùng Đạo để kích hoạt cộng hưởng (bảng phải).");
-            if (Run.routeOffer > 0) Hint("route", "Lộ Tuyến: <color=#FF8A70>Đường Hiểm</color> khó hơn nhưng thưởng lớn (thêm linh khí, rương). " + GameInput.K("Bấm R để làm mới shop.", "") + "");
+            if (Run.routeOffer > 0) Hint("route", "Lộ Tuyến: <color=#FF8A70>Đường Hiểm</color> khó hơn nhưng thưởng lớn (thêm linh khí, rương). " + GameInput.K("Bấm R để làm mới shop.", "", "Bấm (Y) để làm mới shop.") + "");
             var run = Run;
             var o = Overlay(0.84f);
             Title(o, "Linh Thị", 24, 56);
@@ -963,9 +967,9 @@ namespace VK
 
             // reroll
             int rc = run.RerollCost;
-            var rr = UIK.Btn(o, "Làm mới [R]  (" + rc + ")", DoReroll, run.gold >= rc ? UIK.BtnBlue : UIK.BtnGrey, 24);
+            var rr = UIK.Btn(o, RerollLabel(rc), DoReroll, run.gold >= rc ? UIK.BtnBlue : UIK.BtnGrey, 24);
             rr.GetComponent<RectTransform>().Place(0.5f, 1, 300, 54, -10, -645);
-            rr.interactable = run.gold >= rc;
+            rr.interactable = run.gold >= rc; rerollBtn = rr; rerollCost = rc;
 
             // inventory: weapons
             var inv = UIK.Img(o, UIK.Panel, "inv");
@@ -996,6 +1000,7 @@ namespace VK
             var irow = UIK.R(inv.transform, "irow").Place(0, 1, 1080, 56, 18, -182);
             UIK.HL(irow.gameObject, 6, 0, TextAnchor.MiddleLeft, false);
             var seen = new List<ItemDef>();
+            float isz = Mathf.Min(54f, 1086f / Mathf.Max(1, new HashSet<ItemDef>(run.items).Count) - 6f);   // one row: shrink cells so many treasures still fit the panel
             foreach (var it in run.items)
             {
                 if (seen.Contains(it)) continue;
@@ -1003,7 +1008,7 @@ namespace VK
                 var itc = it;
                 int cnt = run.Count(it.id);
                 var slot = UIK.Img(irow, new Color(0.13f, 0.10f, 0.07f), "it");
-                UIK.LE(slot.gameObject, 54, 54);
+                UIK.LE(slot.gameObject, isz, isz);
                 UIK.Border(slot.gameObject, Content.TierColor[it.tier], 1);
                 var ic = UIK.Img(slot.transform, it.tint, "i"); ic.sprite = Res.Tile(it.sprite); ic.preserveAspect = true; ic.raycastTarget = false;
                 ic.rectTransform.Anchor(0, 0, 1, 1, 6, 6, 6, 6);
@@ -1099,6 +1104,9 @@ namespace VK
             buy.interactable = why == null;
         }
 
+        static string RerollLabel(int rc) => GameInput.K("Làm mới [R]", "Làm mới", "Làm mới (Y)") + "  (" + rc + ")";
+        /// <summary>Pad B in the shop: drop the weapon selection (a purchase is never undone by B).</summary>
+        public void PadCancel() { if (selWeapon != null) { selWeapon = null; Sfx.Play("click", 0.5f); ShowShop(); } }
         void DoReroll()
         {
             if (Run == null) return;
@@ -1181,7 +1189,7 @@ namespace VK
         public void ShowEvent(EventDef ev)
         {
             screen = UIScreen.Event;
-            Hint("event", "Kỳ Ngộ: mỗi lựa chọn là một canh bạc. Đọc kỹ cái giá trước khi chọn (phím 1-3).");
+            Hint("event", GameInput.PadKeys("Kỳ Ngộ: mỗi lựa chọn là một canh bạc. Đọc kỹ cái giá trước khi chọn (phím 1-3)."));
             var run = Run;
             var o = Overlay(0.95f);
             Title(o, "Kỳ Ngộ", 70, 48, UIK.Dim);
@@ -1222,8 +1230,10 @@ namespace VK
         }
 
         // ================================================================== Pause
+        public bool pauseConfirm;
         public void ShowPause(bool confirm = false)
         {
+            pauseConfirm = confirm;
             screen = UIScreen.Pause;
             var o = Overlay(0.75f);
             LangButton(o);
@@ -1314,7 +1324,13 @@ namespace VK
             UIK.VL(ip.gameObject, 6, 16, TextAnchor.UpperLeft);
             int total = 0; foreach (var (_, n) in s.items) total += n;
             UIK.Txt(ip.transform, "<b>PHÁP BẢO</b>  " + total, 24, UIK.Gold, TextAnchor.MiddleLeft);
-            const int cell = 64, gap = 6, cols = 18, maxRows = 3;
+            const int gap = 6, maxRows = 3;
+            int cell = 68, cols = 17;
+            foreach (int c in new[] { 92, 84, 76 })   // as large as fits the treasure panel's height
+            {
+                int cc = (1266 + gap) / (c + gap);
+                if (Mathf.CeilToInt(s.items.Count / (float)cc) * (c + gap) - gap <= 240) { cell = c; cols = cc; break; }
+            }
             int shown = Mathf.Min(s.items.Count, cols * maxRows - (s.items.Count > cols * maxRows ? 1 : 0));
             var grid = UIK.R(ip.transform, "sumitems");
             UIK.LE(grid.gameObject, -1, Mathf.Max(cell, Mathf.CeilToInt((shown + (s.items.Count > shown ? 1 : 0)) / (float)cols) * (cell + gap) - gap));
@@ -1325,22 +1341,22 @@ namespace VK
                 var (it, cnt) = s.items[i];
                 var slot = UIK.Img(grid, new Color(0.13f, 0.10f, 0.07f), "it");
                 UIK.Border(slot.gameObject, Content.TierColor[it.tier], 2);
-                UIK.Icon(slot.transform, Res.Tile(it.sprite), it.tint, 52).rectTransform.Anchor(0, 0, 1, 1, 6, 6, 6, 6);
+                UIK.Icon(slot.transform, Res.Tile(it.sprite), it.tint, cell - 12).rectTransform.Anchor(0, 0, 1, 1, 6, 6, 6, 6);
                 if (cnt > 1) UIK.Txt(slot.transform, "x" + cnt, 16, Color.white, TextAnchor.LowerRight, FontStyle.Bold).rectTransform.Anchor(0, 0, 1, 1, 0, 0, 4, 0);
                 slot.gameObject.AddComponent<UIHover>().onEnter = () => { if (detailTxt) detailTxt.text = "<b><color=" + Content.TierHex(it.tier) + ">" + it.name + "</color></b> x" + cnt + "\n" + ItemText(it); };
             }
             if (s.items.Count > shown) UIK.Txt(grid, "+" + (s.items.Count - shown), 22, UIK.Dim);
 
             var ap = UIK.Img(right, UIK.Panel, "sum");
-            UIK.LE(ap.gameObject, -1, 120, -1, 1);
+            UIK.LE(ap.gameObject, -1, 150);
             UIK.HL(ap.gameObject, 8, 16, TextAnchor.MiddleCenter, true);
-            void Tile(string val, string label, Color vc, int size = 36)
+            void Tile(string val, string label, Color vc, int size = 42)
             {
                 var tl = UIK.R(ap.transform, "tile");
                 UIK.LE(tl.gameObject, -1, -1, 1, 0);
                 UIK.VL(tl.gameObject, 0, 0, TextAnchor.MiddleCenter);
                 UIK.Txt(tl, val, size, vc, TextAnchor.MiddleCenter, FontStyle.Bold);
-                UIK.Txt(tl, label, 20, UIK.Dim);
+                UIK.Txt(tl, label, 22, UIK.Dim);
             }
             Tile(s.kills.ToString(), "Kẻ địch bị diệt", Color.white);
             Tile(Mathf.RoundToInt(s.dmgDealt).ToString(), "Tổng sát thương", Color.white);
@@ -1348,10 +1364,10 @@ namespace VK
             Tile(Mathf.RoundToInt(s.bestHit).ToString(), "Đòn mạnh nhất", Color.white);
             Tile("x" + s.bestCombo, "Liên Sát cao nhất", UIK.Gold);
             Tile((int)(s.playTime / 60) + ":" + ((int)s.playTime % 60).ToString("00"), "Thời gian chơi", Color.white);
-            Tile("+" + s.daoHanh, "Đạo Hạnh", UIK.Gold, 44);
+            Tile("+" + s.daoHanh, "Đạo Hạnh", UIK.Gold, 52);
             foreach (var u in s.unlocks) UIK.Txt(right, u, 24, new Color(1f, 0.75f, 0.3f), TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            var dp = UIK.Img(right, UIK.Panel, "sum"); UIK.LE(dp.gameObject, -1, 120); UIK.VL(dp.gameObject, 0, 12, TextAnchor.UpperLeft);
+            var dp = UIK.Img(right, UIK.Panel, "sum"); UIK.LE(dp.gameObject, -1, 120, -1, 1); UIK.VL(dp.gameObject, 0, 12, TextAnchor.UpperLeft);
             detailTxt = UIK.Txt(dp.transform, "<color=#8A8499>Rê chuột lên vũ khí, pháp bảo hoặc chỉ số để xem chi tiết.</color>", 19, Color.white, TextAnchor.UpperLeft);
             
             var btns = UIK.R(o, "btns").Place(0.5f, 0, 1000, 80, 0, 36);

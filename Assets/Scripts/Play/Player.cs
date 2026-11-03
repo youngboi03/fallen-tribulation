@@ -153,8 +153,8 @@ namespace VK
             if (slowT > 0f) slowT -= dt;
             dashCd -= dt; iframe -= dt; skillCd -= dt; goldT -= dt;
             if (run.riteT > 0) run.riteT -= dt;
-            if (Game.T > 4f && run.wave == 1) g.ui.Hint("dash", GameInput.K("Nhấn <color=#FFD266>SPACE</color>", "Chạm nút <color=#FFD266>Lướt</color>") + " để lướt: bất tử trong lúc lướt, xuyên qua quái và đạn.");
-            if (skillCd <= 0 && run.wave >= 1 && Game.T > 12f) g.ui.Hint("skill", "Thần Thông đã sẵn sàng! " + GameInput.K("Nhấn <color=#FFD266>E</color> (hoặc chuột trái)", "Chạm nút <color=#FFD266>Thần Thông</color>") + ": " + Skills.FormName(run.ch, run.skillStage) + " — " + run.ch.skillDesc + ".");
+            if (Game.T > 4f && run.wave == 1) g.ui.Hint("dash", GameInput.K("Nhấn <color=#FFD266>SPACE</color>", "Chạm nút <color=#FFD266>Lướt</color>", "Nhấn <color=#FFD266>(A)</color>") + " để lướt: bất tử trong lúc lướt, xuyên qua quái và đạn.");
+            if (skillCd <= 0 && run.wave >= 1 && Game.T > 12f) g.ui.Hint("skill", "Thần Thông đã sẵn sàng! " + GameInput.K("Nhấn <color=#FFD266>E</color> (hoặc chuột trái)", "Chạm nút <color=#FFD266>Thần Thông</color>", "Nhấn <color=#FFD266>(X)</color>") + ": " + Skills.FormName(run.ch, run.skillStage) + " — " + run.ch.skillDesc + ".");
             if (skillCd <= 0 && ReadSkill()) TryCast();
 
             if (dashT > 0)

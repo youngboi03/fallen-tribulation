@@ -11,7 +11,7 @@ namespace VK
     public class PadNav : MonoBehaviour
     {
         RectTransform scr, frame;
-        Button sel;
+        Button sel, focus;
         Vector2 lastMouse;
         float repeatT;
         bool active;
@@ -82,6 +82,14 @@ namespace VK
             }
             else if (active) Hide();
 
+            var cur = Selected;
+            if (cur != focus)   // the framed element gets the mouse-hover tooltip
+            {
+                if (focus) focus.GetComponent<UIHover>()?.PadFocus(false);
+                focus = cur;
+                if (cur) cur.GetComponent<UIHover>()?.PadFocus(true);
+            }
+
             if (Input.GetKeyDown(KeyCode.JoystickButton1)) Back(g);
         }
 
@@ -131,8 +139,10 @@ namespace VK
         static void Back(Game g)
         {
             var s = g.ui.screen;
-            if (s == UIScreen.Pause) g.SetPause(false);
+            if (s == UIScreen.Pause) { if (g.ui.pauseConfirm) g.ui.ShowPause(); else g.SetPause(false); }
             else if (s == UIScreen.Settings) { Sfx.Play("click", 0.5f); g.ui.CloseSettings(); }
+            else if (s == UIScreen.Shop) g.ui.PadCancel();
+            else if (s == UIScreen.GameOver) g.GoMenu();
             else if (s == UIScreen.CharSelect || s == UIScreen.Meta || s == UIScreen.Achievements || s == UIScreen.Codex) { Sfx.Play("click", 0.5f); g.ui.ShowMenu(); }
         }
 

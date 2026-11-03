@@ -118,7 +118,7 @@ namespace VK
             while (t < T)
             {
                 float dt = Time.unscaledDeltaTime; t += dt;
-                if (t > 0.6f && (Input.anyKeyDown || Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))) break;
+                if (t > tb + 0.7f && (Input.anyKeyDown || Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))) break;
                 float sc = win ? (t < 0.4f ? Mathf.Lerp(1f, 0.35f, t / 0.4f) : t < 1f ? 0.35f : Mathf.Lerp(0.35f, 1f, Mathf.Clamp01((t - 1f) / 0.6f)))
                                : (t < 0.5f ? Mathf.Lerp(1f, 0.25f, t / 0.5f) : t < 1.8f ? 0.25f : Mathf.Lerp(0.25f, 0f, Mathf.Clamp01((t - 1.8f) / 0.6f)));
                 Time.timeScale = baseScale * sc;
@@ -178,7 +178,7 @@ namespace VK
                 if (!hit && tk > 0f)
                 {   // the ink splashes in, then reveals the title (InkSplatFx drives the title's own alpha and scale)
                     hit = true; Sfx.Play("heavy", 1f, 0f, 0.6f); Fx.Shake(0.35f, 0.3f);
-                    UIK.InkSplat(title, win ? new Color(0.42f, 0.27f, 0.04f, 0.94f) : new Color(0.30f, 0.02f, 0.05f, 0.94f), win ? 1 : 0);
+                    UIK.InkSplat(title, win ? new Color(0.42f, 0.27f, 0.04f, 0.94f) : new Color(0.05f, 0f, 0.02f, 0.97f), win ? 1 : 0, win ? (Color?)null : new Color(1f, 0.38f, 0.34f, 0.85f));
                 }
                 tcg.alpha = hit ? 1f : 0f;
                 scg.alpha = Mathf.Clamp01((t - tb - 0.7f) / 0.4f);

@@ -322,6 +322,7 @@ namespace VK
         static List<Button> Buttons(string label)
         {
             var res = new List<Button>();
+            label = Loc.Tr(label);   // the screens are built in the current language
             foreach (var b in FindObjectsByType<Button>(FindObjectsSortMode.None))
                 if (b.isActiveAndEnabled && Label(b).Contains(label)) res.Add(b);
             res.Sort((a, c) => Center(a).x.CompareTo(Center(c).x));

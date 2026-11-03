@@ -10,7 +10,29 @@ namespace VK
     public static class GameInput
     {
         /// <summary>Picks the keyboard or the touch wording for on-screen instructions.</summary>
-        public static string K(string keyboard, string touch) => Platform.Touch ? touch : keyboard;
+        public static string K(string keyboard, string touch, string pad = null) => Platform.Touch ? touch : Pad && pad != null ? pad : keyboard;
+
+        /// <summary>True while the last device used was a gamepad: prompts show (A)/(X) and the mouse cursor hides.</summary>
+        public static bool Pad;
+
+        /// <summary>Swaps the number-key wording of a sentence for the pad one while the pad is the active device.</summary>
+        public static string PadKeys(string s) => Pad && !Platform.Touch ? s.Replace("(phím 1-4)", "(D-pad + A)").Replace("(phím 1-3)", "(D-pad + A)").Replace("phím 1-4", "D-pad + (A)") : s;
+        static Vector2 lastMouse;
+
+        /// <summary>Once per frame (UIRoot.Update): gamepad button or stick sets <see cref="Pad"/>, key or mouse clears it.</summary>
+        public static void PollDevice()
+        {
+            if (Game.I != null && Game.I.bot != null) { if (Cursor.visible == Pad && !Platform.Touch) Cursor.visible = !Pad; return; }   // bot/tests set Pad themselves; a real mouse crossing the window must not flip it
+            bool joy = false;
+            for (int i = 0; i < 12 && !joy; i++) joy = Input.GetKeyDown(KeyCode.JoystickButton0 + i);
+            Vector2 m = Input.mousePosition;
+            bool mouse = (m - lastMouse).sqrMagnitude > 25f || Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1);
+            lastMouse = m;
+            if (joy) Pad = true;
+            else if (mouse || Input.anyKeyDown) Pad = false;
+            else if (!Pad && !Input.anyKey && (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.5f || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.5f)) Pad = true;
+            if (Cursor.visible == Pad && !Platform.Touch) Cursor.visible = !Pad;
+        }
 
         public static Vector2 Move
         {

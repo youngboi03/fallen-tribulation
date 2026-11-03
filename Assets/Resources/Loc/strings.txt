@@ -297,6 +297,11 @@ Thời gian chơi	Play time	游戏时长
 Chơi lại	Play again	再玩一次
 Ván mới	New run	新一局
 Về menu	Back to menu	返回菜单
+Cần trái	Left stick	左摇杆
+Bấm (Y) để làm mới shop	Press (Y) to reroll the shop	按 (Y) 刷新商店
+Cần trái di chuyển	Left stick to move	左摇杆移动
+(A) lướt	(A) dash	(A) 冲刺
+(X) thần thông	(X) Divine Art	(X) 神通
 Hoang Sơn	Barren Mountains	荒山
 Hàn Băng Cốc	Frost Valley	寒冰谷
 Huyết Sát Hải	Blood Sea	血煞海

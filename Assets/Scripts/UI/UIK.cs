@@ -152,12 +152,12 @@ namespace VK
         }
 
         /// <summary>Ink blot that splashes in behind <paramref name="title"/> and then reveals it. Self-driven on unscaled time; dies with its parent.</summary>
-        public static InkSplatFx InkSplat(Text title, Color tint, int seed = 0)
+        public static InkSplatFx InkSplat(Text title, Color tint, int seed = 0, Color? rim = null)
         {
             var rt = R(title.transform.parent, "inkSplat");
             rt.SetSiblingIndex(title.transform.GetSiblingIndex());
             var fx = rt.gameObject.AddComponent<InkSplatFx>();
-            fx.Init(title, tint, seed);
+            fx.Init(title, tint, seed, rim);
             return fx;
         }
 
@@ -272,16 +272,41 @@ namespace VK
 
     public class UIHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
-        public Action onEnter, onExit;
+        public Action onExit;
         public float hoverScale = 1.05f;
         float target = 1f;
+        Action enter;
+
+        /// <summary>The tooltip hook. Setting it makes the element a (silent) Button too, so PadNav can focus it and show the same tooltip.</summary>
+        public Action onEnter
+        {
+            get => enter;
+            set
+            {
+                enter = value;
+                if (value != null && GetComponent<Button>() == null)
+                {
+                    var b = gameObject.AddComponent<Button>();
+                    b.transition = Selectable.Transition.None;
+                    b.navigation = new Navigation { mode = Navigation.Mode.None };
+                }
+            }
+        }
+
+        /// <summary>Gamepad focus entering or leaving: same hover pop and tooltip as the mouse, without the sound.</summary>
+        public void PadFocus(bool on)
+        {
+            var b = GetComponent<Button>();
+            target = on && (b == null || b.interactable) ? hoverScale : 1f;
+            if (on) enter?.Invoke(); else onExit?.Invoke();
+        }
 
         public void OnPointerEnter(PointerEventData e)
         {
             var b = GetComponent<Button>();
             if (b == null || b.interactable) { target = hoverScale; Sfx.Play("tick", 0.25f, 0.05f, 1.2f); }
             if (b != null) PadNav.NoteHover(b, true);
-            onEnter?.Invoke();
+            enter?.Invoke();
         }
 
         public void OnPointerExit(PointerEventData e)
@@ -306,7 +331,7 @@ namespace VK
     {
         static readonly Sprite[] blots = new Sprite[3];
         static Sprite drop;
-        Text title; CanvasGroup titleCg; RectTransform blot;
+        Text title; CanvasGroup titleCg; RectTransform blot, rimRt;
         RectTransform[] drops; Vector2[] target; float[] delay, size;
         float age, hw, hh;
 
@@ -382,7 +407,7 @@ namespace VK
             return drop = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f);
         }
 
-        public void Init(Text t, Color tint, int seed)
+        public void Init(Text t, Color tint, int seed, Color? rim = null)
         {
             title = t;
             var rt = (RectTransform)transform; var trt = t.rectTransform;
@@ -396,6 +421,11 @@ namespace VK
             rt.anchoredPosition = (Vector2)trt.localPosition + new Vector2(cx, trt.rect.center.y);
             hw = w / 2f; hh = h / 2f;
 
+            if (rim.HasValue)   // lighter edge behind the blot, so a dark blot still reads on a dark red scene
+            {
+                var ri = UIK.Img(rt, rim.Value, "rim"); ri.sprite = InkSplatFx.Blot(seed); ri.raycastTarget = false;
+                rimRt = ri.rectTransform.Fill(); rimRt.localScale = Vector3.zero;
+            }
             var bi = UIK.Img(rt, tint, "blot"); bi.sprite = InkSplatFx.Blot(seed); bi.raycastTarget = false;
             blot = bi.rectTransform.Fill();
             blot.localScale = Vector3.zero;
@@ -425,6 +455,7 @@ namespace VK
             age += Time.unscaledDeltaTime;
             float s = age < 0.15f ? Mathf.Lerp(0f, 1.15f, Out(age / 0.15f)) : age < 0.25f ? Mathf.Lerp(1.15f, 1f, (age - 0.15f) / 0.1f) : 1f + 0.02f * Mathf.Min(age - 0.25f, 2f);
             blot.localScale = new Vector3(s, s, 1f);
+            if (rimRt) rimRt.localScale = new Vector3(s * 1.07f, s * 1.14f, 1f);
             for (int i = 0; i < drops.Length; i++)
             {
                 float k = Mathf.Clamp01((age - 0.04f - delay[i]) / 0.4f), e = Out(k);

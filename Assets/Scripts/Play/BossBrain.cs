@@ -215,7 +215,15 @@ namespace VK
             {
                 float k = x / Len, env = Mathf.Sin(Mathf.PI * Mathf.Clamp01(k * 1.15f));   // up and back
                 if (g.cam != null && fxZoom > 0f) g.cam.orthographicSize = fxZoom / (1f + 0.2f * env);
-                if (g.player != null) g.camFocus = Vector2.Lerp(g.player.Pos, e.Pos, 0.5f * env);
+                if (g.player != null)
+                {   // frame the boss even at the arena wall (camSlack lets the view pass it), then keep the player on screen too
+                    float hh = g.cam.orthographicSize, hw = hh * g.cam.aspect;
+                    Vector2 f = Vector2.Lerp(g.player.Pos, e.Pos, 0.5f * env), pp = g.player.Pos, bp = e.Pos;
+                    f.x = Mathf.Clamp(f.x, bp.x - hw * 0.5f, bp.x + hw * 0.5f); f.y = Mathf.Clamp(f.y, bp.y - hh * 0.5f, bp.y + hh * 0.5f);
+                    f.x = Mathf.Clamp(f.x, pp.x - hw * 0.85f, pp.x + hw * 0.85f); f.y = Mathf.Clamp(f.y, pp.y - hh * 0.85f, pp.y + hh * 0.85f);
+                    g.camFocus = Vector2.Lerp(pp, f, Mathf.Clamp01(env * 2f));
+                    g.camSlack = 5f * env;
+                }
                 if (g.cinema != null) g.cinema.Tint(new Color(kit.col.r * 0.2f, kit.col.g * 0.2f, kit.col.b * 0.2f, 0.4f * env));
                 if (k < 0.2f) e.FlashWhite(1f);
                 e.SetScaleMul(fxScale * (1f + 0.2f * Mathf.Sin(Mathf.PI * Mathf.Clamp01(k * 2f))));
@@ -236,7 +244,7 @@ namespace VK
             var g = Game.I;
             if (g == null) return;
             if (g.cam != null && fxZoom > 0f) g.cam.orthographicSize = fxZoom;
-            g.camFocus = null;
+            g.camFocus = null; g.camSlack = 0f;
             if (g.cinema != null) g.cinema.Tint(Color.clear);
             if (e != null) e.SetScaleMul(fxScale);
         }

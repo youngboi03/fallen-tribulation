@@ -23,7 +23,7 @@
 ## Việc còn lại khi lên Steam
 1. Thêm Steamworks.NET, viết `SteamPlatform : IPlatformServices` (SteamUserStats cho thành tựu — id trùng `Content.Achs`; Steam Cloud: chuyển lưu từ PlayerPrefs sang file trong `Application.persistentDataPath` rồi bật Auto-Cloud cho file đó).
 2. Màn Cài đặt: đã có âm lượng nhạc/hiệu ứng, rung màn hình, số sát thương; còn thiếu cửa sổ/toàn màn hình và độ phân giải.
-3. Steam Deck Verified: điều hướng menu bằng tay cầm đã có (`PadNav`); còn cần hiển thị biểu tượng nút tay cầm thay cho chữ phím, và kiểm tra chữ ở độ phân giải 1280×800.
+3. Steam Deck Verified: điều hướng menu bằng tay cầm đã có (`PadNav`); chữ gợi ý đổi sang (A)/(X)/(Y) khi dùng tay cầm (`GameInput.Pad`, chữ, chưa có biểu tượng hình); còn cần kiểm tra chữ ở độ phân giải 1280×800.
 4. Bản địa hoá: đã có EN / VI / 中文. Còn nên nhờ người bản ngữ đọc lại bản dịch, và thêm ngôn ngữ khác nếu cần (Nhật, Hàn, Nga…).
 5. Trang store: capsule art, trailer (dùng `-autotest -shots` để lấy ảnh), mô tả.
 
