@@ -171,12 +171,8 @@ namespace VK
             // animation: hop while walking, breathe while idle
             bool moving = vel.sqrMagnitude > 0.25f;
             const float Size = 1.3f;   // the hero reads a bit larger than ordinary monsters
-            if (moving && anim.Play(charId, "walk"))
-            {
-                body.localPosition = Vector3.zero;
-                body.localScale = new Vector3(Size, Size, 1f);
-            }
-            else if (moving)
+            // the walk strips are not good enough yet (SpriteAnimator stays for later): heroes hop like the monsters do
+            if (moving)
             {
                 animT += dt * 13f;
                 float hop = Mathf.Abs(Mathf.Sin(animT)) * 0.1f;

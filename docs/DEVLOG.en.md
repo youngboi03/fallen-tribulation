@@ -70,7 +70,7 @@ The game is complete and stable, with no exceptions in the last full test run. T
 ## What is unfinished or rough
 
 - **Weapons are hard to tell apart.** At real icon size, the 24 weapons fall into five lookalike groups (eight read as the same diagonal blade). Projectiles come in only three shapes. A redesign plan in a light chibi style gives each weapon its own silhouette, and a few trial icons are approved, but the redraw isn't done.
-- **Animation.** The animation engine works and the characters have walk cycles. Attack and idle clips, and all boss animation, are still missing; bosses still just bob.
+- **Animation.** The frame-animation engine works and I tried walk strips for all six characters, but they did not look good enough, so this build turns them off: heroes and monsters still just hop as they move. Proper walk cycles, attack and idle clips, and all boss animation are still missing.
 - **Some sprites don't match.** The Demon cultivator hasn't been redone like the other five. The final boss's crown has broken white patches. One boss's deep red is too dark for players with red color blindness.
 - **Early-game Divine Arts.** In waves 1 to 5, the Alchemist, Body and Talisman skills deal only about 5 to 10% of total damage, against a target of 20 to 35%. Too few enemies are in range and you cast only one to three times per wave, so it needs a stage I redesign, not new numbers. The Demon cultivator's stage I deals no damage at all, and the Body cultivator barely changes when you invest in the skill.
 - **Late-game economy.** Players still end up with roughly 500 to 900 spare Spirit Stones per wave late in a run, and it all pours into the shop.
@@ -89,7 +89,7 @@ Pausing isn't abandoning. The game is complete enough to play from start to fini
 If I come back, or if you're curious, this is the order I'd work in:
 
 1. Redraw the 24 weapons to the silhouette plan, with projectiles that carry each weapon's look.
-2. Finish animation: attack and idle clips for the characters, then the bosses, starting with each boss's base ultimate.
+2. Finish animation: redo the walk strips, add attack and idle clips for the characters, then the bosses, starting with each boss's base ultimate.
 3. Redesign stage I of the Divine Arts (shorter early cooldowns or a wider reach), and give the Demon cultivator damage from the start.
 4. Add late-game Spirit Stone sinks, such as treasures with a Brotato-style drawback, or chests where you pick one of two.
 5. Turn that event into a small fight.

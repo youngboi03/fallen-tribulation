@@ -70,7 +70,7 @@ Game chơi được trọn vẹn, ổn định, lần chạy kiểm thử đầy
 ## Những gì còn dở dang
 
 - **Vũ khí khó phân biệt.** Ở cỡ icon thật, 24 vũ khí rơi vào năm nhóm trùng hình (8 cái cùng là "lưỡi thẳng chéo"). Đạn chỉ có 3 kiểu hình. Kế hoạch vẽ lại theo phong cách chibi, mỗi vũ khí một hình bóng riêng, đã xong và vài bản thử đã duyệt, nhưng chưa vẽ xong.
-- **Hoạt ảnh.** Bộ máy hoạt ảnh đã chạy, và nhân vật có dải đi bộ. Clip đánh, clip đứng yên và toàn bộ hoạt ảnh boss vẫn chưa có; boss vẫn chỉ nhún lên xuống.
+- **Hoạt ảnh.** Bộ máy hoạt ảnh theo khung đã chạy, và tôi đã thử dải đi bộ cho cả sáu nhân vật, nhưng nhìn chưa đạt nên trong bản này tôi tắt nó đi: nhân vật và quái vẫn chỉ nhún nhẹ khi di chuyển. Clip đi bộ tử tế, clip đánh, clip đứng yên và toàn bộ hoạt ảnh boss vẫn chưa có.
 - **Vài sprite chưa đồng bộ.** Ma Tu chưa được làm lại như năm nhân vật kia. Mũ miện của boss cuối còn những mảng trắng vỡ hình. Màu đỏ thẫm của một boss quá tối với người mù màu đỏ.
 - **Thần Thông đầu game.** Ở đợt 1 đến 5, chiêu của Đan, Thể và Phù chỉ chiếm khoảng 5 đến 10% sát thương, so với mục tiêu 20 đến 35%. Quá ít quái lọt vào tầm và chỉ bấm được 1 đến 3 lần mỗi đợt, nên phải đổi thiết kế Giai I chứ không chỉnh hệ số. Giai I của Ma Tu không gây sát thương. Thể Tu gần như không đổi dù đầu tư vào chiêu.
 - **Kinh tế cuối game.** Linh Thạch vẫn dư khoảng 500 đến 900 mỗi đợt ở cuối game và chảy hết vào cửa hàng.
@@ -89,7 +89,7 @@ Dừng ở đây không có nghĩa là bỏ dở. Game đủ hoàn chỉnh để
 Nếu tôi quay lại, hoặc nếu bạn thấy hứng thú, đây là thứ tự tôi sẽ làm:
 
 1. Vẽ lại 24 vũ khí theo kế hoạch hình bóng, kèm đạn mang dấu hiệu riêng của từng vũ khí.
-2. Hoàn thiện hoạt ảnh: clip đánh và đứng yên cho nhân vật, rồi tới boss, ưu tiên tuyệt chiêu gốc của từng boss.
+2. Hoàn thiện hoạt ảnh: làm lại dải đi bộ, thêm clip đánh và đứng yên cho nhân vật, rồi tới boss, ưu tiên tuyệt chiêu gốc của từng boss.
 3. Thiết kế lại Giai I của Thần Thông (hồi chiêu ngắn hơn hoặc tầm rộng hơn ở đầu game), và cho Ma Tu gây sát thương ngay từ đầu.
 4. Thêm nơi tiêu Linh Thạch cuối game, ví dụ pháp bảo có cái giá phải trả kiểu Brotato, hoặc rương "chọn 1 trong 2".
 5. Biến Kỳ Ngộ "Nghênh chiến" thành trận đánh nhỏ.
