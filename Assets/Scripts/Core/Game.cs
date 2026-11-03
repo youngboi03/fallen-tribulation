@@ -12,6 +12,7 @@ namespace VK
     {
         public bool win; public int wave, level, kills, daoHanh, kiep; public string charName;
         public float dmgDealt, bestHit, skillDmg, playTime; public int bestCombo; public List<string> unlocks = new List<string>();
+        public float[] stats; public List<(WeaponDef def, int tier)> weapons = new List<(WeaponDef, int)>(); public List<(ItemDef it, int n)> items = new List<(ItemDef, int)>();
     }
 
     /// <summary>Bootstraps the whole game from code and owns the run state machine.</summary>
@@ -258,10 +259,9 @@ namespace VK
             bool bossWave = n % 5 == 0;
             Sfx.Music(bossWave ? "boss" : "battle");
             Sfx.MusicLevel(1f);
-            if (bossWave) ui.Banner("ĐỢT " + n + " — THIÊN KIẾP", run.Boss(n / 5 - 1).name + " giáng lâm!", new Color(1f, 0.4f, 0.4f));
+            if (bossWave) { var bd = run.Boss(n / 5 - 1); if (bot != null || !BossCinema.NeedsIntro(bd.id)) ui.Banner("", bd.name, new Color(1f, 0.4f, 0.4f)); }   // the intro card names the boss
             else if (run.activeRoute > 0) ui.Banner("ĐỢT " + n + " — " + Content.RouteName[run.activeRoute].ToUpper(), Content.RouteDesc[run.activeRoute], new Color(1f, 0.55f, 0.45f));
             else if (newRegion || n == 1) ui.Banner("ĐỢT " + n, "Tiến vào " + Arena.RegionName[region] + (n == 1 ? GameInput.K("  ·  WASD di chuyển · SPACE lướt · E thần thông", "  ·  Joystick trái di chuyển · nút phải để lướt") : ""), Color.white);
-            else ui.Banner("ĐỢT " + n, "", Color.white);
             if (n == 1) ui.Hint("move", GameInput.K("WASD / phím mũi tên", "Kéo joystick bên trái") + " để di chuyển. <color=#FFD266>Vũ khí tự tấn công</color> kẻ địch gần nhất — hãy giữ khoảng cách vừa tầm.");
             if (bossWave) ui.Hint("boss", "BOSS! Né <color=#FF7070>vạch đỏ</color> (lao húc) và vòng đạn. Vòng vàng là sét Thiên Kiếp — đứng ngoài vòng!");
         }
@@ -290,10 +290,7 @@ namespace VK
 
             Sfx.Play("j_wave", 0.6f, 0f);
             Sfx.MusicLevel(0.35f);
-            string sub = "";
-            if (harvest > 0) sub += "Thu hoạch +" + harvest + "  ";
-            if (interest > 0) sub += "Lãi +" + interest;
-            ui.Banner("ĐỢT " + run.wave + " HOÀN THÀNH", sub, new Color(0.6f, 1f, 0.7f));
+            if (harvest + interest > 0) Fx.Text(player.Pos + Vector2.up * 1.3f, "+" + (harvest + interest), new Color(1f, 0.85f, 0.35f), 1.1f, 1.2f);
 
             if (run.stageUpWave == run.wave && !(run.chests > 0 && run.wave % 5 == 0))
             {   // Tiến Giai without a Bảo Khố screen to carry the line: say it as a toast
@@ -482,6 +479,10 @@ namespace VK
                 win = win, wave = run.wave, level = run.level, kills = run.kills, kiep = run.kiep,
                 charName = run.ch.name, dmgDealt = run.dmgDealt, skillDmg = run.skillDmg, playTime = run.playTime, bestHit = run.bestHit, bestCombo = run.bestCombo
             };
+            s.stats = (float[])run.stats.v.Clone();
+            foreach (var w in run.weapons) s.weapons.Add((w.def, w.tier));
+            foreach (var it in new HashSet<ItemDef>(run.items)) s.items.Add((it, run.Count(it.id)));
+            s.items.Sort((a, b) => b.it.tier != a.it.tier ? b.it.tier.CompareTo(a.it.tier) : b.n.CompareTo(a.n));
             float dh = cleared * 3 + run.kills / 40f + (win ? 60 : 0);
             s.daoHanh = Mathf.RoundToInt(dh * (1f + 0.5f * run.kiep));
             save.daoHanh += s.daoHanh;

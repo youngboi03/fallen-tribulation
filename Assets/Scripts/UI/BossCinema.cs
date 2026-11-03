@@ -133,7 +133,6 @@ namespace VK
             yield return Wait(0.8f);
             if (skipReq) goto done;
             Speak(e, b.kit.quoteMutate, KbAura);
-            Banner(e, "Kiếp Biến", KbAura);
             yield return Wait(1.4f);
             if (skipReq) goto done;
             yield return Tween(0.4f, k => { SetVeil(new Color(0f, 0f, 0.05f, 0.45f * (1f - k))); Zoom(1.25f - 0.25f * k); });
@@ -167,7 +166,6 @@ namespace VK
             yield return Wait(0.45f);
             if (skipReq) goto done;
             Speak(e, b.kit.quoteMaThan, MtAura);
-            Banner(e, "Ma Thân", MtAura);
             yield return Wait(1.7f);
             if (skipReq) goto done;
             yield return Tween(0.4f, k => { SetVeil(new Color(0f, 0f, 0.05f, 0.5f * (1f - k))); Zoom(1.3f - 0.3f * k); });
@@ -204,10 +202,7 @@ namespace VK
 
         void Speak(Enemy e, string q, Color c) => Fx.Text(e.Pos + Vector2.up * (e.radius + 1.2f), Loc.Tr(q), Color.white, 1.6f, 1.4f);
 
-        void Banner(Enemy e, string what, Color c)
-        {
-            if (Game.I.ui != null) Game.I.ui.Banner("", e.def.name + " · " + Loc.Tr(what), c);
-        }
+        public void Tint(Color c) => SetVeil(c);
 
         void SetVeil(Color c)
         {

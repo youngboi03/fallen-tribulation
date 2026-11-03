@@ -123,6 +123,8 @@ namespace VK
             bannerSub.rectTransform.Anchor(0, 0, 1, 0.42f);
         }
 
+        public bool BannerUp => bannerCg != null && bannerCg.alpha > 0.02f;   // tests
+
         public void Banner(string title, string sub, Color c)
         {
             if (!string.IsNullOrEmpty(title)) { bannerTitle.text = title; bannerTitle.color = c; bannerSub.text = sub; }
@@ -134,7 +136,7 @@ namespace VK
         {
             var box = UIK.Img(top, new Color(0.12f, 0.1f, 0.05f, 0.95f), "toast");
             UIK.Border(box.gameObject, UIK.Gold, 2);
-            box.rectTransform.Place(0f, 0f, 460, 90, 20, 120 + toasts.Count * 100);   // bottom-left above the weapon bar: no buttons live there
+            box.rectTransform.Place(0f, 0f, 460, 112, 20, 120 + toasts.Count * 120);   // bottom-left above the weapon bar: no buttons live there
             var cg = box.gameObject.AddComponent<CanvasGroup>();
             cg.blocksRaycasts = false;
             var t = UIK.Txt(box.transform, "<b>" + title + "</b>\n<size=20><color=#C8C2D8>" + sub + "</color></size>", 26, UIK.Gold);
@@ -231,14 +233,14 @@ namespace VK
                 t.cg.alpha = t.t < 0.25f ? t.t / 0.25f : t.t > 3.2f ? Mathf.Max(0, 1f - (t.t - 3.2f) / 0.4f) : 1f;
                 float slide = t.t < 0.25f ? (1f - t.t / 0.25f) * 300f : 0;
                 if (screen == UIScreen.GameOver)
-                {   // the summary's buttons sit bottom-centre: stack toasts on the free right side
-                    t.rt.anchorMin = t.rt.anchorMax = t.rt.pivot = new Vector2(1f, 0.5f);
-                    t.rt.anchoredPosition = new Vector2(-20 + slide, 160 - i * 100);
+                {   // the summary's buttons sit bottom-centre: stack toasts in the bottom-right corner, right of the buttons
+                    t.rt.anchorMin = t.rt.anchorMax = t.rt.pivot = new Vector2(1f, 0f);
+                    t.rt.anchoredPosition = new Vector2(-20 + slide, 20 + i * 120);
                 }
                 else
                 {
                     t.rt.anchorMin = t.rt.anchorMax = t.rt.pivot = Vector2.zero;
-                    t.rt.anchoredPosition = new Vector2(20 - slide, 120 + i * 100);
+                    t.rt.anchoredPosition = new Vector2(20 - slide, 120 + i * 120);
                 }
                 if (t.t > 3.6f) { Destroy(t.rt.gameObject); toasts.RemoveAt(i); }
             }
@@ -1185,7 +1187,7 @@ namespace VK
             screen = UIScreen.Event;
             Hint("event", "Kỳ Ngộ: mỗi lựa chọn là một canh bạc. Đọc kỹ cái giá trước khi chọn (phím 1-3).");
             var run = Run;
-            var o = Overlay(0.88f);
+            var o = Overlay(0.95f);
             Title(o, "KỲ NGỘ", 70, 48, UIK.Dim);
             Title(o, ev.title.ToUpper(), 130, 70);
             var por = UIK.Img(o, Color.white, "art");
@@ -1253,75 +1255,114 @@ namespace VK
         }
 
         // ================================================================== Game over
-        /// <summary>The run's final build: weapons with their tier frame, then the most valuable items with stack counts.</summary>
-        static void BuildRecap(Transform parent, RunState run)
-        {
-            if (run == null) return;
-            var wrow = UIK.R(parent, "weapons");
-            UIK.LE(wrow.gameObject, 760, 54);
-            UIK.HL(wrow.gameObject, 8, 0, TextAnchor.MiddleCenter, false);
-            foreach (var w in run.weapons)
-            {
-                var ic = UIK.Icon(wrow, Res.Tile(w.def.sprite), w.def.tint, 48);
-                UIK.Border(ic.gameObject, Content.TierColor[w.tier], 2);
-            }
-            var counts = new Dictionary<ItemDef, int>();
-            foreach (var it in run.items) counts[it] = counts.TryGetValue(it, out var n) ? n + 1 : 1;
-            var list = new List<ItemDef>(counts.Keys);
-            list.Sort((a, b) => b.tier != a.tier ? b.tier.CompareTo(a.tier) : counts[b].CompareTo(counts[a]));
-            var irow = UIK.R(parent, "items");
-            UIK.LE(irow.gameObject, 760, 44);
-            UIK.HL(irow.gameObject, 6, 0, TextAnchor.MiddleCenter, false);
-            for (int i = 0; i < Mathf.Min(16, list.Count); i++)
-            {
-                var it = list[i];
-                var ic = UIK.Icon(irow, Res.Tile(it.sprite), it.tint, 38);
-                UIK.Border(ic.gameObject, Content.TierColor[it.tier], 1.5f);
-                if (counts[it] > 1)
-                {
-                    var t = UIK.Txt(ic.transform, "x" + counts[it], 15, Color.white, TextAnchor.LowerRight, FontStyle.Bold);
-                    t.rectTransform.Fill();
-                }
-            }
-            if (list.Count > 16) UIK.Txt(irow, "+" + (list.Count - 16), 18, UIK.Dim);
-        }
-
         static System.Collections.IEnumerator FadeIn(CanvasGroup cg)
         {
             for (float t = 0f; t < 0.5f && cg; t += Time.unscaledDeltaTime) { cg.alpha = t / 0.5f; yield return null; }
             if (cg) cg.alpha = 1f;
         }
 
+        static readonly Color Cinnabar = new Color(0.95f, 0.42f, 0.36f);
+
+        /// <summary>One screen: result line, stat list on the left, build (weapons + treasures) and achievements on the right.</summary>
         public void ShowGameOver(RunSummary s)
         {
             screen = UIScreen.GameOver;
             HideHint();
-            var o = Overlay(0.85f);
+            var o = Overlay(0.95f);
             var ocg = o.gameObject.AddComponent<CanvasGroup>(); ocg.alpha = 0f;
             StartCoroutine(FadeIn(ocg));
-            Title(o, s.win ? "PHI THĂNG THÀNH TIÊN!" : "THÂN TỬ ĐẠO TIÊU", 140, 84, s.win ? UIK.Gold : new Color(1f, 0.4f, 0.4f));
-            var sub = UIK.Txt(o, s.charName + "   ·   Kiếp " + s.kiep, 30, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
-            sub.rectTransform.Place(0.5f, 1, 1000, 44, 0, -250);
-            var panel = UIK.Img(o, UIK.Panel, "sum");
-            panel.rectTransform.Place(0.5f, 1f, 820, 100, 0, -300);   // hangs below the character · Kiếp subtitle and grows with its content
-            UIK.VL(panel.gameObject, 8, 24, TextAnchor.UpperCenter);
-            panel.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            UIK.Txt(panel.transform, (s.win ? "Vượt qua cả 20 đợt" : "Gục ngã ở đợt " + s.wave), 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
-            UIK.Txt(panel.transform, "Cảnh giới: <color=#7CF0FF>" + Content.Realm(s.level) + "</color>", 26, UIK.Dim);
-            UIK.Txt(panel.transform, "Kẻ địch bị diệt: <color=#FFFFFF>" + s.kills + "</color>", 26, UIK.Dim);
-            UIK.Txt(panel.transform, "Tổng sát thương: <color=#FFFFFF>" + Mathf.RoundToInt(s.dmgDealt) + "</color>   ·   Đòn mạnh nhất: <color=#FFFFFF>" + Mathf.RoundToInt(s.bestHit) + "</color>", 24, UIK.Dim);
-            UIK.Txt(panel.transform, "Sát thương Thần Thông: <color=#FFFFFF>" + Mathf.RoundToInt(s.skillDmg) + "</color>", 24, UIK.Dim);
-            UIK.Txt(panel.transform, "Liên Sát cao nhất: <color=#FFD266>x" + s.bestCombo + "</color>   ·   Thời gian chơi: <color=#FFFFFF>" + (int)(s.playTime / 60) + ":" + ((int)s.playTime % 60).ToString("00") + "</color>", 24, UIK.Dim);
-            UIK.Txt(panel.transform, "+" + s.daoHanh + " Đạo Hạnh", 40, UIK.Gold, TextAnchor.MiddleCenter, FontStyle.Bold);
-            foreach (var u in s.unlocks) UIK.Txt(panel.transform, u, 26, new Color(1f, 0.75f, 0.3f), TextAnchor.MiddleCenter, FontStyle.Bold);
-            BuildRecap(panel.transform, Game.I.run);
+            Title(o, (s.win ? "PHI THĂNG THÀNH TIÊN!" : "THÂN TỬ ĐẠO TIÊU") + "  <size=30><color=#C7B294>" + s.charName + "  ·  Kiếp " + s.kiep + "  ·  "
+                + (s.win ? "Vượt qua cả 20 đợt" : "Gục ngã ở đợt " + s.wave) + "</color></size>", 24, 60, s.win ? UIK.Gold : new Color(1f, 0.4f, 0.4f));
 
-            var row = UIK.R(o, "btns").Place(0.5f, 0, 1100, 80, 0, 90);
-            UIK.HL(row.gameObject, 20, 0, TextAnchor.MiddleCenter, true);
+            // left: every stat of the run
+            var left = UIK.Img(o, UIK.Panel, "stats");
+            left.rectTransform.Place(0, 1, 480, 794, 56, -130);
+            UIK.VL(left.gameObject, 2, 16, TextAnchor.UpperCenter);
+            UIK.Txt(left.transform, "<b>CHỈ SỐ</b>", 30, UIK.Gold);
+            UIK.Txt(left.transform, Content.Realm(s.level), 22, UIK.Cyan);
+            for (int i = 0; i < (int)Stat.COUNT; i++)
+            {
+                float v = s.stats != null ? s.stats[i] : 0f;
+                var row = UIK.R(left.transform, "srow");
+                UIK.LE(row.gameObject, -1, 37);
+                UIK.Txt(row, StatInfo.Names[i], 25, UIK.Dim, TextAnchor.MiddleLeft, FontStyle.Normal, false).rectTransform.Fill();
+                Color c = v > 0.01f ? UIK.Cyan : v < -0.01f ? Cinnabar : UIK.Dim;
+                UIK.Txt(row, StatInfo.Num(v) + (StatInfo.IsPct((Stat)i) ? "%" : ""), 26, c, TextAnchor.MiddleRight, FontStyle.Bold, false).rectTransform.Fill();
+                row.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0);
+                int si = i;
+                row.gameObject.AddComponent<UIHover>().onEnter = () => { if (detailTxt) detailTxt.text = "<b>" + StatInfo.Names[si] + "</b>: " + StatInfo.Help[si]; };
+            }
+
+            // right: build, achievements, tooltip line
+            var right = UIK.R(o, "right").Place(0, 1, 1298, 794, 566, -130);
+            UIK.VL(right.gameObject, 14, 0, TextAnchor.UpperCenter);
+
+            var wp = UIK.Img(right, UIK.Panel, "sum");
+            UIK.VL(wp.gameObject, 6, 16, TextAnchor.UpperLeft);
+            UIK.Txt(wp.transform, "<b>VŨ KHÍ</b>  " + s.weapons.Count, 24, UIK.Gold, TextAnchor.MiddleLeft);
+            var wrow = UIK.R(wp.transform, "sumweapons");
+            UIK.LE(wrow.gameObject, -1, 88);
+            UIK.HL(wrow.gameObject, 10, 0, TextAnchor.MiddleLeft, false);
+            foreach (var (wd, wt) in s.weapons)
+            {
+                var d = wd; int tier = wt;
+                var slot = UIK.Img(wrow, new Color(0.13f, 0.10f, 0.07f), "w");
+                UIK.LE(slot.gameObject, 88, 88);
+                UIK.Border(slot.gameObject, Content.TierColor[tier], 3);
+                UIK.Icon(slot.transform, Res.Tile(d.sprite), d.tint, 68).rectTransform.Anchor(0, 0, 1, 1, 10, 10, 10, 10);
+                slot.gameObject.AddComponent<UIHover>().onEnter = () => { if (detailTxt) detailTxt.text = "<b><color=" + Content.TierHex(tier) + ">" + d.name + " (" + Content.TierName[tier] + ")</color></b>  " + TagLine(d) + "\n" + WeaponInfo(d, tier); };
+            }
+
+            var ip = UIK.Img(right, UIK.Panel, "sum");
+            UIK.VL(ip.gameObject, 6, 16, TextAnchor.UpperLeft);
+            int total = 0; foreach (var (_, n) in s.items) total += n;
+            UIK.Txt(ip.transform, "<b>PHÁP BẢO</b>  " + total, 24, UIK.Gold, TextAnchor.MiddleLeft);
+            const int cell = 64, gap = 6, cols = 18, maxRows = 3;
+            int shown = Mathf.Min(s.items.Count, cols * maxRows - (s.items.Count > cols * maxRows ? 1 : 0));
+            var grid = UIK.R(ip.transform, "sumitems");
+            UIK.LE(grid.gameObject, -1, Mathf.Max(cell, Mathf.CeilToInt((shown + (s.items.Count > shown ? 1 : 0)) / (float)cols) * (cell + gap) - gap));
+            var gl = grid.gameObject.AddComponent<GridLayoutGroup>();
+            gl.cellSize = new Vector2(cell, cell); gl.spacing = new Vector2(gap, gap); gl.childAlignment = TextAnchor.UpperLeft;
+            for (int i = 0; i < shown; i++)
+            {
+                var (it, cnt) = s.items[i];
+                var slot = UIK.Img(grid, new Color(0.13f, 0.10f, 0.07f), "it");
+                UIK.Border(slot.gameObject, Content.TierColor[it.tier], 2);
+                UIK.Icon(slot.transform, Res.Tile(it.sprite), it.tint, 52).rectTransform.Anchor(0, 0, 1, 1, 6, 6, 6, 6);
+                if (cnt > 1) UIK.Txt(slot.transform, "x" + cnt, 16, Color.white, TextAnchor.LowerRight, FontStyle.Bold).rectTransform.Anchor(0, 0, 1, 1, 0, 0, 4, 0);
+                slot.gameObject.AddComponent<UIHover>().onEnter = () => { if (detailTxt) detailTxt.text = "<b><color=" + Content.TierHex(it.tier) + ">" + it.name + "</color></b> x" + cnt + "\n" + ItemText(it); };
+            }
+            if (s.items.Count > shown) UIK.Txt(grid, "+" + (s.items.Count - shown), 22, UIK.Dim);
+
+            var ap = UIK.Img(right, UIK.Panel, "sum");
+            UIK.LE(ap.gameObject, -1, 120, -1, 1);
+            UIK.HL(ap.gameObject, 8, 16, TextAnchor.MiddleCenter, true);
+            void Tile(string val, string label, Color vc, int size = 36)
+            {
+                var tl = UIK.R(ap.transform, "tile");
+                UIK.LE(tl.gameObject, -1, -1, 1, 0);
+                UIK.VL(tl.gameObject, 0, 0, TextAnchor.MiddleCenter);
+                UIK.Txt(tl, val, size, vc, TextAnchor.MiddleCenter, FontStyle.Bold);
+                UIK.Txt(tl, label, 20, UIK.Dim);
+            }
+            Tile(s.kills.ToString(), "Kẻ địch bị diệt", Color.white);
+            Tile(Mathf.RoundToInt(s.dmgDealt).ToString(), "Tổng sát thương", Color.white);
+            Tile(Mathf.RoundToInt(s.skillDmg).ToString(), "Sát thương Thần Thông", Color.white);
+            Tile(Mathf.RoundToInt(s.bestHit).ToString(), "Đòn mạnh nhất", Color.white);
+            Tile("x" + s.bestCombo, "Liên Sát cao nhất", UIK.Gold);
+            Tile((int)(s.playTime / 60) + ":" + ((int)s.playTime % 60).ToString("00"), "Thời gian chơi", Color.white);
+            Tile("+" + s.daoHanh, "Đạo Hạnh", UIK.Gold, 44);
+            foreach (var u in s.unlocks) UIK.Txt(right, u, 24, new Color(1f, 0.75f, 0.3f), TextAnchor.MiddleCenter, FontStyle.Bold);
+
+            var dp = UIK.Img(right, UIK.Panel, "sum"); UIK.LE(dp.gameObject, -1, 120); UIK.VL(dp.gameObject, 0, 12, TextAnchor.UpperLeft);
+            detailTxt = UIK.Txt(dp.transform, "<color=#8A8499>Rê chuột lên vũ khí, pháp bảo hoặc chỉ số để xem chi tiết.</color>", 19, Color.white, TextAnchor.UpperLeft);
+            
+            var btns = UIK.R(o, "btns").Place(0.5f, 0, 1000, 80, 0, 36);
+            UIK.HL(btns.gameObject, 20, 0, TextAnchor.MiddleCenter, true);
             int ci = Game.I.run.charIndex, k = Game.I.run.kiep;
-            PadDefault.Mark(UIK.Btn(row, "Tái Chiến", () => Game.I.StartRun(ci, k), UIK.BtnGold, 30, 320, 76));
-            UIK.Btn(row, "Tàng Kinh Các", () => { Game.I.GoMenu(); ShowMeta(); }, UIK.BtnBlue, 26, 320, 76);
-            UIK.Btn(row, "Về Sơn Môn", () => Game.I.GoMenu(), UIK.BtnGrey, 26, 320, 76);
+            PadDefault.Mark(UIK.Btn(btns, "Chơi lại", () => Game.I.StartRun(ci, k), UIK.BtnGold, 30, 300, 76));
+            UIK.Btn(btns, "Ván mới", () => { Game.I.GoMenu(); ShowCharSelect(); }, UIK.BtnBlue, 26, 300, 76);
+            UIK.Btn(btns, "Về menu", () => Game.I.GoMenu(), UIK.BtnGrey, 26, 300, 76);
         }
     }
 }

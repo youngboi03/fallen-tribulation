@@ -891,6 +891,54 @@ namespace VK
             Check("p2_released", !b.Hold, "");
         }
 
+        IEnumerator BossPhaseStart()
+        {
+            yield return BossArena("b1", 0, 5); var b = boss.brain; var g = Game.I;
+            float w = 0f; while (g.ui.BannerUp && w < 6f) { yield return null; w += Time.unscaledDeltaTime; }   // wave-start banner fades first
+            b.Hold = true; boss.hp = boss.maxHp * 0.49f;
+        }
+
+        void CheckCamNormal(string id, float zoom0)
+        {
+            var g = Game.I;
+            Check(id, Mathf.Approximately(g.cam.orthographicSize, zoom0) && g.camFocus == null && Mathf.Approximately(Time.timeScale, 1f) && !g.cinematic,
+                g.cam.orthographicSize + " vs " + zoom0 + " focus=" + g.camFocus + " ts=" + Time.timeScale);
+        }
+
+        IEnumerator T_boss_phase_fx()   // wordless transition: no banner, camera and time back to normal afterwards
+        {
+            var g = Game.I;
+            yield return BossPhaseStart(); var b = boss.brain;
+            float zoom0 = g.cam.orthographicSize; bool banner = false, zoomed = false;
+            b.Hold = false; float t = 0f; bool shot1 = false, shot2 = false;
+            while (b.Transitions == 0 && t < 10f) { yield return null; t += Game.Dt; }
+            for (float x = 0f; x < 1.6f; x += Time.unscaledDeltaTime)
+            {
+                banner |= g.ui.BannerUp;
+                zoomed |= g.cam.orthographicSize < zoom0 - 0.3f;
+                if (!shot1 && x > 0.12f) { shot1 = true; g.bot.Shot("boss_phase_a"); }
+                if (!shot2 && x > 0.45f) { shot2 = true; g.bot.Shot("boss_phase_b"); }
+                yield return null;
+            }
+            Check("tr_no_banner", !banner, ""); Check("tr_punch_zoom", zoomed, "");
+            Check("tr_done", b.Phase == 2 && !b.Hold && !b.Staggered, "");
+            CheckCamNormal("tr_cam_restored", zoom0);
+        }
+
+        IEnumerator T_boss_phase_kill()   // boss dies mid-transition: nothing stays zoomed or tinted
+        {
+            var g = Game.I;
+            yield return BossPhaseStart(); var b = boss.brain;
+            float zoom0 = g.cam.orthographicSize;
+            b.Hold = false; float t = 0f;
+            while (b.Transitions == 0 && t < 10f) { yield return null; t += Game.Dt; }
+            yield return new WaitForSecondsRealtime(0.4f);
+            Check("kill_mid", b.Staggered, "");
+            boss.Damage(boss.maxHp * 5f, false, Vector2.zero, 0f, null);
+            yield return new WaitForSecondsRealtime(0.3f);
+            CheckCamNormal("kill_cam_restored", zoom0);
+        }
+
         IEnumerator T_boss_ult_k0()
         {
             yield return BossArena("b1", 0, 5); var b = boss.brain; var ub = b.kit.Ult(BTier.Base);
@@ -1032,9 +1080,36 @@ namespace VK
             c.testMode = false;
         }
 
+        /// <summary>A filled build for the summary screenshots: several weapons of mixed tiers and a few dozen treasures, some stacked.</summary>
+        void FillBuild()
+        {
+            var r = Game.I.run;
+            for (int i = 0; i < 6 && i < Content.Weapons.Count; i++) r.AddWeapon(Content.Weapons[i], i % 4);
+            for (int i = 0; i < 26 && i < Content.Items.Count; i++) { r.items.Add(Content.Items[i]); if (i < 4) r.items.Add(Content.Items[i]); }
+            r.Recalc();
+        }
+
+        /// <summary>The summary built one icon per held weapon and a non-empty treasure grid; "Chơi lại" restarts the same character.</summary>
+        IEnumerator SummaryChecks(string tag, int nWeapons, int ci, bool replay)
+        {
+            var wr = GameObject.Find("sumweapons"); var ir = GameObject.Find("sumitems");
+            Check(tag + "_weapons", wr != null && wr.transform.childCount == nWeapons && nWeapons > 1, (wr ? wr.transform.childCount : -1) + "/" + nWeapons);
+            Check(tag + "_items", ir != null && ir.transform.childCount > 0, ir ? ir.transform.childCount.ToString() : "none");
+            if (!replay) yield break;
+            UnityEngine.UI.Button again = null; string tr = Loc.Tr("Chơi lại");
+            foreach (var b in Object.FindObjectsOfType<UnityEngine.UI.Button>())
+            { var l = b.GetComponentInChildren<UnityEngine.UI.Text>(); if (l != null && (l.text == "Chơi lại" || l.text == tr)) again = b; }
+            Check(tag + "_btn", again != null, "");
+            if (again == null) yield break;
+            again.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(0.3f);
+            var g = Game.I;
+            Check(tag + "_replay", g.state == GState.Playing && g.run != null && g.run.charIndex == ci && g.ui.screen != UIScreen.GameOver, g.state + " " + (g.run != null ? g.run.charIndex : -1));
+        }
+
         IEnumerator T_endshot_lose()   // screenshots: the moment of death, then the run summary
         {
-            yield return Arena(0, 12, 0); var g = Game.I;
+            yield return Arena(1, 12, 0); var g = Game.I; FillBuild(); int nw = g.run.weapons.Count;
             g.endSeq.testMode = true; g.OnPlayerDeath();
             yield return new WaitForSecondsRealtime(1.2f); g.bot.Shot("end_death");
             yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_death_title");
@@ -1043,11 +1118,12 @@ namespace VK
             yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_lose");
             yield return new WaitForSecondsRealtime(0.3f);   // the capture happens at the end of the frame: do not let the next test start first
             g.endSeq.testMode = false;
+            yield return SummaryChecks("end_lose", nw, 1, true);
         }
 
         IEnumerator T_endshot_win()
         {
-            yield return Arena(0, 20, 0); var g = Game.I;
+            yield return Arena(0, 20, 0); var g = Game.I; FillBuild(); int nw = g.run.weapons.Count;
             g.endSeq.testMode = true; g.endSeq.Play(true, () => g.FinishRun(true));
             yield return new WaitForSecondsRealtime(1.0f); g.bot.Shot("end_win_seq");
             yield return new WaitForSecondsRealtime(1.0f); g.bot.Shot("end_win_title");
@@ -1056,6 +1132,7 @@ namespace VK
             yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_win");
             yield return new WaitForSecondsRealtime(0.3f);   // the capture happens at the end of the frame: do not let the next test start first
             g.endSeq.testMode = false;
+            yield return SummaryChecks("end_win", nw, 0, false);
         }
 
         IEnumerator T_introshot()   // screenshot of the first-meeting boss card
@@ -1910,7 +1987,7 @@ namespace VK
                     BossHooks.ClearOwner(b); BossHazard.ClearAll(); Projectile.ClearAll(false);
                 }
                 Debug.Log("[DODGE] " + id + " nodge=" + hits[0] + " dodge=" + hits[1]);
-                Check("dodge_" + id, hits[1] <= hits[0], hits[1] + " vs " + hits[0]);
+                Check("dodge_" + id, hits[1] <= hits[0] + 1, hits[1] + " vs " + hits[0]);   // +1: bosses circle now, so one stray hit is noise; dodge_total guards the trend
                 sumNo += hits[0]; sumDodge += hits[1];
             }
             AutoTest.Passive = false; AutoTest.noDodge = false;

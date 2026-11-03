@@ -24,6 +24,7 @@ namespace VK
             Skills.Cast(this, run);
             return true;
         }
+        public void Shove(Vector2 v) { vel += v; }
         public void Invuln(float t) { iframe = Mathf.Max(iframe, t); goldT = t; }
 
         Transform body;

@@ -299,3 +299,6 @@ Kiếp nạn chưa qua|The tribulation is not yet over|劫难未过
 Vạn Kiếp đã tận, đạo quả viên mãn|The Ten Thousand Tribulations end; the Dao is fulfilled|万劫已尽，道果圆满
 Sát thương Thần Thông|Divine Art damage|神通伤害
 Thời gian chơi|Play time|游戏时长
+Chơi lại|Play again|再玩一次
+Ván mới|New run|新一局
+Về menu|Back to menu|返回菜单

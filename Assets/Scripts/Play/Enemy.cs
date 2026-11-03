@@ -426,6 +426,8 @@ namespace VK
 
         // ---------------------------------------------------------------- looks (boss cutscenes)
         /// <summary>Body colour from now on (Kiếp Biến / Ma Thân recolour).</summary>
+        public float ScaleMul => scaleMul;
+        public void FlashWhite(float v) { flash = v; }
         public void SetTint(Color c) { tintCol = c; if (sr) sr.color = c; }
         /// <summary>Aura colour (alpha keeps pulsing); adds an aura when the enemy has none.</summary>
         public void SetAura(Color c)

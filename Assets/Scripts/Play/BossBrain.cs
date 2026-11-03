@@ -197,16 +197,51 @@ namespace VK
             Hold = true; Staggered = true;
             BossHazard.ClearOwner(e);
             Projectile.ClearHostileWithin(e.Pos, 999f);
-            Fx.Ring(e.Pos, new Color(1f, 0.25f, 0.25f), 1f, 7f, 0.6f);
-            Fx.Shake(0.4f, 0.4f);
+            var g = Game.I;
+            Fx.Hitstop(0.12f);
+            Fx.Ring(e.Pos, kit.col, 1f, 11f, 0.9f);
+            Fx.Ring(e.Pos, Color.white, 1f, 6f, 0.5f);
+            Fx.Shake(0.5f, 0.6f);
             Sfx.Play("heavy", 0.9f, 0f, 0.7f);
-            if (Game.I.ui != null) Game.I.ui.Banner("", e.def.name + " · Phase II", kit.col);
             Sfx.Music("boss_climax");
-            yield return BossMoves.Wait(this, 1f);
+            if (g.player != null)
+            {   // shockwave: pushes the player out, no damage
+                Vector2 away = g.player.Pos - e.Pos; float d = away.magnitude;
+                if (d < 10f) g.player.Shove((d > 0.01f ? away / d : Vector2.right) * (14f * (1f - d / 12f)));
+            }
+            fxOn = true; fxZoom = g.cam != null ? g.cam.orthographicSize : 0f; fxScale = e.ScaleMul;
+            const float Len = 1.1f;
+            for (float x = 0f; x < Len; x += BossMoves.Step(this))
+            {
+                float k = x / Len, env = Mathf.Sin(Mathf.PI * Mathf.Clamp01(k * 1.15f));   // up and back
+                if (g.cam != null && fxZoom > 0f) g.cam.orthographicSize = fxZoom / (1f + 0.2f * env);
+                if (g.player != null) g.camFocus = Vector2.Lerp(g.player.Pos, e.Pos, 0.5f * env);
+                if (g.cinema != null) g.cinema.Tint(new Color(kit.col.r * 0.2f, kit.col.g * 0.2f, kit.col.b * 0.2f, 0.4f * env));
+                if (k < 0.2f) e.FlashWhite(1f);
+                e.SetScaleMul(fxScale * (1f + 0.2f * Mathf.Sin(Mathf.PI * Mathf.Clamp01(k * 2f))));
+                yield return null;
+            }
+            EndFx();
             Staggered = false; Hold = false;
             restT = Mathf.Min(restT, 0.3f);
             running = null;
         }
+
+        bool fxOn; float fxZoom, fxScale;
+        /// <summary>Puts back everything the phase transition changed (camera, focus, veil, scale); safe to call twice.</summary>
+        void EndFx()
+        {
+            if (!fxOn) return;
+            fxOn = false;
+            var g = Game.I;
+            if (g == null) return;
+            if (g.cam != null && fxZoom > 0f) g.cam.orthographicSize = fxZoom;
+            g.camFocus = null;
+            if (g.cinema != null) g.cinema.Tint(Color.clear);
+            if (e != null) e.SetScaleMul(fxScale);
+        }
+
+        void OnDestroy() => EndFx();
 
         /// <summary>Runs nested IEnumerators inline on one Unity coroutine, so StopCoroutine stops the whole move tree.</summary>
         public static IEnumerator Flat(IEnumerator root)
@@ -288,6 +323,7 @@ namespace VK
         public void Cancel()
         {
             if (running != null) StopCoroutine(running);
+            EndFx();
             running = null; Current = null; vel = Vector2.zero; Dashing = false;
             if (Staggered) { Staggered = false; Hold = false; }
             e.SetHidden(false);
@@ -300,6 +336,7 @@ namespace VK
         public void Stop()
         {
             StopAllCoroutines();
+            EndFx();
             running = null; Current = null; vel = Vector2.zero; Dashing = false; Hold = true;
             if (e != null) e.SetHidden(false);
             BossHazard.ClearOwner(e);
