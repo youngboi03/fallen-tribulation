@@ -668,7 +668,7 @@ namespace VK
             yield return Arena(0, 8, 1); var r = Game.I.run; r.level = 10; bool seen = false;
             for (int i = 0; i < 100; i++) { r.pendingLevels = 1; r.RollLevelOpts(); seen |= System.Array.Exists(r.levelOpts, x => x.card != null && x.card.id == "hoa_an"); }
             Check("nd_gate_closed", !seen, "");
-            r.AddWeapon(Content.W("hoa_truong"), 0); r.AddWeapon(Content.W("hoa_truong"), 0); seen = false;
+            r.AddWeapon(Content.W("hoa_truong"), 0); r.AddWeapon(Content.W("hoa_truong"), 1); seen = false;   // different grades: auto-merge leaves both
             for (int i = 0; i < 100; i++) { r.pendingLevels = 1; r.RollLevelOpts(); seen |= System.Array.Exists(r.levelOpts, x => x.card != null && x.card.id == "hoa_an"); }
             Check("nd_gate_open", seen, "");
             int sp = 0, dm = 0; r.level = 5;
@@ -913,6 +913,56 @@ namespace VK
             yield return Sec(1.5f);
             Check("no_enrage_speed", Mathf.Approximately(boss.speed, spd), boss.speed + " vs " + spd);
             Check("p2_released", !b.Hold, "");
+        }
+
+        IEnumerator T_weapon_ring()
+        {
+            yield return Arena(0, 3, 0); var g = Game.I; var r = g.run;
+            foreach (var d in Content.Weapons.Take(5)) r.AddWeapon(d, 0);
+            yield return Sec(1.5f);
+            Vector2 c = g.player.Pos; int n = r.weapons.Count;
+            var ang = r.weapons.Select(w => Mathf.Atan2(w.View.position.y - c.y, w.View.position.x - c.x) * Mathf.Rad2Deg).ToList();
+            float rad0 = Vector2.Distance(r.weapons[0].View.position, c), a0 = g.player.ringDeg;
+            bool even = true, circle = true;
+            for (int i = 0; i < n; i++)
+            {
+                float gap = Mathf.Repeat(ang[(i + 1) % n] - ang[i], 360f);
+                even &= Mathf.Abs(gap - 360f / n) < 3f;
+                circle &= Mathf.Abs(Vector2.Distance(r.weapons[i].View.position, c) - rad0) < 0.05f;
+            }
+            Check("ring_even", even && circle && n == 5, "n=" + n + " r=" + rad0 + " ang=" + string.Join(",", ang.Select(x => x.ToString("0"))));
+            yield return Sec(1f);
+            float turned = Mathf.Repeat(g.player.ringDeg - a0, 360f);
+            Check("ring_turns", turned > 40f && turned < 65f, turned.ToString("0.0") + " deg/s");
+        }
+
+        IEnumerator T_weapon_automerge()
+        {
+            yield return Arena(0, 3, 0); var r = Game.I.run; var d = Content.W("thiet_kiem");
+            r.AddWeapon(d, 0); r.gold = 9999;
+            r.shop[0] = new ShopSlot { w = d, tier = 0, price = 1 };
+            Check("am_buy", r.Buy(0) && r.weapons.Count == 1 && r.weapons[0].tier == 1, r.weapons.Count + " weapons, tier " + r.weapons[0].tier);
+            // cascade: held 0,1,2 of one kind, then a tier-0 copy chains 0->1->2->3
+            r.weapons.Clear(); r.AddWeapon(d, 1); r.AddWeapon(d, 2); r.AddWeapon(Content.W("hoa_truong"), 0);
+            r.AddWeapon(d, 0); r.AddWeapon(d, 0);
+            Check("am_cascade", r.weapons.Count == 2 && r.weapons.Exists(w => w.def == d && w.tier == 3), string.Join(",", r.weapons.Select(w => w.def.id + w.tier)));
+            r.AddWeapon(d, 3);
+            Check("am_max_kept", r.weapons.Count(w => w.def == d && w.tier == 3) == 2, "");
+            // full slots: buying a partner merges instead of being refused
+            r.weapons.Clear(); r.maxWeapons = 2; r.AddWeapon(d, 0); r.AddWeapon(Content.W("hoa_truong"), 0);
+            r.shop[2] = new ShopSlot { w = d, tier = 0, price = 1 };
+            Check("am_full_buy", r.Buy(2) && r.weapons.Count == 2 && r.weapons.Exists(w => w.def == d && w.tier == 1), string.Join(",", r.weapons.Select(w => w.def.id + w.tier)));
+        }
+
+        IEnumerator T_boss_bar_nophase()
+        {
+            yield return BossArena("b1", 0, 5); var g = Game.I; var b = boss.brain;
+            g.dir.bossWave = true; g.dir.boss = boss;
+            boss.hp = boss.maxHp * 0.49f;
+            yield return WaitPhase2(b, 10f); yield return Sec(0.3f);
+            string t = g.ui.BossBarText;
+            Check("bar_nophase", b.Phase == 2 && t.Length > 0 && !t.Contains("II") && !t.ToLower().Contains("phase") && !t.Contains("Phase"), t);
+            g.dir.bossWave = false;
         }
 
         IEnumerator BossPhaseStart()

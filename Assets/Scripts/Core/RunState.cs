@@ -241,8 +241,7 @@ namespace VK
             gold -= s.price; s.sold = true; s.locked = false;
             if (s.w != null)
             {
-                if (weapons.Count < maxWeapons) AddWeapon(s.w, s.tier);
-                else { var t = MergeTarget(s.w, s.tier); t.SetTier(t.tier + 1); }
+                AddWeapon(s.w, s.tier);   // full slots: CantBuy guaranteed a partner, so the new copy merges away at once
             }
             else items.Add(s.it);
             Recalc();
@@ -258,7 +257,19 @@ namespace VK
             w.CreateView(Game.I.player ? Game.I.player.transform.position : Vector3.zero);
             Recalc();
             CheckTier4();
-            return w;
+            AutoMerge();
+            return weapons.Contains(w) ? w : weapons.Find(x => x.def == d);
+        }
+
+        /// <summary>Merges every same-id same-grade pair (cascading) until none is left; max grade stays as is.</summary>
+        public void AutoMerge()
+        {
+            for (bool again = true; again;)
+            {
+                again = false;
+                foreach (var w in weapons)
+                    if (MergePartner(w) != null) { Merge(w); again = true; break; }
+            }
         }
 
         public int SellValue(WeaponInst w) => Mathf.Max(1, Mathf.RoundToInt(w.def.price * Content.TierPrice[w.tier] * 0.4f * (1f + (wave - 1) * 0.09f)));
@@ -284,6 +295,7 @@ namespace VK
             if (p == null) return;
             weapons.Remove(p); p.DestroyView();
             w.SetTier(w.tier + 1);
+            Sfx.Play("breakthrough", 0.7f);
             Recalc();
             CheckTier4();
         }

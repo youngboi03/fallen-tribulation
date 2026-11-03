@@ -142,7 +142,7 @@ namespace VK
                 text="Lão thợ rèn mù gõ búa: \"Đưa ta một món binh khí, ta trả lại ngươi thần binh.\"",
                 options=new[]{
                     new EventOption{ label="Rèn lại (30)", desc="Nâng 1 vũ khí ngẫu nhiên lên một phẩm", can=r=>r.gold>=30 && r.weapons.Exists(w=>w.tier<3),
-                        apply=r=>{ var c=r.weapons.FindAll(w=>w.tier<3); var w0=c[UnityEngine.Random.Range(0,c.Count)]; r.gold-=30; w0.SetTier(w0.tier+1); r.Recalc();
+                        apply=r=>{ var c=r.weapons.FindAll(w=>w.tier<3); var w0=c[UnityEngine.Random.Range(0,c.Count)]; r.gold-=30; w0.SetTier(w0.tier+1); r.Recalc(); r.AutoMerge();
                                    return w0.def.name+" lên phẩm <color="+Content.TierHex(w0.tier)+">"+Content.TierName[w0.tier]+"</color>!"; } },
                     new EventOption{ label="Học nghề", desc="+10% Tầm Đánh, +5% Bạo Kích", apply=r=>Perm(r, M(Stat.Range,10), M(Stat.Crit,5)) },
                     Leave() } },

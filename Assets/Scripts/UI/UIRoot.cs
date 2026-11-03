@@ -45,6 +45,7 @@ namespace VK
         Text detailTxt;
 
         RunState Run => Game.I.run;
+        public string BossBarText => bossTxt ? bossTxt.text : "";
         SaveData Save => Game.I.save;
 
         public RectTransform Root => root;
@@ -374,7 +375,7 @@ namespace VK
             {
                 UIK.SetFill(bossFill, d.boss.hp / d.boss.maxHp);
                 var br = d.boss.brain;
-                bossTxt.text = d.boss.def.name + (br != null ? "  ·  Phase " + (br.Phase == 2 ? "II" : "I") : "") + "   " + Mathf.CeilToInt(d.boss.hp) + " / " + Mathf.CeilToInt(d.boss.maxHp);
+                bossTxt.text = d.boss.def.name + "   " + Mathf.CeilToInt(d.boss.hp) + " / " + Mathf.CeilToInt(d.boss.maxHp);
                 for (int i = 0; i < bossTicks.Length; i++)
                 {
                     bool on = br != null && i < br.UltMarks.Count;
@@ -969,7 +970,7 @@ namespace VK
             // inventory: weapons
             var inv = UIK.Img(o, UIK.Panel, "inv");
             inv.rectTransform.Place(0.5f, 0, 1120, 340, -10, 24);
-            var wl = UIK.Txt(inv.transform, "<b>VŨ KHÍ</b>  " + run.weapons.Count + "/" + run.maxWeapons + "   <size=19><color=#8A8499>(bấm để bán / hợp nhất — 2 vũ khí cùng loại cùng phẩm → phẩm cao hơn)</color></size>", 23, UIK.Gold, TextAnchor.MiddleLeft);
+            var wl = UIK.Txt(inv.transform, "<b>VŨ KHÍ</b>  " + run.weapons.Count + "/" + run.maxWeapons + "   <size=19><color=#8A8499>(bấm để bán — 2 vũ khí cùng loại cùng phẩm tự hợp nhất lên phẩm cao hơn)</color></size>", 23, UIK.Gold, TextAnchor.MiddleLeft);
             wl.rectTransform.Place(0, 1, 1080, 34, 18, -8);
             var wrow = UIK.R(inv.transform, "wrow").Place(0, 1, 1080, 92, 18, -46);
             UIK.HL(wrow.gameObject, 10, 0, TextAnchor.MiddleLeft, false);
@@ -982,11 +983,6 @@ namespace VK
                 UIK.Border(slot.gameObject, sel ? Color.white : Content.TierColor[w.tier], sel ? 3 : 2);
                 var ic = UIK.Img(slot.transform, w.def.tint, "i"); ic.sprite = w.Icon; ic.preserveAspect = true; ic.raycastTarget = false;
                 ic.rectTransform.Anchor(0, 0, 1, 1, 10, 10, 10, 10);
-                if (run.MergePartner(w) != null)
-                {
-                    var m = UIK.Txt(slot.transform, "▲", 20, UIK.Gold, TextAnchor.UpperRight);
-                    m.rectTransform.Anchor(0, 0, 1, 1, 0, 0, 4, 0);
-                }
                 var b = slot.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 b.onClick.AddListener(() => { selWeapon = ww == selWeapon ? null : ww; Sfx.Play("click", 0.5f); ShowShop(); });
@@ -1026,8 +1022,6 @@ namespace VK
                 detailTxt.text = "<b><color=" + Content.TierHex(sw.tier) + ">" + sw.def.name + " (" + Content.TierName[sw.tier] + ")</color></b>  " + TagLine(sw.def) + "\n" + WeaponInfo(sw.def, sw.tier);
                 var acts = UIK.R(inv.transform, "acts").Place(1, 0, 290, 110, -16, 10);
                 UIK.VL(acts.gameObject, 8, 0, TextAnchor.LowerRight);
-                if (run.MergePartner(sw) != null)
-                    UIK.Btn(acts, "Hợp nhất → " + Content.TierName[sw.tier + 1], () => { Run.Merge(sw); Sfx.Play("breakthrough", 0.7f); ShowShop(); }, UIK.BtnGold, 22, -1, 50);
                 var sellB = UIK.Btn(acts, "Bán  +" + run.SellValue(sw), () => { Run.Sell(sw); selWeapon = null; Sfx.Play("coin", 0.7f); ShowShop(); }, UIK.BtnRed, 22, -1, 50);
                 sellB.interactable = run.weapons.Count > 1;
             }

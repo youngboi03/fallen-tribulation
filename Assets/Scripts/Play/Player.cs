@@ -234,14 +234,17 @@ namespace VK
             }
 
             // weapons orbit the player
+            ringDeg = Mathf.Repeat(ringDeg + 52f * dt, 360f);   // one turn ≈ 6.9 s, frozen with the game (dt = Game.Dt)
             int n = run.weapons.Count;
-            for (int i = 0; i < n; i++)
-            {
-                float ang = (90f + i * 360f / n + Game.T * 25f) * Mathf.Deg2Rad;
-                float r = n == 1 ? 0.8f : 1.0f;
-                Vector2 home = pos + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang) * 0.8f) * r;
-                run.weapons[i].Tick(home, dt);
-            }
+            for (int i = 0; i < n; i++) run.weapons[i].Tick(RingHome(i, n), dt);
+        }
+
+        /// <summary>Degrees the weapon ring has turned; slots sit evenly on a circle around the hero.</summary>
+        public float ringDeg;
+        public Vector2 RingHome(int i, int n)
+        {
+            float ang = (90f + i * 360f / n + ringDeg) * Mathf.Deg2Rad;
+            return Pos + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * (n == 1 ? 0.8f : 1.0f);
         }
 
         /// <summary>True only when the player was actually damaged (not for god/iframe/dash/dodge/block).</summary>

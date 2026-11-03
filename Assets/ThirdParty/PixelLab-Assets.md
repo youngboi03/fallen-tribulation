@@ -131,3 +131,7 @@ Portraits (`Assets/Resources/PixelLab/Portraits/<id>.png`, ~80 px): source image
 | `Assets/Resources/PixelLab/Enemies/doc_trung.png` | 2026-10-29 moved down 5 whole pixel rows (feet onto the shadow line), no other change | - | - |
 | `Assets/Resources/PixelLab/Chars/kiem_tu.png` | 2026-10-29 legs redrawn: PixelLab REST inpaint-image-pro-flash (mask y40-47, 4x upscale, 6 generations), then right leg copied (not flipped, so both toes face the same way) onto the left to equalise widths, colours snapped to the sprite's own palette; rows above y41 unchanged | - | two straight dark navy trouser legs of equal length ending in black cloth shoes with grey soles |
 | `Assets/Resources/PixelLab/Chars/*_walk.png` | 2026-10-29 procedural walk strips (8 frames, 48x48 each) made from the static sprite by `tools/walk_strip.py` (legs/arms cut apart and shifted, no AI) | - | tools/walk_parts.json |
+
+Weapon icon updates (frameless versions):
+- `Assets/Resources/PixelLab/Icons/w_loi_an.png`: PixelLab pixflux jade seal (no sword, no card frame), background and drop shadow removed with the Aseprite clean script.
+- `Assets/Resources/PixelLab/Icons/w_loi_phu.png`: drawn procedurally with an Aseprite batch script (paper talisman with a lightning rune), no generative model.
