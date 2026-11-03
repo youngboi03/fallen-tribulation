@@ -16,6 +16,8 @@ namespace VK
         public bool tipsAll;                                // the player asked to see the hints again after the first run
         public int[] charWinKiep = { -1, -1, -1, -1, -1, -1 };   // highest kiếp won per character
         public float sfxVol = 0.8f, musicVol = 0.5f, shake = 1f;
+        public bool fullscreen, vsyncOff;   // display options (defaults: windowed, vsync on)
+        public int winSize = 1;             // 0 1280x720, 1 1600x900, 2 1920x1080
         public int dmgNumbers;   // 0 all, 1 crits only, 2 off
         public int lastChar, lastKiep;
         public int lang = -1;   // Loc.VI/EN/ZH; -1 = not chosen yet

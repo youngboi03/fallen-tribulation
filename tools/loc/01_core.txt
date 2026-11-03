@@ -209,7 +209,7 @@ Hoàn thành|Completion|完成度
 HOÀN THÀNH|COMPLETE|完成
 Thắng|Wins|胜场
 Lượt chơi|Runs|局数
-VẠN KIẾP TU TIÊN|MYRIAD TRIBULATIONS|万劫修仙
+LỤC ĐẠO ĐỌA KIẾP|FALLEN TRIBULATION|六道堕劫
 Một kiếm phá vạn kiếp|One sword breaks a myriad tribulations|一剑破万劫
 Roguelite tu tiên|Cultivation roguelite|修仙肉鸽
 Nhập Đạo|Enter the Dao|入道
@@ -270,3 +270,24 @@ Thần Thông: chiêu đổi dạng, mạnh hơn. Xem tên dạng ở thanh chi�
 Chặn!|Blocked!|挡住！
 Hộ Mệnh!|Life-Guard!|护命！
 Mua|Buy|购买
+Cài Đặt|Settings|设置
+CÀI ĐẶT|SETTINGS|设置
+Âm thanh|Audio|音频
+Hiển thị|Display|显示
+Toàn màn hình|Fullscreen|全屏
+Bật|On|开
+Cỡ cửa sổ|Window size|窗口大小
+Trò chơi|Game|游戏
+Ngôn ngữ|Language|语言
+Điều khiển|Controls|操作
+Di chuyển|Move|移动
+Space / Shift / chuột phải|Space / Shift / right mouse|空格 / Shift / 鼠标右键
+E / J / chuột trái|E / J / left mouse|E / J / 鼠标左键
+Tạm dừng, quay lại|Pause, go back|暂停、返回
+Chọn nâng cấp, Kỳ Ngộ|Pick upgrades and Encounters|选择升级与奇遇
+Tay cầm: cần trái / A / X|Gamepad: left stick / A / X|手柄：左摇杆 / A / X
+Di chuyển / lướt / Thần Thông|Move / dash / Divine Art|移动 / 冲刺 / 神通
+Tạm dừng / chọn, bấm, quay lại|Pause / select, press, back|暂停 / 选择、确认、返回
+Bỏ lượt này?|Abandon this run?|放弃本局？
+Về menu chính|Main menu|返回主菜单
+Thoát game|Quit game|退出游戏

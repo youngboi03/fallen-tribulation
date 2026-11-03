@@ -85,6 +85,13 @@ namespace VK
         /// <summary>Vạn Ma Quy Tông: the signature move of each earlier boss, in order (boss id, move id).</summary>
         public static readonly string[,] GhostMoves = { { "b1", "ma_nhan_quet" }, { "b1b", "huyet_anh_luot" }, { "b2", "viem_hoan" }, { "b2b", "doc_ty_troi" }, { "b3", "huyet_luan" } };
 
+        /// <summary>The one move per boss whose name is announced on screen (the earlier bosses' ghost moves, plus Vạn Ma Quy Tông for b4).</summary>
+        public static string Signature(string bossId)
+        {
+            for (int i = 0; i < GhostMoves.GetLength(0); i++) if (GhostMoves[i, 0] == bossId) return GhostMoves[i, 1];
+            return bossId == "b4" ? "van_ma_quy_tong" : null;
+        }
+
         // ------------------------------------------------------------------ queries and cleanup
         public static IEnumerable<BossHookObj> Objects(BossBrain b, string kind)
         {
@@ -587,7 +594,6 @@ namespace VK
                 var cast = src.Clone(); cast.ult = true; cast.after = null;
                 b.HookLog.Add(mid + " x" + m.dmg.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
                 Debug.Log("[BOSS] ghost " + bid + " " + mid);
-                if (Game.I.ui != null) Game.I.ui.Banner("", src.name, kit.col);
                 Fx.Burst(p, kit.col, 16, 4f, 0.12f, 0.5f, true);
                 o.proxy.StartCoroutine(BossBrain.Flat(GhostRun(o, cast)));
                 gs.Add(o);

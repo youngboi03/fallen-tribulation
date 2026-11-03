@@ -9,7 +9,7 @@ namespace VK.EditorTools
     public static class BuildTools
     {
         const string ScenePath = "Assets/Scenes/Main.unity";
-        const string ExePath = "Builds/Windows/VanKiepTuTien.exe";
+        const string ExePath = "Builds/Windows/FallenTribulation.exe";
 
         /// <summary>Batch-mode entry: reimport sprites, make sure the scene exists. Used by CI-style checks.</summary>
         public static void Setup()
@@ -60,7 +60,7 @@ namespace VK.EditorTools
         static void ApplyPlayerSettings()
         {
             PlayerSettings.companyName = "MinhIndie";
-            PlayerSettings.productName = "Van Kiep Tu Tien";
+            PlayerSettings.productName = "Fallen Tribulation";
             PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
             PlayerSettings.defaultScreenWidth = 1600;
             PlayerSettings.defaultScreenHeight = 900;

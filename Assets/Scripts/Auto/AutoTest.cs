@@ -68,6 +68,7 @@ namespace VK
             g.ui.ShowMeta(); yield return Real(0.6f); Shot("03_meta"); yield return Real(0.3f);
             g.ui.ShowAchievements(); yield return Real(0.6f); Shot("04_achievements"); yield return Real(0.3f);
             g.ui.ShowCodex(); yield return Real(0.6f); Shot("05_codex"); yield return Real(0.3f);
+            g.ui.ShowSettings(false); yield return Real(0.6f); Shot("06_settings"); yield return Real(0.3f);
             g.ui.ShowMenu(); yield return Real(0.3f);
             if (ux) yield return MenuFocusCheck();
 

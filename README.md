@@ -1,13 +1,14 @@
-# Van Kiep Tu Tien (Ten Thousand Tribulations)
+# Fallen Tribulation (Lục Đạo Đọa Kiếp)
 
 A 2D wave-survival roguelite about cultivation (xianxia), made in Unity 6. One run takes about 25-30 minutes.
 Wave loop and shop from *Brotato*, joker-style build synergies from *Balatro*, risky events from *Slay the Spire*, realms of cultivation from *Tale of Immortal*.
 
 ![Menu](docs/screens/menu.png)
 ![Combat](docs/screens/combat.png)
+![Boss intro](docs/screens/boss_intro.png)
 
 ## Play
-Download the latest zip from the **Releases** page, unzip, run `VanKiepTuTien.exe` (Windows 64-bit). The game starts in a 1600x900 window; F11 toggles fullscreen.
+Download the latest zip from the **Releases** page, unzip, run `FallenTribulation.exe` (Windows 64-bit). The game starts in a 1600x900 window; F11 toggles fullscreen.
 It speaks **English, Vietnamese and Chinese** (button at the top right of the menu; it follows your system language on first launch). A short tutorial appears the first time you play.
 
 | Key | Action |
@@ -19,7 +20,9 @@ It speaks **English, Vietnamese and Chinese** (button at the top right of the me
 | R | Reroll the shop |
 | Esc / P | Pause |
 
-Gamepad (Xbox layout) and touch controls are supported too.
+Gamepad (Xbox layout) and touch controls are supported too. Volume, display, language and the full control list live in **Settings**.
+
+The exe is not code-signed, so Windows SmartScreen may warn on first launch: choose "More info" then "Run anyway".
 
 ![Characters](docs/screens/characters.png)
 
@@ -30,6 +33,7 @@ Gamepad (Xbox layout) and touch controls are supported too.
 4. Win or lose, you earn Dao Merit to buy permanent upgrades.
 
 ![Shop](docs/screens/shop.png)
+![Boss fight](docs/screens/boss_fight.png)
 
 ## Build
 - Every weapon belongs to one or more Paths (Sword, Body, Fire, Thunder, Talisman, Poison); 2, 4 or 6 of the same Path unlock set bonuses.
@@ -43,10 +47,10 @@ Gamepad (Xbox layout) and touch controls are supported too.
 - Music and sound effects are synthesized in code (`Synth`), mixed with Kenney sound packs.
 - A self-playing bot (`-autotest`) and scenario tests (`-skilltest`) drive balance and regression checks: `bash tools/build_and_test.sh 3 -skilltest -only ""`.
 - Store-readiness notes (input, saves, achievements abstraction): `docs/PORTING.md`. Design notes: `docs/DESIGN.md`.
-- Vietnamese README: [README.vi.md](README.vi.md).
+- Vietnamese README: [README.vi.md](README.vi.md). Development story: [docs/DEVLOG.en.md](docs/DEVLOG.en.md) ([Tiếng Việt](docs/DEVLOG.vi.md)).
 
 ## Credits and licenses
 - **Source code:** MIT, see `LICENSE`. Third-party assets keep their own licenses.
-- **Character, enemy, boss, icon and background art:** generated with PixelLab (AI pixel-art tool) and cleaned up by hand in Aseprite; the tool and prompt for each image are logged in `Assets/ThirdParty/PixelLab-Assets.md`.
-- **Tiles, weapon and treasure sprites, sound packs:** [Kenney](https://kenney.nl) (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. Licenses in `Assets/ThirdParty/`.
+- **Character, enemy, boss, weapon/treasure icon and background art:** generated with PixelLab (AI pixel-art tool), then cleaned up and edited in Aseprite with a scripted clean-up and QA pipeline; the tool and prompt for each image are logged in `Assets/ThirdParty/PixelLab-Assets.md`.
+- **Tiles and sound packs:** [Kenney](https://kenney.nl) (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. Licenses in `Assets/ThirdParty/`.
 - **Font:** Baloo 2 by Ek Type, SIL Open Font License 1.1 (`Assets/ThirdParty/Baloo2-OFL.txt`). The Chinese UI uses an installed system font; none is bundled.

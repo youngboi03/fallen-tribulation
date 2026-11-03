@@ -132,6 +132,7 @@ namespace VK
         {
             var s = g.ui.screen;
             if (s == UIScreen.Pause) g.SetPause(false);
+            else if (s == UIScreen.Settings) { Sfx.Play("click", 0.5f); g.ui.CloseSettings(); }
             else if (s == UIScreen.CharSelect || s == UIScreen.Meta || s == UIScreen.Achievements || s == UIScreen.Codex) { Sfx.Play("click", 0.5f); g.ui.ShowMenu(); }
         }
 

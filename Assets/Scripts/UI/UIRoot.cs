@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace VK
 {
-    public enum UIScreen { None, Menu, CharSelect, Meta, Achievements, LevelUp, Shop, Pause, GameOver, Chest, Event, Codex, Relic }
+    public enum UIScreen { None, Menu, CharSelect, Meta, Achievements, LevelUp, Shop, Pause, GameOver, Chest, Event, Codex, Relic, Settings }
 
     public class UIRoot : MonoBehaviour
     {
@@ -249,6 +249,7 @@ namespace VK
             {
                 for (int i = 0; i < 4; i++) if (Input.GetKeyDown(KeyCode.Alpha1 + i)) Game.I.ChooseLevel(i);
             }
+            else if (screen == UIScreen.Settings && Input.GetKeyDown(KeyCode.Escape)) { Sfx.Play("click", 0.5f); CloseSettings(); }
             else if (screen == UIScreen.Shop && Input.GetKeyDown(KeyCode.R)) DoReroll();
             else if ((screen == UIScreen.CharSelect || screen == UIScreen.Meta || screen == UIScreen.Achievements || screen == UIScreen.Codex)
                      && Input.GetKeyDown(KeyCode.Escape)) { Sfx.Play("click", 0.5f); ShowMenu(); }
@@ -413,29 +414,24 @@ namespace VK
             hpFill = null;
             var o = Overlay(0.4f);
             LangButton(o);
-            Title(o, "VẠN KIẾP TU TIÊN", 110, 110);
+            Title(o, "LỤC ĐẠO ĐỌA KIẾP", 110, 110);
             var sub = UIK.Txt(o, "Một kiếm phá vạn kiếp  ·  Roguelite tu tiên", 32, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
             sub.rectTransform.Place(0.5f, 1, 1200, 50, 0, -235);
 
             var col = UIK.R(o, "menu").Place(0.5f, 0.5f, 420, 640, 0, -115);
-            UIK.VL(col.gameObject, 7, 0, TextAnchor.MiddleCenter);
+            UIK.VL(col.gameObject, 14, 0, TextAnchor.MiddleCenter);
             PadDefault.Mark(UIK.Btn(col, "Nhập Đạo", ShowCharSelect, UIK.BtnGold, 34, -1, 74));
             UIK.Btn(col, "Tàng Kinh Các", ShowMeta, UIK.BtnBlue, 28, -1, 60);
             UIK.Btn(col, "Thành Tựu", ShowAchievements, UIK.BtnBlue, 28, -1, 60);
             UIK.Btn(col, "Đồ Giám", ShowCodex, UIK.BtnBlue, 28, -1, 60);
-            Button sfxB = null, musB = null;
-            sfxB = UIK.Btn(col, "", () => { Save.sfxVol = Cycle(Save.sfxVol); Save.Save(); sfxB.SetLabel(VolLabel("Âm hiệu", Save.sfxVol)); }, UIK.BtnGrey, 24, -1, 50);
-            sfxB.SetLabel(VolLabel("Âm hiệu", Save.sfxVol));
-            musB = UIK.Btn(col, "", () => { Save.musicVol = Cycle(Save.musicVol); Save.Save(); musB.SetLabel(VolLabel("Nhạc", Save.musicVol)); }, UIK.BtnGrey, 24, -1, 50);
-            musB.SetLabel(VolLabel("Nhạc", Save.musicVol));
-            SettingsButtons(col);
-            UIK.Btn(col, "Rời Khỏi", () => { Save.Save(); Application.Quit(); }, UIK.BtnRed, 24, -1, 50);
+            UIK.Btn(col, "Cài Đặt", () => ShowSettings(false), UIK.BtnBlue, 28, -1, 60);
+            UIK.Btn(col, "Rời Khỏi", () => { Save.Save(); Application.Quit(); }, UIK.BtnRed, 26, -1, 56);
 
             var info = UIK.Txt(o, "Đạo Hạnh: <color=#FFD266>" + Save.daoHanh + "</color>     Hoàn thành: <color=#7CF0FF>" +
                 Mathf.FloorToInt(Save.Completion() * 100) + "%</color>     Thắng: " + Save.wins + "     Lượt chơi: " + Save.runs, 26, UIK.Dim);
             info.rectTransform.Place(0.5f, 0, 1600, 40, 0, 70);
-            var cred = UIK.Txt(o, GameInput.K("WASD di chuyển · SPACE lướt · ESC tạm dừng · F11 toàn màn hình · ", "") + "Đồ họa & âm thanh: PixelLab AI, Kenney.nl (CC0) · Font: Baloo 2", 20, new Color(0.5f, 0.48f, 0.56f));
-            cred.rectTransform.Place(0.5f, 0, 1600, 30, 0, 26);
+            var ver = UIK.Txt(o, "v" + Application.version, 20, new Color(0.5f, 0.48f, 0.56f), TextAnchor.LowerRight);
+            ver.rectTransform.Place(1, 0, 300, 30, -30, 24);
         }
 
         static readonly string[] DmgNumNames = { "Tất cả", "Chỉ bạo kích", "Tắt" };
@@ -445,7 +441,7 @@ namespace VK
             Loc.SetLang(lang);
             var font = Res.Font;   // swap the font on every live text (CJK needs an OS font)
             foreach (var t in FindObjectsByType<Text>(FindObjectsInactive.Include, FindObjectsSortMode.None)) t.font = font;
-            if (screen == UIScreen.Pause) ShowPause(); else ShowMenu();
+            if (screen == UIScreen.Pause) ShowPause(); else if (screen == UIScreen.Settings) ShowSettings(setFromPause); else ShowMenu();
         }
 
         /// <summary>Language picker in the top-right corner of the menu and pause screens.</summary>
@@ -456,31 +452,91 @@ namespace VK
             b.GetComponent<RectTransform>().Place(1, 1, 230, 56, -30, -30);
         }
 
-        void SettingsButtons(Transform col)
+        // ================================================================== Settings
+        bool setFromPause;
+        static readonly string[] WinNames = { "1280x720", "1600x900", "1920x1080" };
+        static readonly int[] WinW = { 1280, 1600, 1920 };
+
+        /// <summary>Applies the saved display options. The window mode and size are left alone when <paramref name="window"/> is false (bot runs, phones).</summary>
+        public static void ApplyDisplay(SaveData sd, bool window)
         {
-            if (screen == UIScreen.Menu)
-            {
-                Button tb = null;
-                tb = UIK.Btn(col, Save.tips.Count == 0 ? "Hướng dẫn: sẽ hiện lại" : "Xem lại hướng dẫn", () =>
-                {
-                    Save.tips.Clear(); Save.tipsAll = true; Save.Save(); tb.SetLabel("Hướng dẫn: sẽ hiện lại");
-                }, UIK.BtnGrey, 24, -1, 50);
-            }
-            Button shB = null, dnB = null;
-            shB = UIK.Btn(col, "Rung màn hình: " + Mathf.RoundToInt(Save.shake * 100) + "%", () =>
-            {
-                Save.shake = Save.shake > 0.9f ? 0f : Save.shake + 0.5f; Save.Save();
-                shB.SetLabel("Rung màn hình: " + Mathf.RoundToInt(Save.shake * 100) + "%");
-            }, UIK.BtnGrey, 24, -1, 50);
-            dnB = UIK.Btn(col, "Số sát thương: " + DmgNumNames[Save.dmgNumbers], () =>
-            {
-                Save.dmgNumbers = (Save.dmgNumbers + 1) % 3; Save.Save();
-                dnB.SetLabel("Số sát thương: " + DmgNumNames[Save.dmgNumbers]);
-            }, UIK.BtnGrey, 24, -1, 50);
+            QualitySettings.vSyncCount = sd.vsyncOff ? 0 : 1;
+            Application.targetFrameRate = sd.vsyncOff ? 120 : -1;
+            if (!window || Application.isMobilePlatform) return;
+            int i = Mathf.Clamp(sd.winSize, 0, 2);
+            if (sd.fullscreen) Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
+            else Screen.SetResolution(WinW[i], WinW[i] * 9 / 16, FullScreenMode.Windowed);
         }
 
-        static float Cycle(float v) { float n = Mathf.Round(v * 4f) / 4f + 0.25f; return n > 1.01f ? 0f : n; }
-        static string VolLabel(string n, float v) => n + ": " + Mathf.RoundToInt(v * 100) + "%";
+        public void ShowSettings(bool fromPause)
+        {
+            setFromPause = fromPause;
+            screen = UIScreen.Settings;
+            UIK.Clear(hud); hpFill = null;
+            var o = Overlay(0.9f);
+            LangButton(o);
+            Title(o, "CÀI ĐẶT", 50, 64);
+            var left = UIK.Img(o, UIK.Panel, "card").rectTransform.Place(0.5f, 1, 820, 700, -430, -150);
+            UIK.VL(left.gameObject, 8, 24, TextAnchor.UpperCenter);
+            var right = UIK.Img(o, UIK.Panel, "card").rectTransform.Place(0.5f, 1, 820, 700, 430, -150);
+            UIK.VL(right.gameObject, 8, 24, TextAnchor.UpperCenter);
+
+            SetHead(left, "Âm thanh");
+            SetRow(left, "Âm hiệu", () => Mathf.RoundToInt(Save.sfxVol * 100) + "%", d => Save.sfxVol = Mathf.Clamp(Mathf.Round(Save.sfxVol * 10) + d, 0, 10) / 10f);
+            SetRow(left, "Nhạc", () => Mathf.RoundToInt(Save.musicVol * 100) + "%", d => Save.musicVol = Mathf.Clamp(Mathf.Round(Save.musicVol * 10) + d, 0, 10) / 10f);
+            SetHead(left, "Hiển thị");
+            SetRow(left, "Toàn màn hình", () => Save.fullscreen ? "Bật" : "Tắt", d => { Save.fullscreen = !Save.fullscreen; ApplyDisplay(Save, true); });
+            SetRow(left, "Cỡ cửa sổ", () => WinNames[Mathf.Clamp(Save.winSize, 0, 2)], d => { Save.winSize = (Save.winSize + d + 3) % 3; ApplyDisplay(Save, true); });
+            SetRow(left, "VSync", () => Save.vsyncOff ? "Tắt" : "Bật", d => { Save.vsyncOff = !Save.vsyncOff; ApplyDisplay(Save, false); });
+            SetRow(left, "Rung màn hình", () => Mathf.RoundToInt(Save.shake * 100) + "%", d => Save.shake = Mathf.Clamp(Mathf.Round(Save.shake * 2) + d, 0, 2) / 2f);
+            SetRow(left, "Số sát thương", () => DmgNumNames[Save.dmgNumbers], d => Save.dmgNumbers = (Save.dmgNumbers + d + 3) % 3);
+
+            SetHead(right, "Trò chơi");
+            SetRow(right, "Ngôn ngữ", () => Loc.LangName[Loc.Lang], d => ApplyLanguage((Save.lang + d + 3) % 3));
+            Button tb = null;
+            tb = UIK.Btn(right, Save.tips.Count == 0 ? "Hướng dẫn: sẽ hiện lại" : "Xem lại hướng dẫn", () =>
+            {
+                Save.tips.Clear(); Save.tipsAll = true; Save.Save(); tb.SetLabel("Hướng dẫn: sẽ hiện lại");
+            }, UIK.BtnGrey, 24, -1, 52);
+            SetHead(right, "Điều khiển");
+            string[,] keys = {
+                { "WASD / phím mũi tên", "Di chuyển" }, { "Space / Shift / chuột phải", "Lướt" }, { "E / J / chuột trái", "Thần Thông" },
+                { "Esc / P", "Tạm dừng, quay lại" }, { "1–4", "Chọn nâng cấp, Kỳ Ngộ" }, { "R", "Làm mới shop" }, { "F11", "Toàn màn hình" },
+                { "Tay cầm: cần trái / A / X", "Di chuyển / lướt / Thần Thông" }, { "Start / D-pad, A, B", "Tạm dừng / chọn, bấm, quay lại" } };
+            for (int i = 0; i < keys.GetLength(0); i++)
+            {
+                var r = UIK.R(right, "line"); UIK.LE(r.gameObject, -1, 34); UIK.HL(r.gameObject, 12, 0, TextAnchor.MiddleLeft);
+                var k = UIK.Txt(r, keys[i, 0], 20, UIK.Gold, TextAnchor.MiddleLeft); UIK.LE(k.gameObject, 330);
+                var a = UIK.Txt(r, keys[i, 1], 20, UIK.Dim, TextAnchor.MiddleLeft); UIK.LE(a.gameObject, -1, -1, 1);
+            }
+
+            var back = UIK.Btn(o, "Quay Lại", CloseSettings, UIK.BtnGrey, 28);
+            back.GetComponent<RectTransform>().Place(0.5f, 0, 300, 64, 0, 90);
+            PadDefault.Mark(back);
+            var cred = UIK.Txt(o, "Đồ họa & âm thanh: PixelLab AI, Kenney.nl (CC0) · Font: Baloo 2", 20, new Color(0.5f, 0.48f, 0.56f));
+            cred.rectTransform.Place(0.5f, 0, 1600, 30, 0, 36);
+        }
+
+        public int settingsClosed;
+        public void CloseSettings() { settingsClosed = Time.frameCount; Save.Save(); if (setFromPause) ShowPause(); else ShowMenu(); }
+
+        void SetHead(Transform p, string s)
+        {
+            var h = UIK.Txt(p, s, 30, UIK.Gold, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UIK.LE(h.gameObject, -1, 44);
+        }
+
+        /// <summary>One option line: name, then a value between "<" and ">" buttons; <paramref name="step"/> gets -1 or +1.</summary>
+        void SetRow(Transform p, string name, System.Func<string> val, System.Action<int> step)
+        {
+            var r = UIK.R(p, "line"); UIK.LE(r.gameObject, -1, 54); UIK.HL(r.gameObject, 10, 0, TextAnchor.MiddleLeft);
+            var l = UIK.Txt(r, name, 24, UIK.Dim, TextAnchor.MiddleLeft); UIK.LE(l.gameObject, -1, -1, 1);
+            Text v = null;
+            System.Action<int> go = d => { step(d); Save.Save(); if (v) v.text = val(); };
+            UIK.Btn(r, "<", () => go(-1), UIK.BtnGrey, 26, 56, 50);
+            v = UIK.Txt(r, val(), 24, Color.white); UIK.LE(v.gameObject, 200, 50);
+            UIK.Btn(r, ">", () => go(1), UIK.BtnGrey, 26, 56, 50);
+        }
 
         // ================================================================== Character select
         public void ShowCharSelect()
@@ -1155,20 +1211,29 @@ namespace VK
         }
 
         // ================================================================== Pause
-        public void ShowPause()
+        public void ShowPause(bool confirm = false)
         {
             screen = UIScreen.Pause;
             var o = Overlay(0.75f);
             LangButton(o);
             Title(o, "TẠM DỪNG", 200, 72);
-            var col = UIK.R(o, "col").Place(0.5f, 0.5f, 420, 440, 0, -60);
+            var info = UIK.Txt(o, "Đợt " + Run.wave + "  ·  Lv." + Run.level + "  ·  " + Run.ch.name, 26, UIK.Dim);
+            info.rectTransform.Place(0.5f, 1, 1200, 40, 0, -300);
+            var col = UIK.R(o, "col").Place(0.5f, 0.5f, 420, 440, 0, -90);
             UIK.VL(col.gameObject, 14, 0, TextAnchor.MiddleCenter);
-            PadDefault.Mark(UIK.Btn(col, "Tiếp Tục", () => Game.I.SetPause(false), UIK.BtnGold, 30, -1, 70));
-            Button sfxB = null, musB = null;
-            sfxB = UIK.Btn(col, VolLabel("Âm hiệu", Save.sfxVol), () => { Save.sfxVol = Cycle(Save.sfxVol); Save.Save(); sfxB.SetLabel(VolLabel("Âm hiệu", Save.sfxVol)); }, UIK.BtnGrey, 24, -1, 52);
-            musB = UIK.Btn(col, VolLabel("Nhạc", Save.musicVol), () => { Save.musicVol = Cycle(Save.musicVol); Save.Save(); musB.SetLabel(VolLabel("Nhạc", Save.musicVol)); }, UIK.BtnGrey, 24, -1, 52);
-            SettingsButtons(col);
-            UIK.Btn(col, "Bỏ Cuộc", () => Game.I.Abandon(), UIK.BtnRed, 24, -1, 56);
+            if (confirm)
+            {
+                var q = UIK.Txt(col, "Bỏ lượt này?", 34, UIK.Gold, TextAnchor.MiddleCenter, FontStyle.Bold); UIK.LE(q.gameObject, -1, 60);
+                UIK.Btn(col, "Bỏ Cuộc", () => Game.I.Abandon(), UIK.BtnRed, 28, -1, 64);
+                PadDefault.Mark(UIK.Btn(col, "Quay Lại", () => ShowPause(), UIK.BtnGrey, 28, -1, 64));
+            }
+            else
+            {
+                PadDefault.Mark(UIK.Btn(col, "Tiếp Tục", () => Game.I.SetPause(false), UIK.BtnGold, 30, -1, 70));
+                UIK.Btn(col, "Cài Đặt", () => ShowSettings(true), UIK.BtnBlue, 28, -1, 60);
+                UIK.Btn(col, "Về menu chính", () => ShowPause(true), UIK.BtnGrey, 26, -1, 60);
+                UIK.Btn(col, "Thoát game", () => { Save.Save(); Application.Quit(); }, UIK.BtnRed, 26, -1, 60);
+            }
             var place = UIK.R(o, "p").Place(0, 0.5f, 380, 700, 30, -60);
             StatsPanel(o, place);
             SynergyPanel(o, -24, -180, 380, 800);

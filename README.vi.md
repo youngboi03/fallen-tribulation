@@ -1,11 +1,11 @@
-# VẠN KIẾP TU TIÊN
+# LỤC ĐẠO ĐỌA KIẾP (Fallen Tribulation)
 
 Roguelite 2D đánh theo đợt, chủ đề tu tiên.
 Lấy vòng lặp đợt quái + shop từ Brotato, build cộng hưởng từ Balatro, kỳ ngộ kiểu Slay the Spire, cảnh giới từ Tale of Immortal.
 Một lượt chơi mất khoảng 25–30 phút.
 
 ## Chơi ngay
-Chạy file **`Builds/Windows/VanKiepTuTien.exe`**.
+Chạy file **`Builds/Windows/FallenTribulation.exe`**.
 Game mở ở dạng cửa sổ 1600×900. Có 3 ngôn ngữ **Tiếng Việt / English / 中文** (nút *Language* góc trên phải ở menu và màn tạm dừng). Bấm **F11** (hoặc Alt+Enter) để chuyển sang toàn màn hình.
 Lần chơi đầu có **hướng dẫn** tự hiện đúng lúc; muốn xem lại thì bấm "Xem lại hướng dẫn" ở menu.
 
@@ -20,7 +20,7 @@ Lần chơi đầu có **hướng dẫn** tự hiện đúng lúc; muốn xem l�
 | F11 | Toàn màn hình |
 
 **Tay cầm** (Xbox/XInput, Steam Deck): cần trái di chuyển, A lướt, X Thần Thông, Start tạm dừng. Trong menu: D-pad chọn nút, A bấm, B quay lại.
-**Cảm ứng** (bản điện thoại; thử trên PC bằng `VanKiepTuTien.exe -touch`): joystick nổi ở nửa trái, nút Lướt / Thần Thông / Tạm dừng bên phải.
+**Cảm ứng** (bản điện thoại; thử trên PC bằng `FallenTribulation.exe -touch`): joystick nổi ở nửa trái, nút Lướt / Thần Thông / Tạm dừng bên phải.
 
 ## Vòng chơi
 1. **Đánh đợt** (20–60 giây): quái luôn có vòng đỏ cảnh báo trước khi xuất hiện. Diệt quái rơi **Linh Khí**, vừa là kinh nghiệm vừa là tiền (**Linh Thạch**). Diệt liên tục tạo **Liên Sát**, cứ mỗi 25 mạng được thưởng thêm linh thạch.

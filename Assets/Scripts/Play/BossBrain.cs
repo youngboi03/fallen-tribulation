@@ -254,7 +254,7 @@ namespace VK
             if (!m.ult && m.after == null) prev = m;
             Current = m; vel = Vector2.zero;
             Mark(m);
-            if (m.ult && Game.I.ui != null) Game.I.ui.Banner("", m.name, kit.col);
+            if (m.ult && m.id == BossHooks.Signature(kit.bossId) && Game.I.ui != null) Game.I.ui.Banner("", m.name, kit.col);   // only the signature move is named
             running = StartCoroutine(Flat(RunMove(m)));
         }
 

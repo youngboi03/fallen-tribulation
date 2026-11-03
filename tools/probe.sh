@@ -8,7 +8,7 @@ mkdir -p Logs/probe
 for spec in "$@"; do
   name="${spec%%|*}"; args="${spec#*|}"
   rm -rf "Logs/probe/$name"; mkdir -p "Logs/probe/$name"
-  ./Builds/Windows/VanKiepTuTien.exe -autotest -waves 20 -speed 3 -shots "$ROOT/Logs/probe/$name" \
+  ./Builds/Windows/FallenTribulation.exe -autotest -waves 20 -speed 3 -shots "$ROOT/Logs/probe/$name" \
     -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -logFile "$ROOT/Logs/probe/$name.log" $args &
   sleep 2
 done

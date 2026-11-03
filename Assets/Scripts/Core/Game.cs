@@ -70,6 +70,7 @@ namespace VK
             save = SaveData.Load();
             if (save.lang < 0) { save.lang = save.runs > 0 ? Loc.VI : Loc.SystemDefault(); save.Save(); }   // existing players keep Vietnamese
             Loc.SetLang(save.lang);
+            UIRoot.ApplyDisplay(save, !auto);
 
             cam = Camera.main;
             if (cam == null)
@@ -112,9 +113,9 @@ namespace VK
             T += Dt;
             if (Playing && combo > 0) { comboT -= Dt; if (comboT <= 0) combo = 0; }
 
-            if (state == GState.Playing && GameInput.Pause) { if (cinematic) cinema.Skip(); else SetPause(!paused); }
+            if (state == GState.Playing && GameInput.Pause && ui.screen != UIScreen.Settings && ui.settingsClosed != Time.frameCount) { if (cinematic) cinema.Skip(); else SetPause(!paused); }
             if (Input.GetKeyDown(KeyCode.F11) && !Application.isMobilePlatform)
-                Screen.fullScreenMode = Screen.fullScreen ? FullScreenMode.Windowed : FullScreenMode.FullScreenWindow;
+            { save.fullscreen = !Screen.fullScreen; UIRoot.ApplyDisplay(save, true); save.Save(); }
 
             Fx.Tick(paused ? 0 : (state == GState.Playing && !cinematic ? Dt : raw));
             Sfx.Tick(Time.unscaledDeltaTime);

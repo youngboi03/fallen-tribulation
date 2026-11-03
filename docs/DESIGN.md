@@ -1,4 +1,4 @@
-# VẠN KIẾP TU TIÊN — Game Design Doc
+# LỤC ĐẠO ĐỌA KIẾP (Fallen Tribulation) — Game Design Doc
 
 > 2D arena roguelite (Unity 6000.3, Built-in RP, toàn bộ runtime dựng bằng code).
 > Thiết kế dựa trên gu: Brotato (vòng lặp đợt quái + shop), Balatro / Slay the Spire (build cộng hưởng,
