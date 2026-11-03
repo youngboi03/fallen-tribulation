@@ -1,80 +1,52 @@
-# VẠN KIẾP TU TIÊN
+# Van Kiep Tu Tien (Ten Thousand Tribulations)
 
-Roguelite 2D đánh theo đợt, chủ đề tu tiên.
-Lấy vòng lặp đợt quái + shop từ Brotato, build cộng hưởng từ Balatro, kỳ ngộ kiểu Slay the Spire, cảnh giới từ Tale of Immortal.
-Một lượt chơi mất khoảng 25–30 phút.
+A 2D wave-survival roguelite about cultivation (xianxia), made in Unity 6. One run takes about 25-30 minutes.
+Wave loop and shop from *Brotato*, joker-style build synergies from *Balatro*, risky events from *Slay the Spire*, realms of cultivation from *Tale of Immortal*.
 
-## Chơi ngay
-Chạy file **`Builds/Windows/VanKiepTuTien.exe`**.
-Game mở ở dạng cửa sổ 1600×900. Có 3 ngôn ngữ **Tiếng Việt / English / 中文** (nút *Language* góc trên phải ở menu và màn tạm dừng). Bấm **F11** (hoặc Alt+Enter) để chuyển sang toàn màn hình.
-Lần chơi đầu có **hướng dẫn** tự hiện đúng lúc; muốn xem lại thì bấm "Xem lại hướng dẫn" ở menu.
+![Menu](docs/screens/menu.png)
+![Combat](docs/screens/combat.png)
 
-| Phím | Chức năng |
+## Play
+Download the latest zip from the **Releases** page, unzip, run `VanKiepTuTien.exe` (Windows 64-bit). The game starts in a 1600x900 window; F11 toggles fullscreen.
+It speaks **English, Vietnamese and Chinese** (button at the top right of the menu; it follows your system language on first launch). A short tutorial appears the first time you play.
+
+| Key | Action |
 |---|---|
-| WASD / phím mũi tên | Di chuyển (vũ khí tự nhắm và tự đánh) |
-| Space / Shift / chuột phải | Lướt (không nhận sát thương trong lúc lướt, hồi chiêu 1.2s) |
-| **E / J / chuột trái** | **Thần Thông**: chiêu riêng của từng nhân vật, tự tìm mục tiêu; mạnh lên theo boss (Tiến Giai) và thẻ Ngộ Đạo |
-| Esc / P | Tạm dừng (trong menu: quay lại) |
-| 1–4 | Chọn nâng cấp khi lên cấp, chọn phương án ở Kỳ Ngộ |
-| R | Làm mới shop |
-| F11 | Toàn màn hình |
+| WASD / arrows | Move (weapons aim and attack by themselves) |
+| Space / Shift / right click | Dash (invulnerable while dashing) |
+| E / J / left click | Divine Art: each character's signature skill |
+| 1-4 | Pick an upgrade or event option |
+| R | Reroll the shop |
+| Esc / P | Pause |
 
-**Tay cầm** (Xbox/XInput, Steam Deck): cần trái di chuyển, A lướt, X Thần Thông, Start tạm dừng. Trong menu: D-pad chọn nút, A bấm, B quay lại.
-**Cảm ứng** (bản điện thoại; thử trên PC bằng `VanKiepTuTien.exe -touch`): joystick nổi ở nửa trái, nút Lướt / Thần Thông / Tạm dừng bên phải.
+Gamepad (Xbox layout) and touch controls are supported too.
 
-## Vòng chơi
-1. **Đánh đợt** (20–60 giây): quái luôn có vòng đỏ cảnh báo trước khi xuất hiện. Diệt quái rơi **Linh Khí**, vừa là kinh nghiệm vừa là tiền (**Linh Thạch**). Diệt liên tục tạo **Liên Sát**, cứ mỗi 25 mạng được thưởng thêm linh thạch.
-2. **Hết đợt**, lần lượt qua các bước:
-   - Mở **Bảo Rương** (do tinh anh rơi). Sau boss là **Bảo Khố**: chọn 1 trong 3 pháp bảo Huyền/Tiên phẩm.
-   - **Kỳ Ngộ** sau đợt 3, 7, 12, 17: sự kiện có lựa chọn, đánh đổi rủi ro lấy phần thưởng.
-   - **Lên cấp**: chọn 1 trong 4 công pháp. Mỗi 10 cấp là **Đột Phá** cảnh giới (Luyện Khí → Trúc Cơ → Kim Đan → Nguyên Anh…) và nhận lựa chọn phẩm Tiên.
-   - **Linh Thị** (shop): mua vũ khí và pháp bảo, khoá thẻ, làm mới, bán vũ khí. **2 vũ khí cùng loại cùng phẩm thì hợp nhất thành phẩm cao hơn** (Phàm → Linh → Huyền → Tiên).
-   - **Lộ Tuyến**: chọn Đường Bằng (bình thường) hoặc Đường Hiểm (khó hơn nhưng thưởng nhiều hơn).
-3. **Boss** ở đợt 5, 10, 15, 20, kèm **Thiên Kiếp** (sét đánh xuống, có vòng vàng cảnh báo). Sét đánh trúng cả quái nên có thể dụ quái vào. Boss 1 và 2 có **boss thay thế** (Huyết Bức Vương, Vạn Độc Chu Hậu), mỗi lượt ngẫu nhiên gặp một trong hai.
-   - 4 vùng đất đổi màu và thời tiết theo đợt: Hoang Sơn → Hàn Băng Cốc (tuyết) → Huyết Sát Hải (tàn lửa) → Thiên Ma Giới.
-   - Quái đặc biệt: **Bạo Hồn** chạy tới rồi tự nổ (giết trước thì nó nổ vào đồng bọn), **Bảo Rương Yêu** giả làm rương rồi lao tới, **Ảnh Sát** đánh dấu một chỗ cạnh bạn rồi dịch chuyển tới.
-4. Thắng đợt 20 là **Phi Thăng**. Thắng hay thua đều nhận **Đạo Hạnh**, dùng để nâng cấp vĩnh viễn ở **Tàng Kinh Các**.
+![Characters](docs/screens/characters.png)
+
+## Game loop
+1. **Survive a wave** (20-60 s). Enemies are telegraphed with red circles. Kills drop Qi, which is both experience and the money you spend between waves.
+2. **Between waves:** open chests, take a risky event, level up (choose 1 of 4 techniques), shop for weapons and treasures, then choose a safe or a perilous route.
+3. **Boss every 5 waves**, with heavenly lightning that also hits enemies. Beat wave 20 to ascend.
+4. Win or lose, you earn Dao Merit to buy permanent upgrades.
+
+![Shop](docs/screens/shop.png)
 
 ## Build
-- Mỗi vũ khí thuộc một hoặc nhiều **Đạo**: Kiếm, Thể, Hỏa, Lôi, Phù, Độc.
-- Có 2, 4 hoặc 6 vũ khí cùng Đạo thì kích hoạt **cộng hưởng**. Ví dụ: Hỏa 4 làm thiêu đốt gấp đôi, Độc 4 làm độc lây sang quái khác khi quái chết.
-- **Pháp bảo Joker** tạo combo kiểu Balatro. Ví dụ:
-  - Kim Thiềm: giữ càng nhiều linh thạch thì càng mạnh.
-  - Phá Quân Kích: đánh mạnh hơn lên quái đang bị thiêu, trúng độc hoặc đóng băng.
-  - Sát Lục Ấn: thưởng khi giữ được Liên Sát cao.
-  - Ngũ Hành Bàn: ×1.5 sát thương khi có 5 Đạo khác nhau.
+- Every weapon belongs to one or more Paths (Sword, Body, Fire, Thunder, Talisman, Poison); 2, 4 or 6 of the same Path unlock set bonuses.
+- Two weapons of the same kind and grade merge into a higher grade.
+- Joker-style treasures create combos, for example one that grows with the Spirit Stones you hold, or one that multiplies damage when you run five different Paths.
+- 6 characters, 6 difficulty levels (Tribulations) each, 20 achievements, a codex, and a permanent upgrade tree. All of it feeds the completion % shown on the menu.
 
-## Cày 100%
-| Hạng mục | Số lượng |
-|---|---|
-| Nhân vật | 6 (5 nhân vật cần mở khoá): Kiếm Tu, Đan Tu, Thể Tu, Phù Tu, Ma Tu, Lôi Tu |
-| Kiếp (độ khó) | 0–5 cho mỗi nhân vật. Thắng Kiếp k thì mở Kiếp k+1 |
-| Thành tựu | 20 |
-| Đồ Giám | ghi lại mọi vũ khí, pháp bảo, yêu ma đã gặp |
-| Tàng Kinh Các | 6 nâng cấp × 5 cấp |
+## Project notes
+- Unity **6000.3.27f1**. There are no hand-built scenes or prefabs: the game builds itself from code at runtime (`Assets/Scripts`, with `Core/`, `Play/`, `UI/`, `Data/`, `Auto/`).
+- Game content and balance live in `Assets/Scripts/Data/Content.cs` and `Events.cs`.
+- Music and sound effects are synthesized in code (`Synth`), mixed with Kenney sound packs.
+- A self-playing bot (`-autotest`) and scenario tests (`-skilltest`) drive balance and regression checks: `bash tools/build_and_test.sh 3 -skilltest -only ""`.
+- Store-readiness notes (input, saves, achievements abstraction): `docs/PORTING.md`. Design notes: `docs/DESIGN.md`.
+- Vietnamese README: [README.vi.md](README.vi.md).
 
-Tất cả gộp lại thành **% Hoàn thành** hiển thị ở menu chính.
-
-## Mở project trong Unity
-- Unity Hub → **Add** → chọn thư mục này. Phiên bản editor: **6000.3.27f1**.
-- Không có scene hay prefab dựng bằng tay. Toàn bộ game được tạo bằng code lúc chạy (`Assets/Scripts`).
-- Muốn chỉnh cân bằng thì sửa **`Assets/Scripts/Data/Content.cs`** (vũ khí, pháp bảo, quái, boss, nhân vật, cộng hưởng, thành tựu) và `Data/Events.cs` (Kỳ Ngộ).
-- Build bản exe: menu **Vạn Kiếp → Build Windows**, hoặc chạy `bash tools/build_and_test.sh <số đợt> [-god]`. Lệnh này build rồi cho bot tự chơi, chụp ảnh vào `Logs/shots`.
-
-### Cấu trúc code
-| Thư mục | Nội dung |
-|---|---|
-| `Core/` | `Game` (khởi tạo, luồng chơi), `RunState` (chỉ số, shop, lên cấp), `Fx`, `Sfx` + `Synth` (nhạc tự tổng hợp), `Res` |
-| `Play/` | `Player`, `Enemy`, `Weapon` + `Combat`, `Projectile` + `Orb`, `WaveDirector`, `Skills`, `Arena` |
-| `UI/` | Toàn bộ màn hình uGUI dựng bằng code |
-| `Data/` | Chỉ số, định nghĩa, nội dung game, sự kiện, lưu game |
-| `Auto/` | Bot tự chơi, chạy bằng tham số `-autotest` (thêm `-smart`, `-skillbuild`, `-kiep k`, `-meta n`, `-char i`); kiểm thử kịch bản Thần Thông `-skilltest [-only <tiền tố>]`, kiểm thử giao diện `-uxtest` |
-
-Tài liệu thiết kế: `docs/DESIGN.md`. Chuẩn bị phát hành Steam / Google Play: `docs/PORTING.md`.
-Đo cân bằng nhiều bot song song: `bash tools/probe.sh "ten|-char 0 -kiep 2 -meta 2 -smart" ...` (kết quả trong `Logs/probe/`). Tỉ lệ sát thương Thần Thông theo dải đợt: `python -I tools/skill_share.py Logs/probe/*.log` (bot `-smart -skillbuild` là người chơi đầu tư vào chiêu). Kiểm thử Thần Thông: `bash tools/build_and_test.sh 1 -skilltest -only ""`.
-
-## Bản quyền asset
-- **Nhân vật, yêu ma và boss**: vẽ bằng **PixelLab** (https://www.pixellab.ai), nằm ở `Assets/Resources/PixelLab/`. Công cụ và prompt của từng hình được ghi ở `Assets/ThirdParty/PixelLab-Assets.md`.
-- **Vũ khí, pháp bảo, nền, tường và âm thanh**: từ **Kenney.nl** (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. License nằm ở `Assets/ThirdParty/`.
-- **Chữ Hán** (bản 中文): dùng font có sẵn trong hệ điều hành (Microsoft YaHei / Noto Sans CJK…), game không kèm file font nào.
-Nhạc nền được tổng hợp bằng code (`Synth`).
+## Credits and licenses
+- **Source code:** MIT, see `LICENSE`. Third-party assets keep their own licenses.
+- **Character, enemy, boss, icon and background art:** generated with PixelLab (AI pixel-art tool) and cleaned up by hand in Aseprite; the tool and prompt for each image are logged in `Assets/ThirdParty/PixelLab-Assets.md`.
+- **Tiles, weapon and treasure sprites, sound packs:** [Kenney](https://kenney.nl) (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. Licenses in `Assets/ThirdParty/`.
+- **Font:** Baloo 2 by Ek Type, SIL Open Font License 1.1 (`Assets/ThirdParty/Baloo2-OFL.txt`). The Chinese UI uses an installed system font; none is bundled.

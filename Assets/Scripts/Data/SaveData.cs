@@ -13,6 +13,7 @@ namespace VK
         public List<string> codex = new List<string>();
         public List<string> bossIntroSeen = new List<string>();   // boss intro cards already shown (null-safe for old saves)
         public List<string> tips = new List<string>();      // tutorial hints already shown   // "w:id", "i:id", "e:id"
+        public bool tipsAll;                                // the player asked to see the hints again after the first run
         public int[] charWinKiep = { -1, -1, -1, -1, -1, -1 };   // highest kiếp won per character
         public float sfxVol = 0.8f, musicVol = 0.5f, shake = 1f;
         public int dmgNumbers;   // 0 all, 1 crits only, 2 off

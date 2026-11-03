@@ -22,14 +22,22 @@ namespace VK
         static readonly Color Cream = new Color(1f, 0.96f, 0.87f);
         static readonly Color Ink = new Color(0.07f, 0.04f, 0.02f, 0.9f);
 
+        static readonly System.Collections.Generic.HashSet<string> Rounded = new System.Collections.Generic.HashSet<string>
+            { "card", "w", "vitals", "toast", "syn", "sum", "stats", "row", "opt", "matrix", "it", "inv", "hint", "c", "a", "btn", "bar" };
+
         static Sprite cut;
 
         /// <summary>A rounded rectangle with a slightly uneven edge, 9-sliced, so panels look cut by hand instead of ruled.</summary>
-        public static Sprite Cut
+        public static Sprite Cut => cut != null ? cut : (cut = MakeCut(0f));
+
+        static Sprite ringThin, ringThick;
+
+        /// <summary>The same shape as <see cref="Cut"/> but only its edge, drawn as a child frame so outlines follow the uneven corners instead of puffing them up.</summary>
+        static Sprite Ring(float d) => d <= 2f ? (ringThin != null ? ringThin : (ringThin = MakeCut(3f))) : (ringThick != null ? ringThick : (ringThick = MakeCut(6f)));
+
+        static Sprite MakeCut(float ring)
         {
-            get
             {
-                if (cut != null) return cut;
                 const int n = 96; const float half = 44f, rad = 18f;
                 var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
                 var px = new Color32[n * n];
@@ -39,11 +47,12 @@ namespace VK
                         float qx = Mathf.Abs(x + 0.5f - n / 2f) - (half - rad), qy = Mathf.Abs(y + 0.5f - n / 2f) - (half - rad);
                         float d = new Vector2(Mathf.Max(qx, 0), Mathf.Max(qy, 0)).magnitude + Mathf.Min(Mathf.Max(qx, qy), 0) - rad;
                         d += (Mathf.PerlinNoise(x * 0.11f + 3.7f, y * 0.11f + 1.3f) - 0.5f) * 3.4f;
-                        px[y * n + x] = new Color32(255, 255, 255, (byte)(Mathf.Clamp01(0.5f - d) * 255));
+                        float a = Mathf.Clamp01(0.5f - d);
+                        if (ring > 0f) a *= Mathf.Clamp01(d + ring + 0.5f);
+                        px[y * n + x] = new Color32(255, 255, 255, (byte)(a * 255));
                     }
                 tex.SetPixels32(px); tex.Apply();
-                cut = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(32, 32, 32, 32));
-                return cut;
+                return Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(32, 32, 32, 32));
             }
         }
 
@@ -81,7 +90,7 @@ namespace VK
             var rt = R(p, name);
             var img = rt.gameObject.AddComponent<Image>();
             img.color = c;
-            if (c.a >= 0.5f && c != Bg)   // not a full-screen dimmer or a faint overlay
+            if (Rounded.Contains(name))   // panels only: an Image whose sprite is replaced later (icons, portraits) must stay Simple or it stretches
             {
                 img.sprite = Cut; img.type = Image.Type.Sliced; img.pixelsPerUnitMultiplier = 1.5f;
                 if (c == Panel || c == Panel2)
@@ -201,12 +210,10 @@ namespace VK
 
         public static void Border(GameObject go, Color c, float d = 3f)
         {
-            var o = go.AddComponent<Outline>();
-            o.effectColor = c;
-            o.effectDistance = new Vector2(d, -d);
-            var o2 = go.AddComponent<Outline>();
-            o2.effectColor = c;
-            o2.effectDistance = new Vector2(-d, d);
+            var f = Img(go.transform, c, "frame");
+            f.sprite = Ring(d); f.type = Image.Type.Sliced; f.pixelsPerUnitMultiplier = 1.5f; f.raycastTarget = false;
+            f.rectTransform.Fill();
+            f.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
         }
 
         public static void Clear(Transform t)

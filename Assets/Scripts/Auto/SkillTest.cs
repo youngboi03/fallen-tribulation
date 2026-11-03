@@ -1032,6 +1032,17 @@ namespace VK
             c.testMode = false;
         }
 
+        IEnumerator T_introshot()   // screenshot of the first-meeting boss card
+        {
+            yield return BossArena("b1", 0, 5); var b = boss.brain; var c = Game.I.cinema;
+            c.testMode = true; Game.I.save.bossIntroSeen.Clear();
+            c.OnBossSpawn(b);
+            yield return new WaitForSecondsRealtime(1.3f);
+            Game.I.bot.Shot("boss_intro");
+            yield return new WaitForSecondsRealtime(1.5f);
+            c.testMode = false;
+        }
+
         IEnumerator T_cine_intro_first()   // card on the first meeting only, then remembered
         {
             yield return BossArena("b1", 0, 5); var b = boss.brain; var c = Game.I.cinema;

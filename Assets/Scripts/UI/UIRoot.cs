@@ -152,7 +152,7 @@ namespace VK
         public void Hint(string id, string text)
         {
             var s = Save;
-            if (s.tips.Contains(id)) return;
+            if (s.tips.Contains(id) || (s.runs > 1 && !s.tipsAll)) return;   // hints are for the first run only, unless the player asks to see them again
             s.tips.Add(id); s.Save();
             hintQueue.Enqueue(new[] { id, text });
         }
@@ -434,7 +434,7 @@ namespace VK
             var info = UIK.Txt(o, "Đạo Hạnh: <color=#FFD266>" + Save.daoHanh + "</color>     Hoàn thành: <color=#7CF0FF>" +
                 Mathf.FloorToInt(Save.Completion() * 100) + "%</color>     Thắng: " + Save.wins + "     Lượt chơi: " + Save.runs, 26, UIK.Dim);
             info.rectTransform.Place(0.5f, 0, 1600, 40, 0, 70);
-            var cred = UIK.Txt(o, GameInput.K("WASD di chuyển · SPACE lướt · ESC tạm dừng · F11 toàn màn hình · ", "") + "Đồ họa & âm thanh: Kenney.nl (CC0)", 20, new Color(0.5f, 0.48f, 0.56f));
+            var cred = UIK.Txt(o, GameInput.K("WASD di chuyển · SPACE lướt · ESC tạm dừng · F11 toàn màn hình · ", "") + "Đồ họa & âm thanh: PixelLab AI, Kenney.nl (CC0) · Font: Baloo 2", 20, new Color(0.5f, 0.48f, 0.56f));
             cred.rectTransform.Place(0.5f, 0, 1600, 30, 0, 26);
         }
 
@@ -463,7 +463,7 @@ namespace VK
                 Button tb = null;
                 tb = UIK.Btn(col, Save.tips.Count == 0 ? "Hướng dẫn: sẽ hiện lại" : "Xem lại hướng dẫn", () =>
                 {
-                    Save.tips.Clear(); Save.Save(); tb.SetLabel("Hướng dẫn: sẽ hiện lại");
+                    Save.tips.Clear(); Save.tipsAll = true; Save.Save(); tb.SetLabel("Hướng dẫn: sẽ hiện lại");
                 }, UIK.BtnGrey, 24, -1, 50);
             }
             Button shB = null, dnB = null;
