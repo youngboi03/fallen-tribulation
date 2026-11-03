@@ -16,7 +16,7 @@ namespace VK
         public static bool Pad;
 
         /// <summary>Swaps the number-key wording of a sentence for the pad one while the pad is the active device.</summary>
-        public static string PadKeys(string s) => Pad && !Platform.Touch ? s.Replace("(phím 1-4)", "(D-pad + A)").Replace("(phím 1-3)", "(D-pad + A)").Replace("phím 1-4", "D-pad + (A)") : s;
+        public static string PadKeys(string s) => Platform.Touch ? s.Replace("(phím 1-4)", "(chạm để chọn)").Replace("(phím 1-3)", "(chạm để chọn)").Replace("phím 1-4", "chạm để chọn") : Pad ? s.Replace("(phím 1-4)", "(D-pad + A)").Replace("(phím 1-3)", "(D-pad + A)").Replace("phím 1-4", "D-pad + (A)") : s;
         static Vector2 lastMouse;
 
         /// <summary>Once per frame (UIRoot.Update): gamepad button or stick sets <see cref="Pad"/>, key or mouse clears it.</summary>
@@ -73,6 +73,7 @@ namespace VK
         Image skillFill;
         int stickFinger = -1;
         Vector2 stickOrigin;
+        RectTransform safe;
         const float StickRadius = 110f;   // canvas units (1920x1080 reference)
 
         void Awake()
@@ -88,21 +89,22 @@ namespace VK
             scaler.referenceResolution = new Vector2(1920, 1080);
             scaler.matchWidthOrHeight = 1f;
             root = (RectTransform)cgo.transform;
+            safe = UIK.R(root, "safe");   // the buttons live in the part of the screen that is not under a notch or gesture bar
 
             stickBase = Circle("stickBase", 260, new Color(1, 1, 1, 0.12f));
             stickKnob = Circle("stickKnob", 110, new Color(1, 1, 1, 0.35f));
             dashBtn = Button("Lướt", new Vector2(-150, 150), 170, new Color(0.45f, 0.85f, 1f, 0.35f));
             skillBtn = Button("Thần\nThông", new Vector2(-340, 110), 150, new Color(1f, 0.8f, 0.35f, 0.35f));
             skillFill = skillBtn.GetComponent<Image>();
-            pauseBtn = Button("II", new Vector2(-70, 0), 90, new Color(1, 1, 1, 0.2f));
+            pauseBtn = Button("II", new Vector2(-70, 0), 110, new Color(1, 1, 1, 0.2f));
             pauseBtn.anchorMin = pauseBtn.anchorMax = new Vector2(0, 1);
-            pauseBtn.anchoredPosition = new Vector2(580, -75);   // right of the HUD panel, clear of the synergy list
+            pauseBtn.anchoredPosition = new Vector2(580 * Platform.Boost + 20, -75);   // right of the HUD panel, clear of the synergy list
         }
 
-        RectTransform Circle(string n, float size, Color c)
+        RectTransform Circle(string n, float size, Color c, Transform parent = null)
         {
             var img = new GameObject(n).AddComponent<Image>();
-            img.transform.SetParent(root, false);
+            img.transform.SetParent(parent ? parent : root, false);
             img.sprite = Res.Circle; img.color = c; img.raycastTarget = false;
             var rt = img.rectTransform;
             rt.anchorMin = rt.anchorMax = Vector2.zero;
@@ -112,7 +114,7 @@ namespace VK
 
         RectTransform Button(string label, Vector2 fromBottomRight, float size, Color c)
         {
-            var rt = Circle("btn_" + label, size, c);
+            var rt = Circle("btn_" + label, size, c, safe);
             rt.anchorMin = rt.anchorMax = new Vector2(1, 0);
             rt.anchoredPosition = fromBottomRight;
             var t = UIK.Txt(rt, label, 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -132,6 +134,9 @@ namespace VK
             root.gameObject.SetActive(active);
             if (!active) { move = Vector2.zero; stickFinger = -1; return; }
 
+            var sa = Platform.Safe;   // pixels -> anchors
+            safe.anchorMin = new Vector2(sa.xMin / Screen.width, sa.yMin / Screen.height); safe.anchorMax = new Vector2(sa.xMax / Screen.width, sa.yMax / Screen.height);
+            safe.offsetMin = safe.offsetMax = Vector2.zero;
             float scale = root.lossyScale.x;
             int n = Input.touchCount;
             bool mouseSim = n == 0 && (Input.GetMouseButton(0) || Input.GetMouseButtonUp(0));
@@ -163,7 +168,7 @@ namespace VK
             if (!stickSeen) { stickFinger = -1; move = Vector2.zero; }
 
             bool showStick = stickFinger >= 0;
-            Vector2 basePos = showStick ? stickOrigin / scale : new Vector2(260, 240);
+            Vector2 basePos = showStick ? stickOrigin / scale : new Vector2(260 + sa.xMin / scale, 240 + sa.yMin / scale);
             stickBase.anchoredPosition = basePos;
             stickKnob.anchoredPosition = basePos + move * StickRadius;
             stickBase.GetComponent<Image>().color = new Color(1, 1, 1, showStick ? 0.16f : 0.07f);

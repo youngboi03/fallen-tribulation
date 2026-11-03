@@ -302,6 +302,16 @@ Bấm (Y) để làm mới shop	Press (Y) to reroll the shop	按 (Y) 刷新商�
 Cần trái di chuyển	Left stick to move	左摇杆移动
 (A) lướt	(A) dash	(A) 冲刺
 (X) thần thông	(X) Divine Art	(X) 神通
+Chạm một ô để xem chi tiết	Tap a slot for details	点击查看详情
+Chạm vũ khí, pháp bảo hoặc chỉ số để xem chi tiết	Tap a weapon, treasure or stat for details	点击武器、法宝或属性查看详情
+chạm để chọn	tap to choose	点击选择
+Kéo bên trái	Drag on the left	左侧拖动
+Nút Lướt	Dash button	冲刺键
+Nút Thần Thông	Skill button	神通键
+Nút II / Back	II button / Back	II键 / 返回键
+Chạm thẻ	Tap a card	点击卡牌
+Chạm biểu tượng	Tap an icon	点击图标
+Xem chi tiết	Details	查看详情
 Hoang Sơn	Barren Mountains	荒山
 Hàn Băng Cốc	Frost Valley	寒冰谷
 Huyết Sát Hải	Blood Sea	血煞海

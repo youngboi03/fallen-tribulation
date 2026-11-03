@@ -270,7 +270,7 @@ namespace VK
         }
     }
 
-    public class UIHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public class UIHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
         public Action onExit;
         public float hoverScale = 1.05f;
@@ -308,6 +308,9 @@ namespace VK
             if (b != null) PadNav.NoteHover(b, true);
             enter?.Invoke();
         }
+
+        /// <summary>Touch has no hover: the tap shows the tooltip.</summary>
+        public void OnPointerDown(PointerEventData e) { if (Platform.Touch) enter?.Invoke(); }
 
         public void OnPointerExit(PointerEventData e)
         {

@@ -27,7 +27,7 @@ namespace VK
             P p = freeP.Count > 0 ? freeP.Pop() : null;
             if (p == null)
             {
-                if (ps.Count > 900) return null;
+                if (ps.Count > (Platform.Touch ? 500 : 900)) return null;   // phones: smaller particle pool
                 var go = new GameObject("p");
                 go.transform.SetParent(root);
                 p = new P { t = go.transform, sr = go.AddComponent<SpriteRenderer>() };

@@ -90,7 +90,8 @@ namespace VK
                 if (cur) cur.GetComponent<UIHover>()?.PadFocus(true);
             }
 
-            if (Input.GetKeyDown(KeyCode.JoystickButton1)) Back(g);
+            // Esc = Android back; while fighting the pause screen is closed by Game.Update's own Esc handling
+            if (Input.GetKeyDown(KeyCode.JoystickButton1) || (Input.GetKeyDown(KeyCode.Escape) && !(g.state == GState.Playing && g.ui.screen == UIScreen.Pause))) Back(g);
         }
 
         /// <summary>A D-pad / arrow press: the first one shows the frame (on the hovered button, the remembered spot or the
@@ -142,7 +143,7 @@ namespace VK
             if (s == UIScreen.Pause) { if (g.ui.pauseConfirm) g.ui.ShowPause(); else g.SetPause(false); }
             else if (s == UIScreen.Settings) { Sfx.Play("click", 0.5f); g.ui.CloseSettings(); }
             else if (s == UIScreen.Shop) g.ui.PadCancel();
-            else if (s == UIScreen.GameOver) g.GoMenu();
+            else if (s == UIScreen.GameOver) g.GoMenu();   // the main menu ignores back: no accidental quit
             else if (s == UIScreen.CharSelect || s == UIScreen.Meta || s == UIScreen.Achievements || s == UIScreen.Codex) { Sfx.Play("click", 0.5f); g.ui.ShowMenu(); }
         }
 

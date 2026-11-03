@@ -132,7 +132,7 @@ namespace VK
             int n = Mathf.FloorToInt(budget);
             if (n <= 0) return;
             budget -= n;
-            int room = 150 - (Enemy.All.Count + teles.Count);
+            int room = (Platform.Touch ? 100 : 150) - (Enemy.All.Count + teles.Count);
             n = Mathf.Min(n, room);
             if (n <= 0) return;
             bool pack = Random.value < 0.3f;

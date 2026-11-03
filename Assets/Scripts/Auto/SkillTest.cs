@@ -1220,6 +1220,66 @@ namespace VK
             Check("pad_back_to_kb", UiCount("Lướt [Space]") >= 1 && Cursor.visible, "");
         }
 
+        // ---------------------------------------------------------------- phones (safe area, touch wording, 60 fps)
+        IEnumerator T_mob_safe()   // hud and menu screens stay inside a pretend notch; the touch buttons too
+        {
+            yield return Arena(0, 5, 1); var g = Game.I;
+            float l = 100, r = 160; Platform.FakeSafe = new Rect(l, 0, Screen.width - l - r, Screen.height);
+            g.ui.ShowSettings(false); yield return new WaitForSecondsRealtime(0.4f);
+            var c = new Vector3[4];
+            g.ui.HudRoot.GetWorldCorners(c);
+            Check("mob_safe_hud", Mathf.Abs(c[0].x - l) < 1.5f && Mathf.Abs(c[2].x - (Screen.width - r)) < 1.5f, c[0].x + ".." + c[2].x);
+            g.ui.ScreenRoot.GetWorldCorners(c);
+            Check("mob_safe_screen", c[0].x >= l - 1.5f && c[2].x <= Screen.width - r + 1.5f, c[0].x + ".." + c[2].x);
+            if (TouchPad.I != null)
+            {
+                g.ui.HideScreen(); yield return new WaitForSecondsRealtime(0.3f);
+                TouchPad.I.transform.Find("TouchCanvas/safe").GetComponent<RectTransform>().GetWorldCorners(c);
+                Check("mob_safe_pad", Mathf.Abs(c[0].x - l) < 1.5f && Mathf.Abs(c[2].x - (Screen.width - r)) < 1.5f, c[0].x + ".." + c[2].x);
+            }
+            Platform.FakeSafe = null; g.ui.HideScreen(); yield return new WaitForSecondsRealtime(0.3f);
+        }
+
+        IEnumerator T_mob_text()   // touch wording on every screen: no keys or mouse; 60 fps without vsync
+        {
+            Platform.TouchForce = true; yield return Arena(0, 5, 1); var g = Game.I; g.ui.HideHint(); yield return new WaitForSecondsRealtime(0.3f);   // a hint queued earlier in PC wording is not under test
+            string[] bad = { "WASD", "chuột", "Space", "[E]", "[R]", "phím", "Esc", "F11", "SPACE", "[1]", "[2]" };
+            string seen = "";
+            for (int pass = 0; pass < 5; pass++)
+            {
+                if (pass == 0) g.ui.ShowHUD();
+                else if (pass == 1) g.ui.ShowSettings(false);
+                else if (pass == 2) { FillBuild(); g.run.RollShop(); g.state = GState.Between; g.ui.ShowShop(); }
+                else if (pass == 3) g.ui.ShowCharSelect();
+                else { g.state = GState.Playing; g.run.level = 10; g.run.pendingLevels = 1; g.run.RollLevelOpts(); g.ui.ShowLevelUp(); }
+                yield return new WaitForSecondsRealtime(0.4f);
+                foreach (var t in Object.FindObjectsOfType<UnityEngine.UI.Text>())
+                    if (t.isActiveAndEnabled && !(t.GetComponentInParent<CanvasGroup>() is CanvasGroup cg && cg.alpha < 0.05f)) foreach (var b in bad) if (t.text.Contains(b)) seen += pass + ":" + b + " ";
+            }
+            Check("mob_text", seen == "", seen);
+            UIRoot.ApplyDisplay(g.save, false);
+            Check("mob_fps60", Application.targetFrameRate == 60 && QualitySettings.vSyncCount == 0, Application.targetFrameRate + "/" + QualitySettings.vSyncCount);
+            Platform.TouchForce = null; UIRoot.ApplyDisplay(g.save, false); g.ui.HideScreen();
+            g.state = GState.Playing; yield return new WaitForSecondsRealtime(0.3f);
+        }
+
+        IEnumerator T_mob_shots()   // screenshots for -touch runs
+        {
+            yield return Arena(0, 8, 1); var g = Game.I; FillBuild(); g.ui.ShowHUD(); yield return new WaitForSecondsRealtime(0.8f); g.bot.Shot("mobile_hud");
+            yield return new WaitForSecondsRealtime(0.3f);
+            g.state = GState.Playing; g.ui.ShowSettings(false); yield return new WaitForSecondsRealtime(0.5f); g.bot.Shot("mobile_settings");
+            yield return new WaitForSecondsRealtime(0.3f);
+            g.ui.ShowCharSelect(); yield return new WaitForSecondsRealtime(0.5f); g.bot.Shot("mobile_charselect");
+            yield return new WaitForSecondsRealtime(0.3f);
+            g.run.RollShop(); g.state = GState.Between; g.ui.ShowShop(); yield return new WaitForSecondsRealtime(0.5f); g.bot.Shot("mobile_shop");
+            yield return new WaitForSecondsRealtime(0.3f);
+            g.state = GState.Playing; g.run.level = 10; g.run.pendingLevels = 1; g.run.RollLevelOpts(); g.ui.ShowLevelUp(); yield return new WaitForSecondsRealtime(0.5f); g.bot.Shot("mobile_levelup");
+            yield return new WaitForSecondsRealtime(0.3f);
+            g.ui.ShowPause(); yield return new WaitForSecondsRealtime(0.5f); g.bot.Shot("mobile_pause");
+            yield return new WaitForSecondsRealtime(0.3f);
+            g.ui.HideScreen();
+        }
+
         IEnumerator T_pad_tooltip()   // the pad-focused icon shows the same tooltip as hovering it with the mouse; icons are D-pad targets
         {
             yield return Arena(0, 8, 1); var g = Game.I; FillBuild(); g.run.RollShop(); g.state = GState.Between; g.ui.ShowShop();

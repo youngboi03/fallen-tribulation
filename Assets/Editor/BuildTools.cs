@@ -37,6 +37,43 @@ namespace VK.EditorTools
             if (Application.isBatchMode && report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
         }
 
+        /// <summary>Signed ARM64 APK. Keystore path and password come from VK_KEYSTORE / VK_KEYSTORE_PASS (kept outside the repo).</summary>
+        [MenuItem("Vạn Kiếp/Build Android APK")]
+        public static void BuildAndroid()
+        {
+            Setup();
+            PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android, "com.youngboi03.fallentribulation");
+            PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+            PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
+            PlayerSettings.allowedAutorotateToPortrait = PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+            PlayerSettings.allowedAutorotateToLandscapeLeft = PlayerSettings.allowedAutorotateToLandscapeRight = true;
+            PlayerSettings.bundleVersion = "1.0";
+            PlayerSettings.Android.bundleVersionCode = 1;
+            EditorUserBuildSettings.buildAppBundle = false;
+            string ks = System.Environment.GetEnvironmentVariable("VK_KEYSTORE"), pw = System.Environment.GetEnvironmentVariable("VK_KEYSTORE_PASS");
+            PlayerSettings.Android.useCustomKeystore = !string.IsNullOrEmpty(ks);
+            if (PlayerSettings.Android.useCustomKeystore)
+            {
+                PlayerSettings.Android.keystoreName = ks; PlayerSettings.Android.keystorePass = pw;
+                PlayerSettings.Android.keyaliasName = "fallen"; PlayerSettings.Android.keyaliasPass = pw;
+            }
+            var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = new[] { ScenePath }, locationPathName = "Builds/Android/FallenTribulation.apk",
+                target = BuildTarget.Android, options = BuildOptions.None
+            });
+            if (PlayerSettings.Android.useCustomKeystore)   // never leave the password or the local key path in ProjectSettings
+            {
+                PlayerSettings.Android.keystorePass = PlayerSettings.Android.keyaliasPass = PlayerSettings.Android.keystoreName = "";
+                PlayerSettings.Android.useCustomKeystore = false;
+                AssetDatabase.SaveAssets();
+            }
+            Debug.Log("[VK] BUILD RESULT: " + report.summary.result + " errors=" + report.summary.totalErrors + " size=" + report.summary.totalSize);
+            if (Application.isBatchMode && report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
+        }
+
         static void EnsureScene()
         {
             if (!File.Exists(ScenePath))

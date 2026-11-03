@@ -32,7 +32,37 @@ namespace VK
             set => services = value;
         }
 
+        /// <summary>Tests flip this to look at the touch wording on PC.</summary>
+        public static bool? TouchForce;
         /// <summary>Phone/tablet build, or forced with the -touch command line flag for testing on PC.</summary>
-        public static bool Touch => Application.isMobilePlatform || System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-touch") >= 0;
+        public static bool Touch => TouchForce ?? (Application.isMobilePlatform || System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-touch") >= 0);
+
+        /// <summary>HUD / banner scale on phones: small screens read the in-fight text at arm's length.</summary>
+        public static float Boost => Touch ? 1.25f : 1f;
+
+        /// <summary>Tests set this to pretend the screen has a notch.</summary>
+        public static Rect? FakeSafe;
+        static Vector2? argInset;   // "-safe L,R": pixels cut off the left and right edges (debug)
+        static bool argRead;
+
+        /// <summary>The part of the screen that is not under a notch, rounded corner or gesture bar (pixels).</summary>
+        public static Rect Safe
+        {
+            get
+            {
+                if (FakeSafe.HasValue) return FakeSafe.Value;
+                if (!argRead)
+                {
+                    argRead = true;
+                    var a = System.Environment.GetCommandLineArgs(); int i = System.Array.IndexOf(a, "-safe");
+                    if (i >= 0 && i + 1 < a.Length)
+                    {
+                        var p = a[i + 1].Split(',');
+                        if (p.Length >= 2 && float.TryParse(p[0], out var l) && float.TryParse(p[1], out var r)) argInset = new Vector2(l, r);
+                    }
+                }
+                return argInset.HasValue ? new Rect(argInset.Value.x, 0, Screen.width - argInset.Value.x - argInset.Value.y, Screen.height) : Screen.safeArea;
+            }
+        }
     }
 }

@@ -50,6 +50,29 @@ namespace VK
         SaveData Save => Game.I.save;
 
         public RectTransform Root => root;
+        public RectTransform HudRoot => hud;   // tests
+        public RectTransform ScreenRoot => scr;
+
+        Vector2 laidCanvas; Rect laidSafe; bool laidTouch;
+        /// <summary>Puts hud/top inside the safe area (HUD text enlarged on phones) and the menu screens, kept at their 1920x1080 design size, scaled to fit in it.
+        /// A plain PC window with no notch keeps the old full-canvas layout.</summary>
+        void Layout()
+        {
+            var sa = Platform.Safe; var cs = root.rect.size; bool touch = Platform.Touch;
+            if (cs.x < 1 || (cs == laidCanvas && sa == laidSafe && touch == laidTouch)) return;
+            laidCanvas = cs; laidSafe = sa; laidTouch = touch;
+            bool custom = touch || Mathf.Abs(sa.width - Screen.width) + Mathf.Abs(sa.height - Screen.height) > 1f;
+            float k = cs.x / Screen.width, b = Platform.Boost;
+            Vector2 size = sa.size * k, mid = (sa.center - new Vector2(Screen.width, Screen.height) * 0.5f) * k;
+            foreach (var rt in new[] { hud, top })
+            {
+                if (!custom) { rt.Fill(); rt.localScale = Vector3.one; continue; }
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f); rt.sizeDelta = size / b; rt.anchoredPosition = mid; rt.localScale = Vector3.one * b;
+            }
+            if (!custom) { scr.Fill(); scr.localScale = Vector3.one; return; }
+            scr.anchorMin = scr.anchorMax = new Vector2(0.5f, 0.5f); scr.sizeDelta = new Vector2(1920, 1080); scr.anchoredPosition = mid;
+            scr.localScale = Vector3.one * Mathf.Min(touch ? 1.3f : 1f, size.x / 1920f, size.y / 1080f);
+        }
 
         public void Init()
         {
@@ -61,7 +84,7 @@ namespace VK
             var scaler = cgo.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = Platform.Touch ? 1f : 0.5f;   // phones: height is the constant, wide screens just get more room at the sides
             cgo.AddComponent<GraphicRaycaster>();
             if (FindFirstObjectByType<EventSystem>() == null)
             {
@@ -95,8 +118,11 @@ namespace VK
             UIK.Clear(scr);
             detailTxt = null;
             bannerT = 99f;
-            var o = UIK.Img(scr, new Color(0.05f, 0.03f, 0.02f, a), "overlay");
-            o.rectTransform.Fill();
+            var dim = UIK.Img(scr, new Color(0.05f, 0.03f, 0.02f, a), "dim");
+            dim.rectTransform.Anchor(0, 0, 1, 1, -4000, -4000, -4000, -4000);   // bleeds past the (scaled, inset) screen root to cover the whole display
+            dim.raycastTarget = false;
+            var o = UIK.Img(scr, Color.clear, "overlay");
+            o.rectTransform.Fill();   // the panel everything is built on: still blocks clicks
             return o.rectTransform;
         }
 
@@ -170,7 +196,7 @@ namespace VK
         {
             var img = UIK.Img(top, new Color(0.18f, 0.13f, 0.09f, 0.97f), "hint");
             hintBox = img.rectTransform;
-            hintBox.Place(0.5f, 0f, 900, 104, 0, 112);
+            hintBox.Place(0.5f, 0f, Platform.Touch ? 760 : 900, 104, 0, 112);
             UIK.Border(img.gameObject, UIK.Gold, 2);
             hintCg = img.gameObject.AddComponent<CanvasGroup>();
             hintCg.alpha = 0; hintCg.blocksRaycasts = false;
@@ -224,6 +250,7 @@ namespace VK
         void Update()
         {
             float dt = Time.unscaledDeltaTime;
+            Layout();
             GameInput.PollDevice();
             if (screen == UIScreen.Shop && rerollBtn) rerollBtn.SetLabel(RerollLabel(rerollCost));
             // banner
@@ -482,8 +509,8 @@ namespace VK
         /// <summary>Applies the saved display options. The window mode and size are left alone when <paramref name="window"/> is false (bot runs, phones).</summary>
         public static void ApplyDisplay(SaveData sd, bool window)
         {
-            QualitySettings.vSyncCount = sd.vsyncOff ? 0 : 1;
-            Application.targetFrameRate = sd.vsyncOff ? 120 : -1;
+            QualitySettings.vSyncCount = sd.vsyncOff || Platform.Touch ? 0 : 1;
+            Application.targetFrameRate = Platform.Touch ? 60 : sd.vsyncOff ? 120 : -1;   // phones: 60 fps saves battery and heat
             if (!window || Application.isMobilePlatform) return;
             int i = Mathf.Clamp(sd.winSize, 0, 2);
             if (sd.fullscreen) Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
@@ -507,9 +534,12 @@ namespace VK
             SetRow(left, "Âm hiệu", () => Mathf.RoundToInt(Save.sfxVol * 100) + "%", d => Save.sfxVol = Mathf.Clamp(Mathf.Round(Save.sfxVol * 10) + d, 0, 10) / 10f);
             SetRow(left, "Nhạc", () => Mathf.RoundToInt(Save.musicVol * 100) + "%", d => Save.musicVol = Mathf.Clamp(Mathf.Round(Save.musicVol * 10) + d, 0, 10) / 10f);
             SetHead(left, "Hiển thị");
-            SetRow(left, "Toàn màn hình", () => Save.fullscreen ? "Bật" : "Tắt", d => { Save.fullscreen = !Save.fullscreen; ApplyDisplay(Save, true); });
-            SetRow(left, "Cỡ cửa sổ", () => WinNames[Mathf.Clamp(Save.winSize, 0, 2)], d => { Save.winSize = (Save.winSize + d + 3) % 3; ApplyDisplay(Save, true); });
-            SetRow(left, "VSync", () => Save.vsyncOff ? "Tắt" : "Bật", d => { Save.vsyncOff = !Save.vsyncOff; ApplyDisplay(Save, false); });
+            if (!Platform.Touch)
+            {
+                SetRow(left, "Toàn màn hình", () => Save.fullscreen ? "Bật" : "Tắt", d => { Save.fullscreen = !Save.fullscreen; ApplyDisplay(Save, true); });
+                SetRow(left, "Cỡ cửa sổ", () => WinNames[Mathf.Clamp(Save.winSize, 0, 2)], d => { Save.winSize = (Save.winSize + d + 3) % 3; ApplyDisplay(Save, true); });
+                SetRow(left, "VSync", () => Save.vsyncOff ? "Tắt" : "Bật", d => { Save.vsyncOff = !Save.vsyncOff; ApplyDisplay(Save, false); });
+            }
             SetRow(left, "Rung màn hình", () => Mathf.RoundToInt(Save.shake * 100) + "%", d => Save.shake = Mathf.Clamp(Mathf.Round(Save.shake * 2) + d, 0, 2) / 2f);
             SetRow(left, "Số sát thương", () => DmgNumNames[Save.dmgNumbers], d => Save.dmgNumbers = (Save.dmgNumbers + d + 3) % 3);
 
@@ -521,7 +551,9 @@ namespace VK
                 Save.tips.Clear(); Save.tipsAll = true; Save.Save(); tb.SetLabel("Hướng dẫn: sẽ hiện lại");
             }, UIK.BtnGrey, 24, -1, 52);
             SetHead(right, "Điều khiển");
-            string[,] keys = {
+            string[,] keys = Platform.Touch ? new[,] {
+                { "Kéo bên trái", "Di chuyển" }, { "Nút Lướt", "Lướt" }, { "Nút Thần Thông", "Thần Thông" },
+                { "Nút II / Back", "Tạm dừng, quay lại" }, { "Chạm thẻ", "Chọn nâng cấp, Kỳ Ngộ" }, { "Chạm biểu tượng", "Xem chi tiết" } } : new[,] {
                 { "WASD / phím mũi tên", "Di chuyển" }, { "Space / Shift / chuột phải", "Lướt" }, { "E / J / chuột trái", "Thần Thông" },
                 { "Esc / P", "Tạm dừng, quay lại" }, { "1–4", "Chọn nâng cấp, Kỳ Ngộ" }, { "R", "Làm mới shop" }, { "F11", "Toàn màn hình" },
                 { "Tay cầm: cần trái / A / X", "Di chuyển / lướt / Thần Thông" }, { "Start / D-pad, A, B", "Tạm dừng / chọn, bấm, quay lại" } };
@@ -598,7 +630,7 @@ namespace VK
                     UIK.Txt(card.transform, StatInfo.Fmt(c.mods), fs, Color.white);
                     var w = Content.W(c.startWeapon);
                     UIK.Txt(card.transform, "Khởi đầu: <color=#FFD266>" + w.name + "</color>", fs, UIK.Dim);
-                    UIK.Txt(card.transform, "<color=#FFB347><b>" + GameInput.K("[E]", "[E]", "(X)") + " " + c.skill + "</b></color>\n<size=" + (fs - 2) + ">" + c.skillDesc + "</size>", fs, new Color(1f, 0.9f, 0.75f));
+                    UIK.Txt(card.transform, "<color=#FFB347><b>" + GameInput.K("[E]", "", "(X)") + " " + c.skill + "</b></color>\n<size=" + (fs - 2) + ">" + c.skillDesc + "</size>", fs, new Color(1f, 0.9f, 0.75f));
                     UIK.Spacer(card.transform);
                     var sbk = new StringBuilder("Kiếp đã vượt: ");
                     for (int k = 0; k <= Content.MaxKiep; k++) sbk.Append(Save.charWinKiep[i] >= k ? "<color=#FFD266>■</color> " : "<color=#4A4558>■</color> ");
@@ -727,7 +759,7 @@ namespace VK
             pct.rectTransform.Place(0.5f, 1, 1000, 40, 0, -125);
             var body = UIK.R(o, "body").Place(0.5f, 1, 1500, 760, 0, -175);
             UIK.VL(body.gameObject, 8, 0, TextAnchor.UpperLeft);
-            var detail = UIK.Txt(o, "<color=#8A8499>Rê chuột lên một ô để xem chi tiết.</color>", 22, Color.white);
+            var detail = UIK.Txt(o, "<color=#8A8499>" + GameInput.K("Rê chuột lên một ô để xem chi tiết.", "Chạm một ô để xem chi tiết.") + "</color>", 22, Color.white);
             detail.rectTransform.Place(0.5f, 0, 1300, 90, 0, 110);
 
             void Section(string title, int count, System.Func<int, (string key, Sprite spr, Color tint, string name, string info)> get)
@@ -908,7 +940,7 @@ namespace VK
                 UIK.LE(card.gameObject, 265, 340);
                 UIK.Border(card.gameObject, opt.card != null ? run.ch.skillColor : Content.TierColor[opt.tier], opt.tier >= 2 || opt.card != null ? 3 : 2);
                 UIK.VL(card.gameObject, 10, 18, TextAnchor.MiddleCenter);
-                UIK.Txt(card.transform, "[" + (i + 1) + "]", 20, UIK.Dim);
+                UIK.Txt(card.transform, Platform.Touch ? "" : "[" + (i + 1) + "]", 20, UIK.Dim);
                 if (opt.card != null)
                 {   // Ngộ Đạo card (a proper design comes with part E)
                     UIK.Txt(card.transform, opt.card.charId != null ? "Thần Thông · Đặc trưng" : "Thần Thông · Chung", 19, run.ch.skillColor, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -1019,7 +1051,7 @@ namespace VK
 
             // detail / selected weapon actions
             var det = UIK.R(inv.transform, "detail").Place(0, 0, 760, 86, 18, 4);
-            detailTxt = UIK.Txt(det, "<color=#8A8499>Rê chuột lên vũ khí, pháp bảo hoặc chỉ số để xem chi tiết.</color>", 19, Color.white, TextAnchor.UpperLeft);
+            detailTxt = UIK.Txt(det, "<color=#8A8499>" + GameInput.K("Rê chuột lên vũ khí, pháp bảo hoặc chỉ số để xem chi tiết.", "Chạm vũ khí, pháp bảo hoặc chỉ số để xem chi tiết.") + "</color>", 19, Color.white, TextAnchor.UpperLeft);
             detailTxt.rectTransform.Fill();
             if (selWeapon != null && run.weapons.Contains(selWeapon))
             {
@@ -1170,7 +1202,7 @@ namespace VK
                 UIK.LE(card.gameObject, 360, 460);
                 UIK.Border(card.gameObject, Content.TierColor[it.tier], 4);
                 UIK.VL(card.gameObject, 8, 18, TextAnchor.UpperCenter);
-                UIK.Txt(card.transform, "[" + (i + 1) + "]", 20, UIK.Dim);
+                UIK.Txt(card.transform, Platform.Touch ? "" : "[" + (i + 1) + "]", 20, UIK.Dim);
                 UIK.Icon(card.transform, Res.Tile(it.sprite), it.tint, 110);
                 UIK.Txt(card.transform, it.name, 30, Content.TierColor[it.tier], TextAnchor.MiddleCenter, FontStyle.Bold);
                 UIK.Txt(card.transform, "Pháp bảo " + Content.TierName[it.tier] + " phẩm", 20, UIK.Dim);
@@ -1207,7 +1239,7 @@ namespace VK
                 var op = ev.options[i];
                 bool can = op.can(run);
                 var b = UIK.Btn(col, "", () => Game.I.ChooseEvent(oi), can ? UIK.Panel2 : new Color(0.14f, 0.11f, 0.08f), 26, -1, 100);
-                b.SetLabel("<b>[" + (i + 1) + "] " + op.label + "</b>\n<size=21>" + (can ? CostColors(op.desc) : "<color=#706878>" + op.desc + "</color>") + "</size>");
+                b.SetLabel("<b>" + (Platform.Touch ? "" : "[" + (i + 1) + "] ") + op.label + "</b>\n<size=21>" + (can ? CostColors(op.desc) : "<color=#706878>" + op.desc + "</color>") + "</size>");
                 b.interactable = can;
                 UIK.Border(b.gameObject, can ? new Color(1f, 0.82f, 0.4f, 0.5f) : new Color(1, 1, 1, 0.08f), 2);
             }
@@ -1368,7 +1400,7 @@ namespace VK
             foreach (var u in s.unlocks) UIK.Txt(right, u, 24, new Color(1f, 0.75f, 0.3f), TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var dp = UIK.Img(right, UIK.Panel, "sum"); UIK.LE(dp.gameObject, -1, 120, -1, 1); UIK.VL(dp.gameObject, 0, 12, TextAnchor.UpperLeft);
-            detailTxt = UIK.Txt(dp.transform, "<color=#8A8499>Rê chuột lên vũ khí, pháp bảo hoặc chỉ số để xem chi tiết.</color>", 19, Color.white, TextAnchor.UpperLeft);
+            detailTxt = UIK.Txt(dp.transform, "<color=#8A8499>" + GameInput.K("Rê chuột lên vũ khí, pháp bảo hoặc chỉ số để xem chi tiết.", "Chạm vũ khí, pháp bảo hoặc chỉ số để xem chi tiết.") + "</color>", 19, Color.white, TextAnchor.UpperLeft);
             
             var btns = UIK.R(o, "btns").Place(0.5f, 0, 1000, 80, 0, 36);
             UIK.HL(btns.gameObject, 20, 0, TextAnchor.MiddleCenter, true);
