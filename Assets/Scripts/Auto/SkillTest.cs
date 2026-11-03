@@ -1581,7 +1581,7 @@ namespace VK
                 int chests0 = r.chests + Orb.All.Count(o => o != null && o.IsChest);
                 Check("clean_mid_running_" + cfg.Item1, b.Current == u, b.Current != null ? b.Current.id : "none");
                 KillEnemy(boss);
-                yield return Sec(0.5f);
+                yield return new WaitForSecondsRealtime(0.5f);   // the boss kill ends the wave, so game time stops
                 Check("clean_mid_" + cfg.Item1, Clean(), Leftovers());
                 yield return new WaitForSecondsRealtime(2.2f);
                 Check("clean_mid_chest_" + cfg.Item1, Game.I.state != GState.Playing && r.chests >= chests0 + 1, Game.I.state + " chests " + r.chests + " vs " + chests0);
