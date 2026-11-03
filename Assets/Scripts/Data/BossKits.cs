@@ -66,7 +66,7 @@ namespace VK
             m.Add(x = M("vong_am", "Vọng Âm", BMove.Dash, BTier.II, 0f, 0.6f, 0f));
             x.after = "huyet_anh_luot"; x.gap = 0.55f; x.speed = 3f;   // echo dash after gap seconds at 60% of the host dash speed 5
             m.Add(x = M("huyet_hai_cuong_ca", "Huyết Hải Cuồng Ca", BMove.Nova, BTier.II, 1.2f, 0.7f, 0f, true));
-            x.reps = 5; x.radius = 1f; x.radius2 = 16f; x.gap = 0.6f; x.dur = 1.4f; x.gaps = 1; x.angle = 40f; x.speed = 90f;
+            x.reps = 3; x.radius = 1f; x.radius2 = 16f; x.gap = 1.3f; x.dur = 1.4f; x.gaps = 1; x.angle = 75f; x.speed = 90f;   // fewer, slower waves with a wider gap: readable, not a coin flip
             return k;
         }
 

@@ -291,6 +291,13 @@ Tạm dừng / chọn, bấm, quay lại	Pause / select, press, back	暂停 / �
 Bỏ lượt này?	Abandon this run?	放弃本局？
 Về menu chính	Main menu	返回主菜单
 Thoát game	Quit game	退出游戏
+Đạo tâm tan vỡ	The Dao heart shatters	道心破碎
+Hồn về cát bụi	The soul returns to dust	魂归尘土
+Tiên lộ đứt đoạn	The path to immortality breaks	仙路断绝
+Kiếp nạn chưa qua	The tribulation is not yet over	劫难未过
+Vạn Kiếp đã tận, đạo quả viên mãn	The Ten Thousand Tribulations end; the Dao is fulfilled	万劫已尽，道果圆满
+Sát thương Thần Thông	Divine Art damage	神通伤害
+Thời gian chơi	Play time	游戏时长
 Hoang Sơn	Barren Mountains	荒山
 Hàn Băng Cốc	Frost Valley	寒冰谷
 Huyết Sát Hải	Blood Sea	血煞海

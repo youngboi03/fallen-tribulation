@@ -34,6 +34,8 @@ namespace VK
         Vector2 vel, lastMove = Vector2.right, dashDir;
         public float slowT, slowMul = 1f;   // BossHazard slow: movement multiplier while slowT > 0
         float dashT, dashCd, iframe, flash, animT, ghostT, dead;
+        bool seq;   // EndSeq owns the sprite (death / ascension pose)
+        static readonly Color AuraCol = new Color(0.4f, 0.9f, 1f, 0.18f);
         static readonly int FlashId = Shader.PropertyToID("_Flash");
         static readonly int FlashColId = Shader.PropertyToID("_FlashColor");
 
@@ -60,7 +62,7 @@ namespace VK
             au.transform.localScale = Vector3.one * 2.2f;
             aura = au.AddComponent<SpriteRenderer>();
             aura.sprite = Res.Glow; aura.sharedMaterial = Res.AddMat; aura.sortingOrder = -110;
-            aura.color = new Color(0.4f, 0.9f, 1f, 0.18f);
+            aura.color = AuraCol;
 
             body = new GameObject("body").transform;
             body.SetParent(transform, false);
@@ -74,9 +76,7 @@ namespace VK
             skillCd = 3f;
             sr.sprite = Res.Tile(c.sprite);
             transform.position = Vector3.zero;
-            dead = 0;
-            sr.color = Color.white;
-            body.localRotation = Quaternion.identity;
+            dead = 0; ClearPose();
             charId = c.id;
             anim.Base = sr.sprite;
             anim.Stop();
@@ -87,8 +87,27 @@ namespace VK
             transform.position = Vector3.zero;
             vel = Vector2.zero; dashT = 0; dashCd = 0; iframe = 1f; dead = 0; goldT = 0; slowT = 0f; slowMul = 1f;
             skillCd = Mathf.Min(skillCd, 3f);
-            body.localRotation = Quaternion.identity;
-            sr.color = Color.white;
+            ClearPose();
+        }
+
+        void ClearPose()
+        {
+            seq = false;
+            body.localRotation = Quaternion.identity; body.localPosition = Vector3.zero;
+            sr.color = Color.white; aura.color = AuraCol; shadow.color = new Color(0, 0, 0, 0.35f);
+        }
+
+        /// <summary>End-of-run pose, k 0..1: defeat topples, dims and dissolves; ascension glows, lifts and fades upward.</summary>
+        public void EndPose(float k, bool win)
+        {
+            seq = true; anim.Stop();
+            body.localPosition = win ? new Vector3(0, k * k * 3.5f, 0) : Vector3.zero;
+            body.localRotation = win ? Quaternion.identity : Quaternion.Euler(0, 0, Mathf.Min(90f, k * 400f));
+            var c = win ? Color.Lerp(Color.white, new Color(1f, 0.92f, 0.55f), Mathf.Min(1f, k * 2f)) : Color.Lerp(Color.white, new Color(0.45f, 0.45f, 0.55f), Mathf.Min(1f, k * 3f));
+            c.a = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.3f, 1f, k));
+            sr.color = c;
+            shadow.color = new Color(0, 0, 0, 0.35f * c.a);
+            aura.color = new Color(AuraCol.r, AuraCol.g, AuraCol.b, AuraCol.a * c.a);
         }
 
         public float DashCooldown => 1.2f * (Game.I.run != null && Game.I.run.Has("phong_loi_hai") ? 0.65f : 1f);
@@ -117,6 +136,7 @@ namespace VK
             if (g.state == GState.Over && dead > 0)
             {   // death animation
                 dead += Time.deltaTime;
+                if (seq) return;
                 anim.Stop();
                 body.localRotation = Quaternion.Euler(0, 0, Mathf.Min(90f, dead * 300f));
                 sr.color = Color.Lerp(Color.white, new Color(0.5f, 0.2f, 0.2f, 0.7f), dead);

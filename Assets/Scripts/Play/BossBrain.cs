@@ -157,7 +157,10 @@ namespace VK
                 var m = ults.Count > 0 ? ults.Dequeue().Key : PhasePending ? null : Pick(false);
                 if (m != null) { Begin(m); return vel; }
             }
-            return dir * e.speed;
+            // between moves: close in, then circle the player at mid range instead of standing still
+            Vector2 side = new Vector2(-dir.y, dir.x) * (marksPassed % 2 == 0 ? 1f : -1f);
+            Vector2 mv = dist > 5f ? dir : dist < 3f ? side - dir * 0.6f : side + dir * 0.2f;
+            return mv.normalized * e.speed * 1.4f;
         }
 
         void CheckMarks()

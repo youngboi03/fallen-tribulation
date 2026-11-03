@@ -11,7 +11,7 @@ namespace VK
     public class RunSummary
     {
         public bool win; public int wave, level, kills, daoHanh, kiep; public string charName;
-        public float dmgDealt, bestHit, skillDmg; public int bestCombo; public List<string> unlocks = new List<string>();
+        public float dmgDealt, bestHit, skillDmg, playTime; public int bestCombo; public List<string> unlocks = new List<string>();
     }
 
     /// <summary>Bootstraps the whole game from code and owns the run state machine.</summary>
@@ -44,6 +44,8 @@ namespace VK
         /// <summary>Camera looks here instead of at the player (cutscenes).</summary>
         public Vector2? camFocus;
         public BossCinema cinema;
+        public EndSeq endSeq;
+        bool Auto => bot != null && !endSeq.testMode;   // probes skip the end cutscene
         public bool Playing => state == GState.Playing && !paused && !cinematic;
         /// <summary>Frame on which the pause menu closed (that click must not cast the skill).</summary>
         public int unpauseFrame = -1;
@@ -100,6 +102,7 @@ namespace VK
             ui.Init();
             gameObject.AddComponent<SkillRuntime>();
             cinema = gameObject.AddComponent<BossCinema>();
+            endSeq = gameObject.AddComponent<EndSeq>();
             if (auto) bot = gameObject.AddComponent<AutoTest>();
             GoMenu();
         }
@@ -111,6 +114,7 @@ namespace VK
             else Dt = raw;
             if (!Playing) Dt = 0;
             T += Dt;
+            if (Playing && run != null) run.playTime += Dt;
             if (Playing && combo > 0) { comboT -= Dt; if (comboT <= 0) combo = 0; }
 
             if (state == GState.Playing && GameInput.Pause && ui.screen != UIScreen.Settings && ui.settingsClosed != Time.frameCount) { if (cinematic) cinema.Skip(); else SetPause(!paused); }
@@ -205,6 +209,7 @@ namespace VK
         {
             if (SkillRuntime.I != null) SkillRuntime.I.ClearAll();
             if (cinema != null) cinema.Abort();
+            if (endSeq != null) endSeq.Abort();
             dir.ClearAll();
             foreach (var e in new List<Enemy>(Enemy.All)) if (e) { if (e.brain != null) e.brain.Stop(); Destroy(e.gameObject); }   // Stop: a deferred Destroy would let the boss coroutines resume once more this frame
             Enemy.All.Clear();
@@ -296,7 +301,7 @@ namespace VK
                 ui.Toast("THẦN THÔNG TIẾN GIAI", Skills.FormName(run.ch, run.skillStage) + " (" + Skills.StageLabel(run.skillStage) + ")");
             }
 
-            if (run.wave >= 20) { StartCoroutine(Delay(1.8f, () => FinishRun(true))); return; }
+            if (run.wave >= 20) { StartCoroutine(Delay(Auto ? 1.8f : 1f, () => { if (Auto) FinishRun(true); else endSeq.Play(true, () => FinishRun(true)); })); return; }
             StartCoroutine(Delay(1.3f, EnterBetween));
         }
 
@@ -443,8 +448,8 @@ namespace VK
             Fx.Shake(0.6f, 0.6f);
             Sfx.Play("j_lose", 0.7f, 0f);
             Sfx.MusicLevel(0.2f);
-            ui.Banner("THÂN TỬ ĐẠO TIÊU", "", new Color(1f, 0.35f, 0.35f));
-            StartCoroutine(Delay(2f, () => FinishRun(false)));
+            if (Auto) { ui.Banner("THÂN TỬ ĐẠO TIÊU", "", new Color(1f, 0.35f, 0.35f)); StartCoroutine(Delay(2f, () => FinishRun(false))); }
+            else endSeq.Play(false, () => FinishRun(false));
         }
 
         public void SetPause(bool p)
@@ -475,7 +480,7 @@ namespace VK
             var s = new RunSummary
             {
                 win = win, wave = run.wave, level = run.level, kills = run.kills, kiep = run.kiep,
-                charName = run.ch.name, dmgDealt = run.dmgDealt, skillDmg = run.skillDmg, bestHit = run.bestHit, bestCombo = run.bestCombo
+                charName = run.ch.name, dmgDealt = run.dmgDealt, skillDmg = run.skillDmg, playTime = run.playTime, bestHit = run.bestHit, bestCombo = run.bestCombo
             };
             float dh = cleared * 3 + run.kills / 40f + (win ? 60 : 0);
             s.daoHanh = Mathf.RoundToInt(dh * (1f + 0.5f * run.kiep));

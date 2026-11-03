@@ -144,6 +144,9 @@ namespace VK
 
         public void HurtFlash() => hurtA = 0.35f;
 
+        /// <summary>The run is over: drop queued tutorial hints and hide the one on screen.</summary>
+        public void HideHint() { hintQueue.Clear(); hintT = 99f; bannerT = 99f; }
+
         // ------------------------------------------------------------ tutorial hints
         RectTransform hintBox; Text hintTxt; CanvasGroup hintCg; float hintT = 99f;
         readonly Queue<string[]> hintQueue = new Queue<string[]>();
@@ -226,7 +229,17 @@ namespace VK
                 var t = toasts[i];
                 t.t += dt;
                 t.cg.alpha = t.t < 0.25f ? t.t / 0.25f : t.t > 3.2f ? Mathf.Max(0, 1f - (t.t - 3.2f) / 0.4f) : 1f;
-                t.rt.anchoredPosition = new Vector2(20 - (t.t < 0.25f ? (1f - t.t / 0.25f) * 300f : 0), 120 + i * 100);
+                float slide = t.t < 0.25f ? (1f - t.t / 0.25f) * 300f : 0;
+                if (screen == UIScreen.GameOver)
+                {   // the summary's buttons sit bottom-centre: stack toasts on the free right side
+                    t.rt.anchorMin = t.rt.anchorMax = t.rt.pivot = new Vector2(1f, 0.5f);
+                    t.rt.anchoredPosition = new Vector2(-20 + slide, 160 - i * 100);
+                }
+                else
+                {
+                    t.rt.anchorMin = t.rt.anchorMax = t.rt.pivot = Vector2.zero;
+                    t.rt.anchoredPosition = new Vector2(20 - slide, 120 + i * 100);
+                }
                 if (t.t > 3.6f) { Destroy(t.rt.gameObject); toasts.RemoveAt(i); }
             }
             // hurt
@@ -1273,21 +1286,32 @@ namespace VK
             if (list.Count > 16) UIK.Txt(irow, "+" + (list.Count - 16), 18, UIK.Dim);
         }
 
+        static System.Collections.IEnumerator FadeIn(CanvasGroup cg)
+        {
+            for (float t = 0f; t < 0.5f && cg; t += Time.unscaledDeltaTime) { cg.alpha = t / 0.5f; yield return null; }
+            if (cg) cg.alpha = 1f;
+        }
+
         public void ShowGameOver(RunSummary s)
         {
             screen = UIScreen.GameOver;
+            HideHint();
             var o = Overlay(0.85f);
+            var ocg = o.gameObject.AddComponent<CanvasGroup>(); ocg.alpha = 0f;
+            StartCoroutine(FadeIn(ocg));
             Title(o, s.win ? "PHI THĂNG THÀNH TIÊN!" : "THÂN TỬ ĐẠO TIÊU", 140, 84, s.win ? UIK.Gold : new Color(1f, 0.4f, 0.4f));
             var sub = UIK.Txt(o, s.charName + "   ·   Kiếp " + s.kiep, 30, UIK.Dim, TextAnchor.MiddleCenter, FontStyle.Italic);
             sub.rectTransform.Place(0.5f, 1, 1000, 44, 0, -250);
             var panel = UIK.Img(o, UIK.Panel, "sum");
-            panel.rectTransform.Place(0.5f, 0.5f, 820, 500, 0, -50);   // starts below the character · Kiếp subtitle
+            panel.rectTransform.Place(0.5f, 1f, 820, 100, 0, -300);   // hangs below the character · Kiếp subtitle and grows with its content
             UIK.VL(panel.gameObject, 8, 24, TextAnchor.UpperCenter);
+            panel.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             UIK.Txt(panel.transform, (s.win ? "Vượt qua cả 20 đợt" : "Gục ngã ở đợt " + s.wave), 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
             UIK.Txt(panel.transform, "Cảnh giới: <color=#7CF0FF>" + Content.Realm(s.level) + "</color>", 26, UIK.Dim);
             UIK.Txt(panel.transform, "Kẻ địch bị diệt: <color=#FFFFFF>" + s.kills + "</color>", 26, UIK.Dim);
             UIK.Txt(panel.transform, "Tổng sát thương: <color=#FFFFFF>" + Mathf.RoundToInt(s.dmgDealt) + "</color>   ·   Đòn mạnh nhất: <color=#FFFFFF>" + Mathf.RoundToInt(s.bestHit) + "</color>", 24, UIK.Dim);
-            UIK.Txt(panel.transform, "Liên Sát cao nhất: <color=#FFD266>x" + s.bestCombo + "</color>", 24, UIK.Dim);
+            UIK.Txt(panel.transform, "Sát thương Thần Thông: <color=#FFFFFF>" + Mathf.RoundToInt(s.skillDmg) + "</color>", 24, UIK.Dim);
+            UIK.Txt(panel.transform, "Liên Sát cao nhất: <color=#FFD266>x" + s.bestCombo + "</color>   ·   Thời gian chơi: <color=#FFFFFF>" + (int)(s.playTime / 60) + ":" + ((int)s.playTime % 60).ToString("00") + "</color>", 24, UIK.Dim);
             UIK.Txt(panel.transform, "+" + s.daoHanh + " Đạo Hạnh", 40, UIK.Gold, TextAnchor.MiddleCenter, FontStyle.Bold);
             foreach (var u in s.unlocks) UIK.Txt(panel.transform, u, 26, new Color(1f, 0.75f, 0.3f), TextAnchor.MiddleCenter, FontStyle.Bold);
             BuildRecap(panel.transform, Game.I.run);

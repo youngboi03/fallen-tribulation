@@ -55,6 +55,7 @@ namespace VK
         public int skillStage;
         public List<string> skillCards = new List<string>();
         public float skillDmg;
+        public float playTime;   // seconds of actual play (not paused, not in cutscenes)
         public float dmgEff, skillEff;   // damage capped at the target's remaining HP (no overkill): all hits / Thần Thông hits
         public Dictionary<string, float> skillDmgBy = new Dictionary<string, float>();
         public int stageUpWave = -1;

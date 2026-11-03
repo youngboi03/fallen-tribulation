@@ -81,6 +81,8 @@ namespace VK
             }
         }
 
+        public Transform View => tf;
+
         public void DestroyView() { if (tf) Object.Destroy(tf.gameObject); tf = null; }
 
         public void Drop()

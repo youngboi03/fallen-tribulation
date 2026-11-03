@@ -1032,6 +1032,32 @@ namespace VK
             c.testMode = false;
         }
 
+        IEnumerator T_endshot_lose()   // screenshots: the moment of death, then the run summary
+        {
+            yield return Arena(0, 12, 0); var g = Game.I;
+            g.endSeq.testMode = true; g.OnPlayerDeath();
+            yield return new WaitForSecondsRealtime(1.2f); g.bot.Shot("end_death");
+            yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_death_title");
+            float w = 0f; while (g.ui.screen != UIScreen.GameOver && w < 8f) { yield return null; w += Time.unscaledDeltaTime; }
+            Check("end_lose_summary", g.ui.screen == UIScreen.GameOver && Mathf.Approximately(Time.timeScale, 1f), Time.timeScale.ToString());
+            yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_lose");
+            yield return new WaitForSecondsRealtime(0.3f);   // the capture happens at the end of the frame: do not let the next test start first
+            g.endSeq.testMode = false;
+        }
+
+        IEnumerator T_endshot_win()
+        {
+            yield return Arena(0, 20, 0); var g = Game.I;
+            g.endSeq.testMode = true; g.endSeq.Play(true, () => g.FinishRun(true));
+            yield return new WaitForSecondsRealtime(1.0f); g.bot.Shot("end_win_seq");
+            yield return new WaitForSecondsRealtime(1.0f); g.bot.Shot("end_win_title");
+            float w = 0f; while (g.ui.screen != UIScreen.GameOver && w < 8f) { yield return null; w += Time.unscaledDeltaTime; }
+            Check("end_win_summary", g.ui.screen == UIScreen.GameOver && Mathf.Approximately(Time.timeScale, 1f), Time.timeScale.ToString());
+            yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_win");
+            yield return new WaitForSecondsRealtime(0.3f);   // the capture happens at the end of the frame: do not let the next test start first
+            g.endSeq.testMode = false;
+        }
+
         IEnumerator T_introshot()   // screenshot of the first-meeting boss card
         {
             yield return BossArena("b1", 0, 5); var b = boss.brain; var c = Game.I.cinema;
