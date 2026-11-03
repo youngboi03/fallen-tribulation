@@ -243,7 +243,7 @@ namespace VK
             save.bestWave = Mathf.Max(save.bestWave, n);
             player.ResetForWave();
             SnapCamera();
-            foreach (var w in run.weapons) w.cd = UnityEngine.Random.Range(0.1f, 0.4f);
+            foreach (var w in run.weapons) { w.cd = UnityEngine.Random.Range(0.1f, 0.4f); w.ResetForWave(player.Pos); }
             int region = (n - 1) / 5;
             bool newRegion = region != arena.Theme;
             arena.SetTheme(region, n == 1);

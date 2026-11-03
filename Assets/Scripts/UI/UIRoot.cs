@@ -976,7 +976,7 @@ namespace VK
                 safe.SetLabel("<b>Đường Bằng ▶</b>\n<size=17>Bình thường</size>");
                 safe.GetComponent<RectTransform>().Place(1, 0, 380, 80, -24, 136);
                 var risk = UIK.Btn(o, "", () => { selWeapon = null; Game.I.NextWave(ro); }, UIK.BtnRed, 26);
-                risk.SetLabel("<b>Đường Hiểm: " + Content.RouteName[ro] + " ▶</b>\n<size=17>" + Content.RouteDesc[ro] + "</size>");
+                risk.SetLabel("<b>Đường Hiểm ▶</b>\n<size=20>" + Content.RouteName[ro] + "</size>\n<size=16>" + Content.RouteDesc[ro] + "</size>");
                 risk.GetComponent<RectTransform>().Place(1, 0, 380, 96, -24, 30);
             }
         }

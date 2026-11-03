@@ -973,6 +973,17 @@ namespace VK
             c.testMode = false;
         }
 
+        IEnumerator T_weapon_out()   // idle weapons point away from the hero, also right after the wave reset
+        {
+            yield return Arena(0, 3, 0); var g = Game.I; var r = g.run;
+            foreach (var d in Content.Weapons) r.AddWeapon(d, 0);
+            yield return new WaitForSeconds(0.6f);
+            g.player.ResetForWave(); yield return new WaitForSeconds(0.05f);
+            var bad = new List<string>();
+            foreach (var w in r.weapons) if (w.OutDot(g.player.Pos) < 0.7f) bad.Add(w.def.id + " " + w.OutDot(g.player.Pos).ToString("0.00"));
+            Check("weapon_points_out", bad.Count == 0, string.Join(", ", bad));
+        }
+
         IEnumerator T_cine_k0()   // Kiếp 0: no Kiếp Biến, only the grace period
         {
             yield return BossArena("b2", 0, 10); var b = boss.brain; var c = Game.I.cinema;

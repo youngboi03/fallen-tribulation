@@ -94,6 +94,19 @@ namespace VK
 
         void SetRot(Vector2 d) => tf.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - Res.SpriteAngle(def.sprite));
 
+        /// <summary>Cosine between where the art points and the direction from <paramref name="from"/> to the weapon (1 = pointing straight out).</summary>
+        public float OutDot(Vector2 from) { if (!tf) return 0f; float a = (tf.eulerAngles.z + Res.SpriteAngle(def.sprite)) * Mathf.Deg2Rad; return Vector2.Dot(new Vector2(Mathf.Cos(a), Mathf.Sin(a)), ((Vector2)tf.position - from).normalized); }
+
+        /// <summary>New wave: drop any half-finished attack and face outward from the hero.</summary>
+        public void ResetForWave(Vector2 heroPos)
+        {
+            anim = 0; at = 0;
+            if (!tf) return;
+            Vector2 d = (Vector2)tf.position - heroPos;
+            aimDir = d.sqrMagnitude > 0.01f ? d.normalized : Vector2.up;
+            SetRot(aimDir);
+        }
+
         static float EaseOut(float k) => 1f - (1f - k) * (1f - k);
         static float EaseIn(float k) => k * k;
 
