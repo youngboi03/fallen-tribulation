@@ -755,9 +755,7 @@ namespace VK
         // ================================================================== Codex (Đồ Giám)
         public void ShowCodex()
         {
-            screen = UIScreen.Codex;
-            var o = Overlay(0.93f);
-            Title(o, "Đồ Giám", 50, 60);
+            var o = CodexFrame(false);
             var pct = UIK.Txt(o, "Đã ghi chép: <color=#7CF0FF><b>" + Save.CodexSeen() + "/" + SaveData.CodexTotal + "</b></color>", 28, UIK.Dim);
             pct.rectTransform.Place(0.5f, 1, 1000, 40, 0, -125);
             var body = UIK.R(o, "body").Place(0.5f, 1, 1500, 760, 0, -175);
@@ -806,9 +804,55 @@ namespace VK
                 return ("e:" + e.id, Res.Tile(e.sprite), e.tint, e.name + (isBoss ? " — BOSS" : e.elite ? " — tinh anh" : ""),
                     "Máu gốc " + e.hp + "  ·  Sát thương " + e.dmg + (e.minWave > 1 && !isBoss ? "  ·  xuất hiện từ đợt " + e.minWave : ""));
             });
+        }
 
-            var back = UIK.Btn(o, "Quay Lại", ShowMenu, UIK.BtnGrey, 26);
-            back.GetComponent<RectTransform>().Place(0, 0, 240, 64, 40, 36);
+        /// <summary>What both codex tabs share: title, the tab buttons and Quay Lại.</summary>
+        RectTransform CodexFrame(bool skills)
+        {
+            screen = UIScreen.Codex;
+            var o = Overlay(0.93f);
+            Title(o, "Đồ Giám", 50, 60);
+            UIK.Btn(o, "Ghi Chép", ShowCodex, skills ? UIK.BtnGrey : UIK.BtnGold, 26).GetComponent<RectTransform>().Place(1, 1, 200, 64, -256, -36);
+            UIK.Btn(o, "Thần Thông", () => ShowCodexSkills(), skills ? UIK.BtnGold : UIK.BtnGrey, 26).GetComponent<RectTransform>().Place(1, 1, 200, 64, -40, -36);
+            UIK.Btn(o, "Quay Lại", ShowMenu, UIK.BtnGrey, 26).GetComponent<RectTransform>().Place(0, 0, 240, 64, 40, 36);
+            return o;
+        }
+
+        /// <summary>Thần Thông tab: only unlocked characters, only the stages <see cref="SaveData.charBestStage"/> has reached.</summary>
+        public void ShowCodexSkills(int ci = -1)
+        {
+            if (ci < 0) ci = selChar;
+            if (!Content.CharUnlocked(ci, Save)) ci = 0;
+            var o = CodexFrame(true);
+            var sub = UIK.Txt(o, "Mỗi lần diệt boss, Thần Thông tiến một giai.", 24, UIK.Dim);
+            sub.rectTransform.Place(0.5f, 1, 1000, 40, 0, -125);
+
+            var list = UIK.R(o, "chars").Place(0, 1, 300, 760, 40, -175);
+            UIK.VL(list.gameObject, 12, 0, TextAnchor.UpperCenter);
+            for (int i = 0; i < Content.Chars.Count; i++)
+            {
+                if (!Content.CharUnlocked(i, Save)) continue;
+                int pick = i;
+                var b = UIK.Btn(list, Content.Chars[i].name, () => ShowCodexSkills(pick), i == ci ? UIK.BtnGold : UIK.BtnGrey, 28, -1, 84);
+                if (i == ci) PadDefault.Mark(b);
+            }
+
+            var c = Content.Chars[ci];
+            var rows = UIK.R(o, "stages").Place(1, 1, 1520, 760, -40, -175);
+            UIK.VL(rows.gameObject, 10, 0, TextAnchor.UpperLeft);
+            string hex = "#" + ColorUtility.ToHtmlStringRGB(c.skillColor);
+            for (int s = 0; s <= 3; s++)
+            {
+                bool known = s <= Save.charBestStage[ci];
+                var row = UIK.Img(rows, known ? UIK.Panel2 : new Color(0.11f, 0.08f, 0.06f), "stage");
+                UIK.LE(row.gameObject, -1, 180);
+                if (known) UIK.Border(row.gameObject, new Color(1f, 0.82f, 0.4f, 0.5f), 1);
+                string head = "<b><color=#FFD266>" + Skills.StageLabel(s) + "</color>   ";
+                string change = s == 0 ? "Dạng khởi đầu." : "So với " + Skills.StageLabel(s - 1) + ": " + c.forms[s - 1].desc;
+                string txt = !known ? head + "???</b>\n<size=22><color=#8A8499>Chưa đạt.</color></size>"
+                    : head + "<color=" + hex + ">" + Skills.FormName(c, s) + "</color></b>\n<size=23>" + (s == 0 ? c.skillDesc : c.forms[s - 1].full) + "</size>\n<size=21><color=#7CF0FF>" + change + "</color></size>";
+                UIK.Txt(row.transform, txt, 30, known ? Color.white : UIK.Dim, TextAnchor.MiddleLeft).rectTransform.Anchor(0, 0, 1, 1, 24, 6, 24, 6);
+            }
         }
 
         // ================================================================== Stats & synergy panels

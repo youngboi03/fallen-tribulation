@@ -385,3 +385,23 @@ Dơi Nhỏ|Small Bat|小蝠
 Chiến Kỳ|War Banner|战旗
 Kiếp Biến|Tribulation Mutation|劫变
 Ma Thân|Demon Body|魔身
+
+# Thần Thông trong Đồ Giám: mô tả đầy đủ từng giai
+12 phi kiếm tự tìm địch; hết đà quay về người, chém thêm lần nữa|12 homing flying swords; when spent they fly back and strike again|12柄飞剑自动追敌，力竭后飞回身边再斩一次
+16 phi kiếm tự tìm địch, quay về chém thêm rồi xoay quanh người 2 giây, chém quái chạm vào|16 homing flying swords that strike again on return, then orbit you for 2 seconds and cut whatever touches them|16柄飞剑自动追敌，飞回再斩，并环绕周身2秒，斩击触碰之敌
+16 phi kiếm quay về xoay quanh người 2 giây; một cự kiếm rơi xuống chỗ quái đông nhất, nổ vùng lớn|16 flying swords return and orbit you for 2 seconds; a giant sword falls on the biggest crowd and explodes in a wide area|16柄飞剑飞回环绕周身2秒；巨剑落于敌群最密处，大范围爆炸
+Nổ lửa quanh thân, hồi 25% máu; 4 viên đan lửa bay tới quái ngoài vùng nổ|Fire blast around you, heal 25% HP; 4 fire pills fly at enemies outside the blast|周身爆炎，回复25%生命；4枚火丹飞向爆炸范围外的敌人
+Vùng nổ rộng hơn, hồi 25% máu, 4 viên đan lửa; xoá đạn địch và giảm 30% sát thương nhận vào 3 giây|Wider blast, heal 25% HP, 4 fire pills; clears enemy bullets and reduces damage taken by 30% for 3 seconds|爆炸范围更大，回复25%生命，4枚火丹；清除敌弹，3秒内受到伤害降低30%
+Vùng nổ rộng, hồi 25% máu, 4 viên đan lửa, xoá đạn địch, giảm 30% sát thương 3 giây; nổ thêm 2 đợt liên tiếp quanh người|Wide blast, heal 25% HP, 4 fire pills, clears enemy bullets, 30% less damage for 3 seconds; 2 more blasts in a row around you|大范围爆炸，回复25%生命，4枚火丹，清除敌弹，3秒减伤30%；周身再连爆2次
+Bất tử 2 giây; sóng chấn rộng hơn đẩy lùi và choáng địch 1 giây|Invulnerable for 2 seconds; a wider shockwave knocks back and stuns enemies for 1 second|不死2秒；震波范围更大，击退并眩晕敌人1秒
+Bất tử 2 giây; sóng chấn rộng đẩy lùi, choáng địch; 4 đường nứt lan ra từ người, choáng địch|Invulnerable for 2 seconds; a wide shockwave knocks back and stuns; 4 fissures spread from you and stun|不死2秒；大范围震波击退并眩晕敌人；4道裂隙自身蔓延，眩晕敌人
+Bất tử 3 giây; sóng chấn và 4 đường nứt choáng địch; hết giờ thì dư chấn nổ lớn|Invulnerable for 3 seconds; shockwave and 4 fissures stun enemies; a huge aftershock when it ends|不死3秒；震波与4道裂隙眩晕敌人；结束时余震大爆炸
+Đóng băng địch quanh thân 2.5 giây, chúng nhận thêm 30% ST; 6 lá bùa bay tới quái ngoài vùng, đóng băng|Freeze nearby enemies for 2.5 seconds, they take 30% more damage; 6 talismans fly at enemies outside the area and freeze them|冰冻周身敌人2.5秒，其受到伤害增加30%；6张符飞向范围外的敌人并冰冻
+Đóng băng quanh thân và bằng 6 lá bùa, thêm 30% ST; quái hết băng sẽ nổ lên quái xung quanh|Freeze around you and with 6 talismans, 30% more damage; frozen enemies burst onto their neighbors when they thaw|周身与6张符冰冻敌人，伤害增加30%；解冻时爆炸波及周围敌人
+Đóng băng vùng 8 ô và bằng 6 lá bùa, quái chịu thêm 50% sát thương; hết băng thì nổ lên quái xung quanh|Freeze an 8-tile area and with 6 talismans, enemies take 50% more damage and burst onto their neighbors when they thaw|冰冻8格范围并以6张符冰冻，敌人受到伤害增加50%；解冻时爆炸波及周围敌人
+Hiến 15% máu: 5 giây +60% ST, +25% hút máu; khi thi triển, vòng máu nổ quanh thân|Sacrifice 15% HP: 5 seconds of +60% damage and +25% lifesteal; a blood ring bursts around you on cast|献祭15%生命：5秒内伤害+60%、吸血+25%；施放时血环在周身爆开
+Hiến 15% máu: 5 giây +60% ST, +25% hút máu, vòng máu nổ; 1.5 giây đầu giảm 40% sát thương, diệt quái kéo dài hiến tế|Sacrifice 15% HP: 5 seconds of +60% damage and +25% lifesteal, blood ring; 40% less damage for the first 1.5 seconds, kills extend the rite|献祭15%生命：5秒内伤害+60%、吸血+25%，血环爆开；前1.5秒减伤40%，击杀延长献祭
+Hiến 15% máu: 5 giây +60% ST, +40% hút máu, vòng nổ lớn hơn; 1.5 giây đầu giảm 40% sát thương, diệt quái kéo dài hiến tế|Sacrifice 15% HP: 5 seconds of +60% damage and +40% lifesteal, a bigger ring; 40% less damage for the first 1.5 seconds, kills extend the rite|献祭15%生命：5秒内伤害+60%、吸血+40%，血环更大；前1.5秒减伤40%，击杀延长献祭
+Gọi 8 tia sét lên kẻ địch gần nhất, choáng 1 giây; mỗi tia nảy sang 2 quái gần đó|Call 8 lightning bolts on the nearest enemies, stun for 1 second; each bolt jumps to 2 nearby enemies|召唤8道雷电劈向最近的敌人，眩晕1秒；每道跳向附近2个敌人
+8 tia sét nảy sang quái gần đó, choáng 1 giây; vùng sấm đi theo người 4 giây, liên tục giật quái bên trong|8 jumping lightning bolts, stun for 1 second; a thunder field follows you for 4 seconds, shocking enemies inside|8道雷电跳跃，眩晕1秒；雷域随身4秒，持续电击其中敌人
+12 tia sét nảy sang quái gần đó, vùng sấm theo người 4 giây; một cột sét lớn đánh quái cứng nhất|12 jumping lightning bolts, a thunder field for 4 seconds; a great lightning pillar strikes the toughest enemy|12道雷电跳跃，雷域随身4秒；巨大雷柱轰击最强韧的敌人

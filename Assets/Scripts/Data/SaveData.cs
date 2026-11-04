@@ -15,6 +15,7 @@ namespace VK
         public List<string> tips = new List<string>();      // tutorial hints already shown   // "w:id", "i:id", "e:id"
         public bool tipsAll;                                // the player asked to see the hints again after the first run
         public int[] charWinKiep = { -1, -1, -1, -1, -1, -1 };   // highest kiếp won per character
+        public int[] charBestStage = new int[6];   // highest Thần Thông stage (0-3) ever reached per character
         public float sfxVol = 0.8f, musicVol = 0.5f, shake = 1f;
         public bool fullscreen, vsyncOff;   // display options (defaults: windowed, vsync on)
         public int winSize = 1;             // 0 1280x720, 1 1600x900, 2 1920x1080
@@ -38,6 +39,13 @@ namespace VK
                 for (int i = 0; i < nc; i++) w[i] = d.charWinKiep != null && i < d.charWinKiep.Length ? d.charWinKiep[i] : -1;
                 d.charWinKiep = w;
             }
+            if (d.charBestStage == null || d.charBestStage.Length != nc)
+            {
+                var b = new int[nc];
+                for (int i = 0; i < nc; i++) b[i] = d.charBestStage != null && i < d.charBestStage.Length ? d.charBestStage[i] : 0;
+                d.charBestStage = b;
+            }
+            for (int i = 0; i < nc; i++) if (d.charWinKiep[i] >= 0) d.charBestStage[i] = 3;   // saves from before this field: a win needs the bosses of waves 5, 10 and 15
             if (d.ach == null) d.ach = new List<string>();
             if (d.codex == null) d.codex = new List<string>();
             if (d.tips == null) d.tips = new List<string>();
@@ -50,6 +58,7 @@ namespace VK
             Platform.Services.SaveString(Key, JsonUtility.ToJson(this));
         }
 
+        public void NoteStage(int ci, int stage) { charBestStage[ci] = Mathf.Max(charBestStage[ci], stage); }
         public bool Has(string a) => ach.Contains(a);
         public bool Seen(string key) => codex.Contains(key);
         public void See(string key) { if (!codex.Contains(key)) codex.Add(key); }

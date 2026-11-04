@@ -38,7 +38,7 @@ namespace VK
         public bool elite;
     }
 
-    public class SkillForm { public string name, desc; }
+    public class SkillForm { public string name, desc, full; }   // desc: what changes from the stage before; full: the whole form (codex)
 
     public class CharDef
     {

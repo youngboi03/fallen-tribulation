@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace VK
 {
-    /// <summary>Profiles, the erase-progress dialog and the boss portrait upscale (prefix "prof"), plus the old-look intro card shot.</summary>
+    /// <summary>Profiles, the erase-progress dialog and the boss portrait upscale (prefix "prof"), the old-look intro card shot, and the codex Thần Thông tab (prefix "cdx").</summary>
     public partial class SkillTest
     {
         static Button BtnByLabel(string label, bool onlyUsable = false)
@@ -141,6 +141,108 @@ namespace VK
             Click("Tạo hồ sơ"); yield return new WaitForSecondsRealtime(0.4f); ui.NameField.text = "Vân Hạc"; yield return null; g.bot.Shot("prof_name_entry"); yield return new WaitForSecondsRealtime(0.3f);
             ui.ShowMenu(); yield return new WaitForSecondsRealtime(0.4f); g.bot.Shot("prof_menu"); yield return new WaitForSecondsRealtime(0.3f);
             g.save.daoHanh = 0; g.save.runs = 0; g.save.bestWave = 0; g.save.wins = 0; g.save.Save();
+        }
+
+        // ---------------------------------------------------------------- Đồ Giám: tab Thần Thông, charBestStage (prefix "cdx")
+        IEnumerator T_cdx_a_save()
+        {
+            yield return Arena(2, 5, 0); var g = Game.I;
+            string realSave = PlayerPrefs.GetString("vk_save_v1", "#none"), realIdx = PlayerPrefs.GetString("vk_profiles", "#none");
+            Check("cdx_keys_autotest", SaveData.Key.StartsWith("vk_save_autotest"), SaveData.Key);
+
+            // a save written before the field existed: a win implies the bosses of waves 5, 10, 15; other progress stays
+            var old = new SaveData(); old.charWinKiep[1] = 2; old.daoHanh = 42; old.codex.Add("w:x");
+            string json = System.Text.RegularExpressions.Regex.Replace(JsonUtility.ToJson(old), "\"charBestStage\":\\[[^\\]]*\\],", "");
+            const string k = "vk_save_autotest_cdx";
+            Platform.Services.SaveString(k, json);
+            var d = SaveData.Load(k);
+            Check("cdx_old_save", !json.Contains("charBestStage") && d.charBestStage.Length == Content.Chars.Count && d.charBestStage[0] == 0 && d.charBestStage[1] == 3 && d.daoHanh == 42 && d.Seen("w:x") && d.charWinKiep[1] == 2, string.Join(",", d.charBestStage));
+            Platform.Services.SaveString(k, json.Replace("\"daoHanh\":42,", "\"daoHanh\":42,\"charBestStage\":[2],"));
+            d = SaveData.Load(k);
+            Check("cdx_short_array", d.charBestStage.Length == Content.Chars.Count && d.charBestStage[0] == 2 && d.charBestStage[1] == 3, string.Join(",", d.charBestStage));
+            Platform.Services.DeleteKey(k);
+            d.NoteStage(0, 1); Check("cdx_note_keeps_max", d.charBestStage[0] == 2, d.charBestStage[0] + "");
+            d.NoteStage(0, 3); Check("cdx_note_raises", d.charBestStage[0] == 3, d.charBestStage[0] + "");
+
+            // profiles: each keeps its own, a reset clears it
+            g.save.charBestStage[1] = 2; g.save.Save();
+            var p2 = Profiles.Create(1, "Cdx", g.save);
+            Check("cdx_profile_fresh", p2.charBestStage[1] == 0, "");
+            g.save = Profiles.Switch(0, p2);
+            Check("cdx_profile_kept", g.save.charBestStage[1] == 2, "");
+            Profiles.Delete(1);
+            g.save = Profiles.ResetProgress(g.save);
+            Check("cdx_reset_clears", g.save.charBestStage[1] == 0 && SaveData.Load().charBestStage[1] == 0, "");
+
+            // a boss kill records the stage at once, for the character played, and never lowers it
+            var b = BossAt(new Vector2(0, 4), 0);
+            b.Damage(b.hp + 1f, false, Vector2.zero, 0f, null); yield return new WaitForSeconds(0.2f);
+            Check("cdx_boss_records", g.save.charBestStage[2] == 1 && g.save.charBestStage[0] == 0 && SaveData.Load().charBestStage[2] == 1, g.save.charBestStage[2] + "");
+            g.save.charBestStage[2] = 3;
+            yield return Arena(2, 5, 0); b = BossAt(new Vector2(0, 4), 0);
+            b.Damage(b.hp + 1f, false, Vector2.zero, 0f, null); yield return new WaitForSeconds(0.2f);
+            Check("cdx_boss_no_lower", g.save.charBestStage[2] == 3, g.save.charBestStage[2] + "");
+            g.save.charBestStage[2] = 0; g.save.Save();
+            Check("cdx_real_keys_untouched", PlayerPrefs.GetString("vk_save_v1", "#none") == realSave && PlayerPrefs.GetString("vk_profiles", "#none") == realIdx, "");
+        }
+
+        IEnumerator T_cdx_b_ui()
+        {
+            yield return Arena(0, 5, 0); var g = Game.I; var ui = g.ui; g.state = GState.Menu;   // PadNav only works on menu screens
+            int lang0 = g.save.lang; ui.ApplyLanguage(Loc.VI); ui.HideHint(); yield return null;
+            var s = g.save; int bw = s.bestWave, tk = s.totalKills, bl = s.bestLevel, wn = s.wins; var bs = (int[])s.charBestStage.Clone();
+            s.bestWave = 0; s.totalKills = 0; s.bestLevel = 0; s.wins = 0; System.Array.Clear(s.charBestStage, 0, s.charBestStage.Length);
+            var ch = Content.Chars; var f = ch[0].forms;
+
+            ui.ShowCodexSkills(0); yield return null;
+            Check("cdx_stage1_only", ui.screen == UIScreen.Codex && UiCount(ch[0].skill) >= 1 && UiCount("Dạng khởi đầu.") == 1 && UiCount("???") == 3 && UiCount(f[0].name) == 0 && UiCount(f[0].full) == 0 && UiCount(f[0].desc) == 0, UiCount("???") + "");
+            s.charBestStage[0] = 1; ui.ShowCodexSkills(0); yield return null;
+            Check("cdx_stage2_shown", UiCount(f[0].name) == 1 && UiCount(f[0].full) == 1 && UiCount("So với Giai I: " + f[0].desc) == 1, "");
+            Check("cdx_stage3_hidden", UiCount("???") == 2 && UiCount(f[1].name) == 0 && UiCount(f[1].full) == 0 && UiCount(f[1].desc) == 0 && UiCount(f[2].name) == 0 && UiCount(f[2].full) == 0, UiCount("???") + "");
+            s.charBestStage[0] = 3; ui.ShowCodexSkills(0); yield return null;
+            Check("cdx_all_stages", UiCount("???") == 0 && UiCount(f[2].name) == 1 && UiCount(f[2].full) == 1 && UiCount("So với Giai III: " + f[2].desc) == 1, "");
+
+            for (int i = 1; i < ch.Count; i++) Check("cdx_locked_hidden_" + i, BtnByLabel(ch[i].name) == null && UiCount(ch[i].skill) == 0, ch[i].name);
+            ui.ShowCodexSkills(4); yield return null;
+            Check("cdx_locked_arg_falls_back", UiCount(ch[4].skill) == 0 && UiCount(ch[0].skill) >= 1, "");
+
+            // pad: first press lands on the shown character, down goes to the next one, A opens it; its own stages apply
+            s.bestWave = 5; ui.ShowCodexSkills(0); yield return null;
+            var nav = g.GetComponent<PadNav>(); nav.Hide(); nav.Forget(); nav.Navigate(Vector2.right); yield return null;
+            Check("cdx_pad_default", SelLabel(nav) == ch[0].name, SelLabel(nav));
+            nav.Navigate(Vector2.down); yield return null;
+            Check("cdx_pad_next", SelLabel(nav) == ch[1].name, SelLabel(nav));
+            nav.Submit(); yield return null;
+            Check("cdx_pad_opens", UiCount(ch[1].skill) >= 1 && UiCount(ch[1].skillDesc) >= 1 && UiCount("???") == 3, UiCount("???") + "");
+            nav.Navigate(Vector2.up); nav.Navigate(Vector2.up); yield return null;
+            Check("cdx_pad_reaches_tabs", SelLabel(nav) == "Ghi Chép" || SelLabel(nav) == "Thần Thông", SelLabel(nav));
+
+            // the tabs (a tap and a click are the same onClick)
+            Click("Ghi Chép"); yield return null;
+            Check("cdx_tab_records", ui.screen == UIScreen.Codex && UiCount("Đã ghi chép") == 1 && UiCount("VŨ KHÍ") == 1, "");
+            Click("Thần Thông"); yield return null;
+            Check("cdx_tab_skills", UiCount("Đã ghi chép") == 0 && UiCount("Dạng khởi đầu.") == 1, "");
+            Click("Quay Lại"); yield return null;
+            Check("cdx_back", ui.screen == UIScreen.Menu, ui.screen + "");
+
+            s.bestWave = bw; s.totalKills = tk; s.bestLevel = bl; s.wins = wn; s.charBestStage = bs;
+            ui.ApplyLanguage(lang0); ui.ShowMenu(); yield return null;
+        }
+
+        IEnumerator T_cdx_c_shots()
+        {
+            yield return Arena(0, 5, 0); var g = Game.I; var ui = g.ui; g.state = GState.Menu;
+            var s = g.save; int bw = s.bestWave, lang0 = s.lang; var bs = (int[])s.charBestStage.Clone();
+            s.bestWave = 5; s.charBestStage[0] = 1; s.charBestStage[1] = 3;
+            int[] langs = { Loc.VI, Loc.EN, Loc.ZH }; string[] tag = { "vi", "en", "zh" };
+            for (int i = 0; i < 3; i++)
+            {
+                ui.ApplyLanguage(langs[i]); ui.HideHint();
+                ui.ShowCodexSkills(0); yield return new WaitForSecondsRealtime(0.5f); g.bot.Shot("cdx_kiem_" + tag[i]); yield return new WaitForSecondsRealtime(0.3f);
+                ui.ShowCodexSkills(1); yield return new WaitForSecondsRealtime(0.5f); g.bot.Shot("cdx_dan_" + tag[i]); yield return new WaitForSecondsRealtime(0.3f);
+            }
+            ui.ApplyLanguage(Loc.VI); ui.ShowCodex(); yield return new WaitForSecondsRealtime(0.5f); g.bot.Shot("cdx_records"); yield return new WaitForSecondsRealtime(0.3f);
+            s.bestWave = bw; s.charBestStage = bs; ui.ApplyLanguage(lang0); ui.ShowMenu(); yield return null;
         }
     }
 }

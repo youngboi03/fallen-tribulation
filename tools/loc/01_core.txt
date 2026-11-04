@@ -351,3 +351,10 @@ Thiên Kiếm|Heaven Blade|天剑
 Mặc Trúc|Ink Bamboo|墨竹
 Kim Ô|Golden Crow|金乌
 Lăng Tiêu|Sky Piercer|凌霄
+
+# Đồ Giám: tab Thần Thông
+Ghi Chép|Records|记录
+Dạng khởi đầu.|Starting form.|初始形态。
+So với|Compared to|相比
+Chưa đạt.|Not reached yet.|尚未达到。
+Mỗi lần diệt boss, Thần Thông tiến một giai.|Every boss slain advances your Divine Art one stage.|每击败一个首领，神通进阶一阶。

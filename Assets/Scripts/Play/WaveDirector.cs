@@ -286,6 +286,7 @@ namespace VK
             if (boss != null) BossHazard.ClearOwner(boss);
             var run = Game.I.run;
             run.skillStage = Mathf.Min(3, run.skillStage + 1);   // Tiến Giai: every boss kill advances the skill one form (spec section 2)
+            Game.I.save.NoteStage(run.charIndex, run.skillStage); Game.I.save.Save();   // now, not at the end of the run: quitting must not lose it
             run.stageUpWave = run.wave; run.stageCallout = true;
             Game.I.player.Invuln(3f);
             ClearTeles();
