@@ -6,6 +6,7 @@
 
 ## Play
 Download the latest zip from the **Releases** page, unzip, run `FallenTribulation.exe` (Windows 64-bit). The game starts in a 1600x900 window; F11 toggles fullscreen.
+Android (8.0+, ARM64): install `FallenTribulation-v1.0-demo-android.apk` from the same release. Also on itch.io: https://youngboi03.itch.io/fallen-tribulation
 It speaks **English, Vietnamese and Chinese** (button at the top right of the menu; it follows your system language on first launch). A short tutorial appears the first time you play.
 
 | Key | Action |
