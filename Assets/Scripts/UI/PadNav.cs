@@ -56,7 +56,7 @@ namespace VK
             if (!menu) { Hide(); hasMem = false; return; }
 
             Vector2 mouse = Input.mousePosition;
-            if ((mouse - lastMouse).sqrMagnitude > 25f) { lastMouse = mouse; Hide(); }
+            if (g.bot == null && (mouse - lastMouse).sqrMagnitude > 25f) { lastMouse = mouse; Hide(); }   // bot/tests: a real mouse crossing the window must not clear the frame
 
             Vector2 dir = Vector2.zero;
             var es = UnityEngine.EventSystems.EventSystem.current; var cs = es != null ? es.currentSelectedGameObject : null;

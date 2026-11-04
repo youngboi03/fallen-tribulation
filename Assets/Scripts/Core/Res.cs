@@ -4,7 +4,7 @@ using UnityEngine;
 namespace VK
 {
     /// <summary>Loads Kenney sprites/audio from Resources and builds procedural textures.</summary>
-    public static class Res
+    public static partial class Res
     {
         static readonly Dictionary<int, Sprite> tiles = new Dictionary<int, Sprite>();
         static readonly Dictionary<string, AudioClip[]> clips = new Dictionary<string, AudioClip[]>();

@@ -44,6 +44,7 @@ namespace VK
         public static void Preload()
         {
             Get("menu"); Get("battle"); Get("boss"); Get("boss_climax");
+            foreach (var c in Resources.LoadAll<AudioClip>("Audio")) c.LoadAudioData();   // otherwise each sound decodes on its first play and lags the hit
             Res.RegisterClip("sk_chime", Synth.Chime()); Res.RegisterClip("sk_boom", Synth.Boom());
             Res.RegisterClip("sk_whoosh", Synth.Whoosh()); Res.RegisterClip("sk_choir", Synth.Choir());
         }

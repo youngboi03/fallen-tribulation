@@ -97,6 +97,7 @@ namespace VK
 
             Sfx.Init(gameObject);
             Sfx.Preload();
+            Res.PreloadVfx();
             Fx.Init();
             gameObject.AddComponent<MenuAmbience>();
             if (Platform.Touch) gameObject.AddComponent<TouchPad>();

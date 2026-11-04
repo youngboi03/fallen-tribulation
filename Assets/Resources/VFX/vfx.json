@@ -1,0 +1,211 @@
+{
+ "poison_pool": {
+  "frames": 32,
+  "w": 89,
+  "h": 86,
+  "pivot": [
+   45,
+   43
+  ],
+  "ms": 50,
+  "loop": "loop"
+ },
+ "burning_ground": {
+  "frames": 29,
+  "w": 88,
+  "h": 117,
+  "pivot": [
+   44,
+   76
+  ],
+  "ms": 42,
+  "loop": "loop"
+ },
+ "scorch": {
+  "frames": 24,
+  "w": 84,
+  "h": 72,
+  "pivot": [
+   44,
+   39
+  ],
+  "ms": 100,
+  "loop": "loop"
+ },
+ "flame_tuft": {
+  "frames": 22,
+  "w": 28,
+  "h": 41,
+  "pivot": [
+   14,
+   35
+  ],
+  "ms": 42,
+  "loop": "loop"
+ },
+ "poison_aura": {
+  "frames": 32,
+  "w": 51,
+  "h": 70,
+  "pivot": [
+   26,
+   60
+  ],
+  "ms": 50,
+  "loop": "loop"
+ },
+ "burn_aura": {
+  "frames": 29,
+  "w": 52,
+  "h": 59,
+  "pivot": [
+   26,
+   57
+  ],
+  "ms": 42,
+  "loop": "loop"
+ },
+ "meteor": {
+  "frames": 32,
+  "w": 240,
+  "h": 208,
+  "pivot": [
+   148,
+   184
+  ],
+  "ms": 50,
+  "loop": "none"
+ },
+ "acid_splash": {
+  "frames": 14,
+  "w": 100,
+  "h": 95,
+  "pivot": [
+   50,
+   80
+  ],
+  "ms": 33,
+  "loop": "none"
+ },
+ "ink_pool": {
+  "frames": 32,
+  "w": 89,
+  "h": 86,
+  "pivot": [
+   45,
+   43
+  ],
+  "ms": 50,
+  "loop": "loop"
+ },
+ "blood_pool": {
+  "frames": 32,
+  "w": 89,
+  "h": 86,
+  "pivot": [
+   45,
+   43
+  ],
+  "ms": 50,
+  "loop": "loop"
+ },
+ "violet_tuft": {
+  "frames": 22,
+  "w": 28,
+  "h": 41,
+  "pivot": [
+   14,
+   35
+  ],
+  "ms": 42,
+  "loop": "loop"
+ },
+ "blood_tuft": {
+  "frames": 22,
+  "w": 28,
+  "h": 41,
+  "pivot": [
+   14,
+   35
+  ],
+  "ms": 42,
+  "loop": "loop"
+ },
+ "rune_violet": {
+  "frames": 40,
+  "w": 99,
+  "h": 100,
+  "pivot": [
+   50,
+   51
+  ],
+  "ms": 100,
+  "loop": "loop"
+ },
+ "rune_gold": {
+  "frames": 40,
+  "w": 99,
+  "h": 100,
+  "pivot": [
+   50,
+   51
+  ],
+  "ms": 100,
+  "loop": "loop"
+ },
+ "rune_blood": {
+  "frames": 40,
+  "w": 99,
+  "h": 100,
+  "pivot": [
+   50,
+   51
+  ],
+  "ms": 100,
+  "loop": "loop"
+ },
+ "thunder": {
+  "frames": 15,
+  "w": 212,
+  "h": 262,
+  "pivot": [
+   106,
+   227
+  ],
+  "ms": 50,
+  "loop": "none"
+ },
+ "gold_smite": {
+  "frames": 13,
+  "w": 170,
+  "h": 174,
+  "pivot": [
+   85,
+   146
+  ],
+  "ms": 50,
+  "loop": "none"
+ },
+ "blood_rain": {
+  "frames": 20,
+  "w": 87,
+  "h": 126,
+  "pivot": [
+   32,
+   96
+  ],
+  "ms": 50,
+  "loop": "loop"
+ },
+ "blood_splash": {
+  "frames": 14,
+  "w": 100,
+  "h": 95,
+  "pivot": [
+   50,
+   80
+  ],
+  "ms": 33,
+  "loop": "none"
+ }
+}

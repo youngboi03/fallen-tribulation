@@ -77,7 +77,7 @@ namespace VK
             skillCd = 3f;
             sr.sprite = Res.Tile(c.sprite);
             transform.position = Vector3.zero;
-            dead = 0; ClearPose();
+            dead = 0; ClearPose(); ClearStatus();
             charId = c.id;
             anim.Base = sr.sprite;
             anim.Stop();
@@ -87,6 +87,7 @@ namespace VK
         {
             transform.position = Vector3.zero;
             vel = Vector2.zero; dashT = 0; dashCd = 0; iframe = 1f; dead = 0; goldT = 0; slowT = 0f; slowMul = 1f;
+            ClearStatus();
             skillCd = Mathf.Min(skillCd, 3f);
             ClearPose();
         }
@@ -151,6 +152,7 @@ namespace VK
             bool dashPressed = ReadDash();
             float spd = 5f * Mathf.Max(0.35f, 1f + run.stats[Stat.Speed] / 100f);
             if (slowT > 0f) slowT -= dt;
+            StatusUpdate(dt);
             dashCd -= dt; iframe -= dt; skillCd -= dt; goldT -= dt;
             if (run.riteT > 0) run.riteT -= dt;
             if (Game.T > 4f && run.wave == 1) g.ui.Hint("dash", GameInput.K("Nhấn <color=#FFD266>SPACE</color>", "Chạm nút <color=#FFD266>Lướt</color>", "Nhấn <color=#FFD266>(A)</color>") + " để lướt: bất tử trong lúc lướt, xuyên qua quái và đạn.");
@@ -281,7 +283,6 @@ namespace VK
             Fx.Burst(Pos, new Color(0.9f, 0.15f, 0.2f), 10, 5f);
             Fx.Shake(0.28f, 0.25f);
             Fx.Hitstop(0.07f);
-            Sfx.Play("hurt", 0.8f);
             g.ui.HurtFlash();
             if (run.hp <= 0 && run.level >= 30 && !run.guardUsed)
             {   // Nguyên Anh hộ chủ: the first lethal hit of a wave leaves 1 HP (before Bất Tử Phù)
@@ -327,8 +328,70 @@ namespace VK
             }
         }
 
+        // ------------------------------------------------------------------ status effects (boss pools / fire)
+        public const float PoisonLinger = 3f, BurnLinger = 1.5f, PoisonRate = 0.02f, BurnRate = 0.03f, StatusTickS = 0.5f;
+        /// <summary>Seconds left of Poison / Burn (they refresh, never stack) and the boss move that applied them.</summary>
+        public float poisonT, burnT;
+        string poisonMove, burnMove;
+        float statusAcc;
+        VfxFx poisonFx, burnFx;
+        bool tinted;
+
+        /// <summary>Sets Poison (kind 0) or Burn (kind 1) to at least its linger time; call every frame while standing in the source.</summary>
+        public void ApplyStatus(int kind, string moveId)
+        {
+            if (kind == 0) { if (poisonT <= 0f) statusAcc = 0f; poisonT = PoisonLinger; poisonMove = moveId; }
+            else { if (burnT <= 0f) statusAcc = 0f; burnT = BurnLinger; burnMove = moveId; }
+        }
+
+        public void ClearStatus()
+        {
+            poisonT = burnT = 0f; statusAcc = 0f;
+            if (poisonFx) { poisonFx.Stop(); poisonFx = null; }
+            if (burnFx) { burnFx.Stop(); burnFx = null; }
+            if (tinted && sr != null) { sr.color = Color.white; tinted = false; }
+        }
+
+        void StatusUpdate(float dt)
+        {
+            if (poisonT > 0f) poisonT -= dt;
+            if (burnT > 0f) burnT -= dt;
+            bool po = poisonT > 0f, bu = burnT > 0f;
+            if (po && !poisonFx) poisonFx = VfxFx.Play("poison_aura", Pos, 0.024f, 0f, 1, transform, new Vector2(0f, -0.42f));
+            if (!po && poisonFx) { poisonFx.Stop(); poisonFx = null; }
+            if (bu && !burnFx) burnFx = VfxFx.Play("burn_aura", Pos, 0.024f, 0f, 1, transform, new Vector2(0f, -0.42f));
+            if (!bu && burnFx) { burnFx.Stop(); burnFx = null; }
+            if (po || bu)
+            {
+                Color t = Color.white;
+                if (po) t = Color.Lerp(t, new Color(0.55f, 1f, 0.45f), 0.45f);
+                if (bu) t = Color.Lerp(t, new Color(1f, 0.62f, 0.4f), 0.4f);
+                sr.color = new Color(t.r, t.g, t.b, sr.color.a); tinted = true;
+            }
+            else if (tinted) { sr.color = new Color(1f, 1f, 1f, sr.color.a); tinted = false; }
+            statusAcc += (po || bu) ? dt : 0f;
+            while (statusAcc >= StatusTickS)
+            {
+                statusAcc -= StatusTickS;
+                if (po) StatusHit(PoisonRate * StatusTickS, poisonMove);
+                if (bu) StatusHit(BurnRate * StatusTickS, burnMove);
+            }
+        }
+
+        /// <summary>Damage over time of frac of max HP: skipped under god mode, i-frames and dash like a hazard hit; no knockback or i-frames of its own.</summary>
+        void StatusHit(float frac, string moveId)
+        {
+            var g = Game.I; var run = g.run;
+            if (god || iframe > 0 || dashT > 0 || g.state != GState.Playing) return;
+            run.hp -= run.MaxHP * frac;
+            Debug.Log("[BOSSHIT] " + (string.IsNullOrEmpty(moveId) ? "status" : moveId) + " pct=" + frac.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture));
+            if (run.hp <= 0f && run.level >= 30 && !run.guardUsed) { run.guardUsed = true; run.hp = 1f; iframe = 1f; return; }
+            if (run.hp <= 0f) { run.hp = 0f; g.OnPlayerDeath(); }
+        }
+
         public void Revive()
         {
+            ClearStatus();
             iframe = 2.5f;
             Fx.Ring(Pos, new Color(1f, 0.85f, 0.4f), 0.3f, 7f, 0.9f);
             Fx.Burst(Pos, new Color(1f, 0.85f, 0.4f), 50, 10f, 0.2f, 1f, true);
@@ -339,7 +402,7 @@ namespace VK
 
         public void Die()
         {
-            dead = 0.001f;
+            dead = 0.001f; ClearStatus();
             Fx.Burst(Pos, new Color(0.9f, 0.15f, 0.2f), 30, 7f, 0.18f, 0.8f);
             Fx.Hitstop(0.2f);
             foreach (var w in Game.I.run.weapons) w.Drop();

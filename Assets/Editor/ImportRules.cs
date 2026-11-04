@@ -9,10 +9,23 @@ namespace VK.EditorTools
     /// </summary>
     public class ImportRules : AssetPostprocessor
     {
-        public override uint GetVersion() => 4;
+        public override uint GetVersion() => 5;
 
         void OnPreprocessTexture()
         {
+            if (assetPath.StartsWith("Assets/Resources/VFX/") && assetPath.EndsWith(".png"))
+            {   // spell-effect strips (tools/vfx_export.py): plain texture, sliced by Res.Vfx; pixels stay exact
+                var vi = (TextureImporter)assetImporter;
+                vi.textureType = TextureImporterType.Default;
+                vi.filterMode = FilterMode.Point;
+                vi.textureCompression = TextureImporterCompression.Uncompressed;
+                vi.mipmapEnabled = false;
+                vi.alphaIsTransparency = true;
+                vi.wrapMode = TextureWrapMode.Clamp;
+                vi.npotScale = TextureImporterNPOTScale.None;
+                vi.maxTextureSize = 4096;
+                return;
+            }
             int ppu;
             if (assetPath.StartsWith("Assets/Resources/Tiles")) ppu = 16;
             else if (assetPath.StartsWith("Assets/Resources/PixelLab/Bosses")) ppu = 96;

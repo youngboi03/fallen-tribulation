@@ -6,7 +6,7 @@ namespace VK
 {
     public enum BMove { Dash, Fan, Ring, Spiral, Sweep, Cone, Zones, Pillars, Nova, Line, Blink, Summon, Hook }
     public enum BTier { Base, P2, I, II }
-    public enum ZLayout { AroundPlayer, Random, Grid, Checker, Quadrants, EdgeRing, Radial, Between }
+    public enum ZLayout { AroundPlayer, Random, Grid, Web, Rain, Quadrants, EdgeRing, Radial, Between }
 
     /// <summary>
     /// One row of a boss move table (spec section 6). Every number is data; BossMoves/BossHooks read them.
@@ -44,6 +44,8 @@ namespace VK
         public ZLayout layout;
         public string hook;
         public string after;
+        /// <summary>Spell look of the hazard (see BossHazard.SetLook); empty = generic organic look.</summary>
+        public string look;
 
         /// <summary>Shallow copy (hooks reuse rows of other kits, e.g. the Vạn Ma Quy Tông ghosts).</summary>
         public BossMove Clone() => (BossMove)MemberwiseClone();

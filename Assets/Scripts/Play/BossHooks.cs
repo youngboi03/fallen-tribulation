@@ -384,8 +384,8 @@ namespace VK
             float x0 = fromLeft ? -HW : HW, vx = (fromLeft ? 1f : -1f) * 2f * HW / dur;
             float gapY = Mathf.Clamp(BossMoves.P.y + Random.Range(-3f, 3f), -HH + gw * 0.5f + 0.5f, HH - gw * 0.5f - 0.5f);
             float lo = gapY - gw * 0.5f, hi = gapY + gw * 0.5f;
-            var a = BossMoves.Mark(b, m, HShape.Bar, new Vector2(-HW, (-HH + lo) * 0.5f), tele); a.angleDeg = 0f; a.len = 2f * HW; a.width = lo + HH;
-            var c = BossMoves.Mark(b, m, HShape.Bar, new Vector2(-HW, (hi + HH) * 0.5f), tele); c.angleDeg = 0f; c.len = 2f * HW; c.width = HH - hi;
+            var a = BossMoves.Mark(b, m, HShape.Bar, new Vector2(-HW, (-HH + lo) * 0.5f), tele); a.angleDeg = 0f; a.len = 2f * HW; a.width = lo + HH; a.SetLook("swarm");
+            var c = BossMoves.Mark(b, m, HShape.Bar, new Vector2(-HW, (hi + HH) * 0.5f), tele); c.angleDeg = 0f; c.len = 2f * HW; c.width = HH - hi; c.SetLook("swarm");
             Sfx.Play("heavy", 0.6f, 0f, 0.7f);
             yield return BossMoves.Wait(b, tele);
             var w1 = BossMoves.Hz(b, m, HShape.Bar, new Vector2(x0, -HH), 0.01f, dur, BossMoves.D(b, m));
@@ -495,29 +495,31 @@ namespace VK
             float tele = BossMoves.Tele(b, m);
             var qs = BossMoves.PickQuadrants(4);
             int n = Mathf.Clamp(m.n, 1, 3);
-            var hands = new List<BossHookObj>(); var safes = new List<BossHookObj>(); var at = new List<float>();
+            var hands = new List<BossHookObj>(); var at = new List<float>();
+            float total = tele + (n - 1) * m.gap + 0.45f;
             Color dark = new Color(0.12f, 0.06f, 0.18f, 0.9f);
             for (int i = 0; i < 4; i++)
             {
                 Vector2 cen = new Vector2(qs[i].x * HW * 0.5f, qs[i].y * HH * 0.5f);
                 if (i < n)
                 {
-                    var h = BossMoves.Hz(b, m, HShape.Bar, new Vector2(qs[i].x > 0 ? 0f : -HW, cen.y), tele + i * m.gap, 0.25f, BossMoves.D(b, m));
-                    h.len = HW; h.width = HH; h.angleDeg = 0f;
+                    for (int k = -1; k <= 1; k++)   // three overlapping lobes: the ink spreads unevenly, the corners of the quarter stay dry
+                    {
+                        var at2 = cen + new Vector2(k * HW * 0.29f, Random.Range(-1.4f, 1.4f));
+                        var h = BossMoves.Hz(b, m, HShape.Circle, Arena.Clamp(at2, 1f), tele + i * m.gap, 0.25f, BossMoves.D(b, m));
+                        h.radius = Random.Range(5f, 5.8f);
+                    }
                     var o = Make(b, "hand", cen, 0f);
                     Look(o, Res.Tile(b.e.def.sprite), new Color(dark.r, dark.g, dark.b, 0f), 10f, 125);
                     hands.Add(o); at.Add(tele + i * m.gap);
                 }
                 else
                 {
-                    var o = Make(b, "safe", cen, 0f);
-                    var r = Look(o, Res.White, new Color(0.55f, 1f, 0.6f, 0.16f), 1f, -199);
-                    r.transform.localScale = new Vector3(HW - 0.4f, HH - 0.4f, 1f);
-                    safes.Add(o);
+                    VfxFx.Ground("rune_gold", cen, 3.6f, total, -185, 0.2f, 0.3f);
                 }
             }
             Sfx.Play("heavy", 0.8f, 0f, 0.5f);
-            float t = 0f, total = tele + (n - 1) * m.gap + 0.45f;
+            float t = 0f;
             var slammed = new bool[hands.Count];
             while (t < total)
             {
@@ -542,7 +544,6 @@ namespace VK
                 }
             }
             foreach (var o in hands) Remove(o);
-            foreach (var o in safes) Remove(o);
         }
 
         // ------------------------------------------------------------------ b4 Hư Không Môn
@@ -624,8 +625,8 @@ namespace VK
             float t2 = Mathf.Max(m.tele2, 1f), r = Mathf.Max(0.5f, m.radius2);
             b.LastTele = t2;
             var safe = Make(b, "safe", Vector2.zero, 0f);
-            Look(safe, Res.Circle, new Color(1f, 0.95f, 0.6f, 0.25f), r * 2f, 140);
-            Look(safe, Res.Ring, new Color(1f, 1f, 0.8f, 0.95f), r * 2f / 0.9f, 141, true);
+            Look(safe, Res.Glow, new Color(1f, 0.95f, 0.6f, 0.3f), r * 2.4f, 140, true);
+            VfxFx.Ground("rune_gold", Vector2.zero, r, t2 + 0.45f, 141, 0.2f, 0.3f);
             var h = FullField(b, m, t2, 0.25f, b.e.dmg * m.dmg2 * b.dmgMul, 0f);
             h.holes = new List<Vector2> { Vector2.zero }; h.holeR = r;
             Fx.ScreenTint(new Color(0.7f, 0.6f, 1f), 0.3f, t2 + 0.4f);

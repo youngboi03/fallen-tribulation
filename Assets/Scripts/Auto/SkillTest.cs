@@ -1659,11 +1659,12 @@ namespace VK
             float slowT = pl.slowT, slowMul = pl.slowMul;
             Check("line_hit", BossHazard.PlayerHits - ph0 == 1, (BossHazard.PlayerHits - ph0).ToString());
             Check("line_slow", Mathf.Abs(slowMul - 0.7f) < 0.01f && slowT > 1.0f && slowT <= 1.2f, slowMul.ToString("0.00") + " t" + slowT.ToString("0.00"));
-            // grid: 5 vertical + 3 horizontal lines, floor 1.0 s for the ultimate
+            // web: 7 spokes from the boss plus threads between them, floor 1.0 s for the ultimate
             yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); b = boss.brain; b.LastTele = -1f;
             yield return Fire(b, "thien_la_dia_vong"); yield return Sec(0.1f);
             int n = BossHazard.All.Count(h => h != null && h.owner == boss && h.shape == HShape.Bar && h.Telegraphing);
-            Check("line_grid", n == 8 && b.LastTele >= 1f, n + " tele " + b.LastTele);
+            int threads = BossHazard.All.Count(h => h != null && h.owner == boss && h.shape == HShape.Segment && h.Telegraphing);
+            Check("line_web", n == 7 && threads >= 5 && b.LastTele >= 1f, n + "+" + threads + " tele " + b.LastTele);
             // between: two nearest live pools, skipped with fewer than two
             yield return BossPrep("b2b", 0, 10, new Vector2(0, 5)); b = boss.brain;
             BossHazard.Spawn(boss, HShape.Circle, new Vector2(-5, 0), 0.01f, 30f, 1f, Color.green, 0.5f).radius = 1f;

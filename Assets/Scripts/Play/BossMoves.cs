@@ -67,6 +67,7 @@ namespace VK
         {
             var h = BossHazard.Spawn(b.e, s, pos, tele, active, dmg, b.kit.col, tick);
             h.moveId = m.id;
+            if (!string.IsNullOrEmpty(m.look) && active > 0f) h.SetLook(m.look);   // a pure telegraph (Mark) keeps the generic look
             return h;
         }
 
@@ -128,7 +129,7 @@ namespace VK
                 Vector2 dv = Dir(aim);
                 b.Dashing = true; b.vel = dv * spd;
                 Sfx.Play("swing", 0.8f, 0f, 0.5f);
-                bool hit = false; float moved = 0f, el = 0f, maxT = laneLen / spd * 1.5f + 0.3f;
+                bool hit = false; float moved = 0f, el = 0f, maxT = laneLen / spd * 1.5f + 0.3f, trail = 0f;
                 Vector2 last = b.Pos;
                 float reach = Mathf.Max(b.e.radius, m.width * 0.5f);
                 while (moved < laneLen - 0.05f && el < maxT)
@@ -137,6 +138,7 @@ namespace VK
                     float s = Step(b); el += s;
                     Vector2 now = b.Pos; float step = (now - last).magnitude; moved += step; last = now;
                     if (s > 0f && step < spd * s * 0.25f && el > 0.1f) break;   // blocked by the arena wall
+                    if (m.look == "blood_trail" && (trail -= step) <= 0f) { trail = 1f; VfxFx.Ground("blood_pool", now, 0.55f, 0.9f, -190, 0.05f, 0.5f); }   // a smear of blood mist behind the run
                     var pl = Game.I.player;
                     if (!hit && Vector2.Distance(pl.Pos, now) < reach + pl.radius * 0.8f)
                         hit = BossBrain.HurtPlayer(b.e, m.id, D(b, m), now);
@@ -317,7 +319,7 @@ namespace VK
         }
 
         /// <summary>Telegraphed circles that explode (life 0) or stay as puddles ticking dmg every tick s; reps waves gap s apart.
-        /// dur &gt; 0: the circles follow the player for dur s before they lock. Checker: n x n cells over the arena, alternating halves.</summary>
+        /// dur &gt; 0: the circles follow the player for dur s before they lock. Rain: scattered patches about n apart sweep across the arena, the wind turns each wave, a dry spot floods next.</summary>
         static IEnumerator Zones(BossBrain b, BossMove m)
         {
             float tele = Tele(b, m);
@@ -325,19 +327,24 @@ namespace VK
             float active = m.life > 0f ? m.life : 0.2f, tick = m.life > 0f ? m.tick : 0f;
             for (int w = 0; w < reps; w++)
             {
-                if (m.layout == ZLayout.Checker)
+                if (m.layout == ZLayout.Rain)
                 {
-                    float cell = Mathf.Max(1.5f, m.n);
+                    const float Sweep = 0.7f;   // seconds for the front to cross the arena
+                    float cell = Mathf.Max(1.5f, m.n) * 1.15f;
                     int cols = Mathf.CeilToInt(2f * Arena.HalfW / cell), rows = Mathf.CeilToInt(2f * Arena.HalfH / cell);
                     for (int i = 0; i < cols; i++)
                         for (int j = 0; j < rows; j++)
                         {
                             if ((i + j + w) % 2 != 0) continue;
-                            var h = Hz(b, m, HShape.Bar, new Vector2(-Arena.HalfW + i * cell, -Arena.HalfH + (j + 0.5f) * cell), tele, active, D(b, m), tick);
-                            h.len = cell; h.width = cell; h.angleDeg = 0f;
+                            float r = Random.Range(1.5f, 2.1f);
+                            var at = new Vector2(-Arena.HalfW + (i + 0.5f + (j % 2) * 0.5f) * cell, -Arena.HalfH + (j + 0.5f) * cell) + Random.insideUnitCircle * 0.8f;
+                            at = Arena.Clamp(at, r);
+                            float x01 = Mathf.InverseLerp(-Arena.HalfW, Arena.HalfW, at.x);
+                            var h = Hz(b, m, HShape.Circle, at, tele + Sweep * (w % 2 == 0 ? x01 : 1f - x01) + Random.Range(0f, 0.15f), active, D(b, m), tick);
+                            h.radius = r;
                         }
                     Sfx.Play("tick", 0.5f, 0f, 0.8f);
-                    yield return Wait(b, tele + active);
+                    yield return Wait(b, tele + Sweep + 0.15f + active);
                     if (w < reps - 1) yield return Wait(b, m.gap);
                     continue;
                 }
@@ -529,20 +536,27 @@ namespace VK
         {
             float tele = Tele(b, m), active = m.life > 0f ? m.life : 0.2f;
             System.Action<BossHazard> prep = h => { h.width = m.width; h.slow = m.slow; if (m.dur > 0f) h.slowDur = m.dur; };
-            if (m.layout == ZLayout.Grid)
-            {
-                int rows = Mathf.Max(0, m.reps);
+            if (m.layout == ZLayout.Web)
+            {   // n uneven spokes from the boss, joined by reps loops of threads; a thread leaving the arena is dropped
+                Vector2 o = b.Pos; float a0 = Random.Range(0f, 360f);
+                var ang = new float[m.n];
                 for (int i = 0; i < m.n; i++)
                 {
-                    float x = -Arena.HalfW + (i + 1) * 2f * Arena.HalfW / (m.n + 1);
-                    var h = Hz(b, m, HShape.Bar, new Vector2(x, -Arena.HalfH), tele, active, D(b, m));
-                    h.angleDeg = 90f; h.len = 2f * Arena.HalfH; prep(h);
+                    ang[i] = a0 + i * 360f / m.n + Random.Range(-11f, 11f);
+                    var h = Hz(b, m, HShape.Bar, o, tele, active, D(b, m));
+                    h.angleDeg = ang[i]; h.len = EdgeDist(o, Dir(ang[i])); prep(h);
                 }
-                for (int j = 0; j < rows; j++)
+                for (int j = 1; j <= m.reps; j++)
                 {
-                    float y = -Arena.HalfH + (j + 1) * 2f * Arena.HalfH / (rows + 1);
-                    var h = Hz(b, m, HShape.Bar, new Vector2(-Arena.HalfW, y), tele, active, D(b, m));
-                    h.angleDeg = 0f; h.len = 2f * Arena.HalfW; prep(h);
+                    var pts = new Vector2[m.n];
+                    for (int i = 0; i < m.n; i++) pts[i] = o + Dir(ang[i]) * (j * 5.5f + Random.Range(-0.8f, 0.8f));
+                    for (int i = 0; i < m.n; i++)
+                    {
+                        Vector2 p = pts[i], q = pts[(i + 1) % m.n];
+                        if (Arena.Clamp(p, 0f) != p || Arena.Clamp(q, 0f) != q) continue;
+                        var h = Hz(b, m, HShape.Segment, p, tele, active, D(b, m));
+                        h.a = p; h.b = q; prep(h);
+                    }
                 }
             }
             else if (m.layout == ZLayout.Between)
