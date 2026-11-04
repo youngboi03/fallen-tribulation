@@ -1,6 +1,6 @@
 # Lục Đạo Đọa Kiếp: nhật ký phát triển
 
-Lục Đạo Đọa Kiếp là một roguelite 2D sinh tồn theo đợt, lấy chủ đề tu tiên, làm bằng Unity 6. Lúc làm, tôi gọi nó là "Vạn Kiếp Tu Tiên". Về sau tôi đổi sang tên hiện tại, vì con số 6 chạy xuyên suốt game: sáu Đạo, sáu nhân vật, sáu boss, sáu Kiếp. Hiện tại game có 6 nhân vật, 6 boss, 6 cấp độ khó gọi là Kiếp (Kiếp 0 tới Kiếp 5), 6 Đạo để xây build, và chơi được trọn vẹn từ đợt đầu tới lúc Phi Thăng. Tôi đang tạm dừng nó, và đây là lúc nhìn lại: cái gì ổn, cái gì làm tôi đau đầu, và cái gì còn dang dở.
+Lúc làm, tôi gọi Lục Đạo Đọa Kiếp là "Vạn Kiếp Tu Tiên". Về sau tôi đổi sang tên hiện tại, vì con số 6 chạy xuyên suốt game: sáu Đạo, sáu nhân vật, sáu boss, sáu Kiếp. Hiện tại game có 6 nhân vật, 6 boss, 6 cấp độ khó gọi là Kiếp (Kiếp 0 tới Kiếp 5), 6 Đạo để xây build, và chơi được trọn vẹn từ đợt đầu tới lúc Phi Thăng. Tôi đang tạm dừng nó, và đây là lúc nhìn lại: cái gì ổn, cái gì làm tôi đau đầu, và cái gì còn dang dở.
 
 ## Khởi đầu và cảm hứng
 

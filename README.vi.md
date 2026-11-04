@@ -1,11 +1,7 @@
 # LỤC ĐẠO ĐỌA KIẾP (Fallen Tribulation)
 
-Roguelite 2D đánh theo đợt, chủ đề tu tiên.
-Lấy vòng lặp đợt quái + shop từ Brotato, build cộng hưởng từ Balatro, kỳ ngộ kiểu Slay the Spire, cảnh giới từ Tale of Immortal.
-Một lượt chơi mất khoảng 25–30 phút.
-
 ## Chơi ngay
-Chạy file **`Builds/Windows/FallenTribulation.exe`**.
+Tải file zip mới nhất ở trang **Releases**, giải nén, chạy `FallenTribulation.exe` (Windows 64-bit). Windows SmartScreen có thể cảnh báo vì exe chưa ký: chọn "More info" rồi "Run anyway".
 Game mở ở dạng cửa sổ 1600×900. Có 3 ngôn ngữ **Tiếng Việt / English / 中文** (nút *Language* góc trên phải ở menu và màn tạm dừng). Bấm **F11** (hoặc Alt+Enter) để chuyển sang toàn màn hình.
 Lần chơi đầu có **hướng dẫn** tự hiện đúng lúc; muốn xem lại thì bấm "Xem lại hướng dẫn" ở menu.
 
@@ -64,17 +60,20 @@ Tất cả gộp lại thành **% Hoàn thành** hiển thị ở menu chính.
 ### Cấu trúc code
 | Thư mục | Nội dung |
 |---|---|
-| `Core/` | `Game` (khởi tạo, luồng chơi), `RunState` (chỉ số, shop, lên cấp), `Fx`, `Sfx` + `Synth` (nhạc tự tổng hợp), `Res` |
+| `Core/` | `Game` (khởi tạo, luồng chơi), `RunState` (chỉ số, shop, lên cấp), `Fx`, `Sfx` + `Synth` (nhạc đợt boss tổng hợp bằng code), `Res` |
 | `Play/` | `Player`, `Enemy`, `Weapon` + `Combat`, `Projectile` + `Orb`, `WaveDirector`, `Skills`, `Arena` |
 | `UI/` | Toàn bộ màn hình uGUI dựng bằng code |
 | `Data/` | Chỉ số, định nghĩa, nội dung game, sự kiện, lưu game |
 | `Auto/` | Bot tự chơi, chạy bằng tham số `-autotest` (thêm `-smart`, `-skillbuild`, `-kiep k`, `-meta n`, `-char i`); kiểm thử kịch bản Thần Thông `-skilltest [-only <tiền tố>]`, kiểm thử giao diện `-uxtest` |
 
-Tài liệu thiết kế: `docs/DESIGN.md`. Chuẩn bị phát hành Steam / Google Play: `docs/PORTING.md`.
+Chuẩn bị phát hành Steam / Google Play: `docs/PORTING.md`.
 Đo cân bằng nhiều bot song song: `bash tools/probe.sh "ten|-char 0 -kiep 2 -meta 2 -smart" ...` (kết quả trong `Logs/probe/`). Tỉ lệ sát thương Thần Thông theo dải đợt: `python -I tools/skill_share.py Logs/probe/*.log` (bot `-smart -skillbuild` là người chơi đầu tư vào chiêu). Kiểm thử Thần Thông: `bash tools/build_and_test.sh 1 -skilltest -only ""`.
 
-## Bản quyền asset
-- **Nhân vật, yêu ma và boss**: vẽ bằng **PixelLab** (https://www.pixellab.ai), nằm ở `Assets/Resources/PixelLab/`. Công cụ và prompt của từng hình được ghi ở `Assets/ThirdParty/PixelLab-Assets.md`.
-- **Vũ khí, pháp bảo, nền, tường và âm thanh**: từ **Kenney.nl** (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. License nằm ở `Assets/ThirdParty/`.
-- **Chữ Hán** (bản 中文): dùng font có sẵn trong hệ điều hành (Microsoft YaHei / Noto Sans CJK…), game không kèm file font nào.
-Nhạc nền được tổng hợp bằng code (`Synth`).
+## Bản quyền và nguồn tài nguyên
+- **Mã nguồn:** MIT, xem `LICENSE`. Tài nguyên bên thứ ba giữ license riêng.
+- **Hình nhân vật, yêu ma, boss, icon vũ khí/pháp bảo và nền:** tạo bằng PixelLab (công cụ AI vẽ pixel art), sau đó làm sạch và sửa bằng Aseprite qua quy trình làm sạch + kiểm tra bằng script; công cụ và prompt của từng hình ghi ở `Assets/ThirdParty/PixelLab-Assets.md`.
+- **Tile và gói âm thanh:** [Kenney](https://kenney.nl) (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. License ở `Assets/ThirdParty/`.
+- **Hiệu ứng âm thanh:** bản thu từ [BigSoundBank](https://bigsoundbank.com/licenses.html) của Joseph Sardin và cộng sự (CC0) và OpenGameArt (CC0), liệt kê ở `Assets/ThirdParty/CC0-Sounds.md`.
+- **Nhạc:** tạo bằng Stable Audio 3. Powered by Stability AI, xem `Assets/ThirdParty/stability-NOTICE.txt`. Nhạc đợt boss vẫn tổng hợp bằng code (`Synth`).
+- **Hiệu ứng chiêu:** xuất bằng [pixelfx](https://github.com/patch-gg/pixelfx) của Patch và Hugo Duprez (MIT), `Assets/ThirdParty/pixelfx-LICENSE.txt`; hiệu ứng nhìn từ trên xuống của game nằm ở `tools/vfx/fx/`.
+- **Font:** Baloo 2 của Ek Type (chữ giao diện), Comforter Brush của Robert Leuschke (tiêu đề Latin) và Zhi Mang Xing (tiêu đề tiếng Trung), đều theo SIL Open Font License 1.1 (`Assets/ThirdParty/*-OFL.txt`). Chữ Hán thường dùng font có sẵn trong hệ điều hành.

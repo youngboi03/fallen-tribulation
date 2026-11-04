@@ -1,6 +1,6 @@
 # Fallen Tribulation: a devlog
 
-Fallen Tribulation is a 2D wave-survival roguelite about cultivation (xianxia) made in Unity 6. Its working title was "Vạn Kiếp Tu Tiên", roughly "Ten Thousand Tribulations". The Vietnamese title is now "Lục Đạo Đọa Kiếp" (Six Paths, Fallen Tribulation), because the number six runs through the whole game: six Paths, six characters, six bosses, six Tribulations. Today it has 6 characters, 6 bosses, 6 difficulty levels called Tribulations (Kiếp 0 to Kiếp 5), 6 Paths for building synergies, and you can play it from the first wave all the way to Ascension. I'm putting it on hold, so this is my look back: what worked, what hurt, and what is still rough.
+Fallen Tribulation's working title was "Vạn Kiếp Tu Tiên", roughly "Ten Thousand Tribulations". The Vietnamese title is now "Lục Đạo Đọa Kiếp" (Six Paths, Fallen Tribulation), because the number six runs through the whole game: six Paths, six characters, six bosses, six Tribulations. Today it has 6 characters, 6 bosses, 6 difficulty levels called Tribulations (Kiếp 0 to Kiếp 5), 6 Paths for building synergies, and you can play it from the first wave all the way to Ascension. I'm putting it on hold, so this is my look back: what worked, what hurt, and what is still rough.
 
 ## Where it came from
 

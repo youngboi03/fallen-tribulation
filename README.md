@@ -1,8 +1,5 @@
 # Fallen Tribulation (Lục Đạo Đọa Kiếp)
 
-A 2D wave-survival roguelite about cultivation (xianxia), made in Unity 6. One run takes about 25-30 minutes.
-Wave loop and shop from *Brotato*, joker-style build synergies from *Balatro*, risky events from *Slay the Spire*, realms of cultivation from *Tale of Immortal*.
-
 ![Menu](docs/screens/menu.png)
 ![Combat](docs/screens/combat.png)
 ![Boss intro](docs/screens/boss_intro.png)
@@ -46,7 +43,7 @@ The exe is not code-signed, so Windows SmartScreen may warn on first launch: cho
 - Game content and balance live in `Assets/Scripts/Data/Content.cs` and `Events.cs`.
 - Sound effects are designed from CC0 recordings (`tools/audio_gen.py design`), with some Kenney clips left. Menu, battle and climax music is AI-generated; boss-wave music is still synthesized in code (`Synth`).
 - A self-playing bot (`-autotest`) and scenario tests (`-skilltest`) drive balance and regression checks: `bash tools/build_and_test.sh 3 -skilltest -only ""`.
-- Store-readiness notes (input, saves, achievements abstraction): `docs/PORTING.md`. Design notes: `docs/DESIGN.md`.
+- Store-readiness notes (input, saves, achievements abstraction): `docs/PORTING.md`.
 - Vietnamese README: [README.vi.md](README.vi.md). Development story: [docs/DEVLOG.en.md](docs/DEVLOG.en.md) ([Tiếng Việt](docs/DEVLOG.vi.md)).
 
 ## Credits and licenses
