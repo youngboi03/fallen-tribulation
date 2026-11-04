@@ -384,6 +384,7 @@ namespace VK
             var g = Game.I; var run = g.run;
             if (god || iframe > 0 || dashT > 0 || g.state != GState.Playing) return;
             run.hp -= run.MaxHP * frac;
+            Telemetry.Cause = "status:" + (string.IsNullOrEmpty(moveId) ? "?" : moveId);
             Debug.Log("[BOSSHIT] " + (string.IsNullOrEmpty(moveId) ? "status" : moveId) + " pct=" + frac.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture));
             if (run.hp <= 0f && run.level >= 30 && !run.guardUsed) { run.guardUsed = true; run.hp = 1f; iframe = 1f; return; }
             if (run.hp <= 0f) { run.hp = 0f; g.OnPlayerDeath(); }

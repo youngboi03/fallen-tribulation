@@ -49,8 +49,9 @@ namespace VK.EditorTools
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
             PlayerSettings.allowedAutorotateToPortrait = PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
             PlayerSettings.allowedAutorotateToLandscapeLeft = PlayerSettings.allowedAutorotateToLandscapeRight = true;
-            PlayerSettings.bundleVersion = "1.0";
-            PlayerSettings.Android.bundleVersionCode = 1;
+            PlayerSettings.bundleVersion = "1.1";
+            PlayerSettings.Android.bundleVersionCode = 2;
+            PlayerSettings.Android.forceInternetPermission = true;   // anonymous statistics (Telemetry)
             EditorUserBuildSettings.buildAppBundle = false;
             string ks = System.Environment.GetEnvironmentVariable("VK_KEYSTORE"), pw = System.Environment.GetEnvironmentVariable("VK_KEYSTORE_PASS");
             PlayerSettings.Android.useCustomKeystore = !string.IsNullOrEmpty(ks);

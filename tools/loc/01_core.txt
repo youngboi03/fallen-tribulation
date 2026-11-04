@@ -358,3 +358,12 @@ Dạng khởi đầu.|Starting form.|初始形态。
 So với|Compared to|相比
 Chưa đạt.|Not reached yet.|尚未达到。
 Mỗi lần diệt boss, Thần Thông tiến một giai.|Every boss slain advances your Divine Art one stage.|每击败一个首领，神通进阶一阶。
+Giúp cải thiện game?|Help improve the game?|帮助改进游戏？
+Gửi thống kê chơi ẩn danh cho tác giả?|Send anonymous play statistics to the developer?|向开发者发送匿名游戏统计？
+Chỉ gửi: nhân vật, độ khó, đợt đạt tới, nguyên nhân thua, lựa chọn build, FPS và hệ điều hành.|Only sent: character, difficulty, wave reached, what killed you, build choices, FPS and operating system.|仅发送：角色、难度、到达的波数、死亡原因、构筑选择、帧率和操作系统。
+Không gửi tên, email, địa chỉ hay mã thiết bị.|No name, e-mail, address or device ID is sent.|不会发送姓名、邮箱、地址或设备编号。
+Bạn đổi ý bất cứ lúc nào trong Cài Đặt.|You can change your mind any time in Settings.|你可以随时在设置中更改。
+Đồng ý gửi|Yes, send|同意发送
+Không, cảm ơn|No, thanks|不用了，谢谢
+Thống kê ẩn danh|Anonymous stats|匿名统计
+Ủng Hộ Game|Support the game|支持游戏

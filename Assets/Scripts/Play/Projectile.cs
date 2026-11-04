@@ -161,7 +161,7 @@ namespace VK
                 {
                     if (Skills.TryBlockBullet(pos)) { Kill(); return; }
                     bool wasDashing = pl.IsDashing;
-                    if (owner != null) BossBrain.HurtPlayer(owner, moveId, dmg, pos); else pl.Hurt(dmg, pos);
+                    if (owner != null) BossBrain.HurtPlayer(owner, moveId, dmg, pos); else if (pl.Hurt(dmg, pos)) Telemetry.Cause = "projectile";
                     if (!wasDashing) Kill();
                 }
                 return;

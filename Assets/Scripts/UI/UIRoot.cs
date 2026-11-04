@@ -457,6 +457,7 @@ namespace VK
         // ================================================================== Menu
         public void ShowMenu()
         {
+            if (Telemetry.NeedsAsk) { ShowPrivacyAsk(); return; }
             screen = UIScreen.Menu;
             selInit = false;
             UIK.Clear(hud);
@@ -480,6 +481,8 @@ namespace VK
             var info = UIK.Txt(o, "Đạo Hạnh: <color=#FFD266>" + Save.daoHanh + "</color>     Hoàn thành: <color=#7CF0FF>" +
                 Mathf.FloorToInt(Save.Completion() * 100) + "%</color>     Thắng: " + Save.wins + "     Lượt chơi: " + Save.runs, 26, UIK.Dim);
             info.rectTransform.Place(0.5f, 0, 1600, 40, 0, 70);
+            UIK.Btn(o, "Ủng Hộ Game", () => { Telemetry.Event("support_click"); Telemetry.Flush(); Application.OpenURL(SupportUrl); }, UIK.BtnGold, 22)
+                .GetComponent<RectTransform>().Place(0, 0, 250, 52, 30, 24);
             var ver = UIK.Txt(o, "v" + Application.version, 20, new Color(0.5f, 0.48f, 0.56f), TextAnchor.LowerRight);
             ver.rectTransform.Place(1, 0, 300, 30, -30, 24);
         }
@@ -547,6 +550,8 @@ namespace VK
 
             SetHead(right, "Trò chơi");
             SetRow(right, "Ngôn ngữ", () => Loc.LangName[Loc.Lang], d => ApplyLanguage((Save.lang + d + 3) % 3));
+            if (!string.IsNullOrEmpty(Telemetry.ProjectKey))
+                SetRow(right, "Thống kê ẩn danh", () => Telemetry.Consent == 1 ? "Bật" : "Tắt", d => { Telemetry.SetConsent(Telemetry.Consent != 1); if (Telemetry.Consent == 1) Telemetry.StartSession(); });
             Button tb = null;
             tb = UIK.Btn(right, Save.tips.Count == 0 ? "Hướng dẫn: sẽ hiện lại" : "Xem lại hướng dẫn", () =>
             {
@@ -703,6 +708,7 @@ namespace VK
                     {
                         if (Save.daoHanh < cost) { Sfx.Play("error", 0.6f); return; }
                         Save.daoHanh -= cost; Save.meta[mi]++; Save.Save();
+                        Telemetry.Event("meta_buy", "id", mi, "lvl", Save.meta[mi]);
                         Sfx.Play("breakthrough", 0.6f);
                         ShowMeta();
                     }, Save.daoHanh >= cost ? UIK.BtnGold : UIK.BtnGrey, 24, 220, 60);

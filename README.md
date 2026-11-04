@@ -39,6 +39,14 @@ The exe is not code-signed, so Windows SmartScreen may warn on first launch: cho
 - Joker-style treasures create combos, for example one that grows with the Spirit Stones you hold, or one that multiplies damage when you run five different Paths.
 - 6 characters, 6 difficulty levels (Tribulations) each, 20 achievements, a codex, and a permanent upgrade tree. All of it feeds the completion % shown on the menu.
 
+## Privacy: anonymous statistics
+On first launch the game asks whether it may send anonymous play statistics to help balance and improve the game. **Nothing is sent unless you choose "Yes"**, and you can change it any time in Settings.
+
+- **Sent:** character, difficulty, wave reached, win or loss, play time, what defeated you, weapon, treasure and upgrade choices, average FPS, platform, game version, language, and clicks on the "Support the game" button.
+- **Never collected:** name, e-mail, address, device ID or location. IP addresses are discarded and not stored.
+- **Identifier:** a random ID created only when you say yes and deleted when you opt out.
+- **Processor:** PostHog (EU cloud). The data is used only to improve the game.
+
 ## Project notes
 - Unity **6000.3.27f1**. There are no hand-built scenes or prefabs: the game builds itself from code at runtime (`Assets/Scripts`, with `Core/`, `Play/`, `UI/`, `Data/`, `Auto/`).
 - Game content and balance live in `Assets/Scripts/Data/Content.cs` and `Events.cs`.

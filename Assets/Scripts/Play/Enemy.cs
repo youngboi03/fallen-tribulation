@@ -194,7 +194,7 @@ namespace VK
             if (frozenT <= 0 && !Hidden && def.beh != EBeh.Static && Vector2.Distance(pos, pp) < radius + p.radius)
             {
                 if (brain != null) { if (!brain.Dashing) BossBrain.HurtPlayer(this, "contact", dmg, pos); }
-                else p.Hurt(dmg, pos);
+                else if (p.Hurt(dmg, pos)) Telemetry.Cause = "enemy:" + def.id;
             }
             sr.color = frozenT > 0 ? Color.Lerp(tintCol, new Color(0.5f, 0.85f, 1f), 0.65f) : tintCol;
 
@@ -311,7 +311,7 @@ namespace VK
             Fx.Burst(pos, new Color(1f, 0.6f, 0.2f), 18, 7f, 0.14f, 0.45f, true);
             Fx.Shake(0.25f, 0.2f);
             Sfx.Play("heavy", 0.7f, 0.1f, 1f);
-            if (hurtsPlayer && Vector2.Distance(g.player.Pos, pos) < r + g.player.radius * 0.5f) g.player.Hurt(dmg * 1.15f, pos);
+            if (hurtsPlayer && Vector2.Distance(g.player.Pos, pos) < r + g.player.radius * 0.5f) { if (g.player.Hurt(dmg * 1.15f, pos)) Telemetry.Cause = "enemy:" + def.id; }
             var list = Snapshot();
             foreach (var e in list)
                 if (e != this && !e.dead && !e.boss && Vector2.Distance(e.Pos, pos) < r + e.radius)

@@ -238,6 +238,7 @@ namespace VK
         {
             if (CantBuy(i) != null) return false;
             var s = shop[i];
+            Telemetry.Event("shop_buy", "wave", wave, "id", s.w != null ? s.w.id : s.it.id, "price", s.price, "tier", s.tier);
             gold -= s.price; s.sold = true; s.locked = false;
             if (s.w != null)
             {
@@ -330,6 +331,7 @@ namespace VK
         public void TakeRelic(int i)
         {
             var it = relicChoices[Mathf.Clamp(i, 0, relicChoices.Length - 1)];
+            Telemetry.Event("relic_pick", "wave", wave, "id", it.id);
             relicChoices = null; relicWave = wave; chests--;
             float before = MaxHP;
             items.Add(it);
@@ -422,6 +424,7 @@ namespace VK
         public void ChooseLevel(int i)
         {
             var o = levelOpts[i];
+            Telemetry.Event("level_pick", "wave", wave, "level", level, "opt", o.card != null ? o.card.id : (o.mods != null && o.mods.Length > 0 ? o.mods[0].s.ToString() : "?"), "tier", o.tier);
             float before = MaxHP;
             levelStats.Add(o.mods);
             if (o.card != null) skillCards.Add(o.card.id);

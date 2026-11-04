@@ -79,6 +79,7 @@ namespace VK
             save = SaveData.Load();
             if (save.lang < 0) { save.lang = save.runs > 0 ? Loc.VI : Loc.SystemDefault(); save.Save(); }   // existing players keep Vietnamese
             Loc.SetLang(save.lang);
+            Telemetry.StartSession();   // no-op unless the player opted in
             UIRoot.ApplyDisplay(save, !auto);
 
             cam = Camera.main;
@@ -122,7 +123,7 @@ namespace VK
             else Dt = raw;
             if (!Playing) Dt = 0;
             T += Dt;
-            if (Playing && run != null) run.playTime += Dt;
+            if (Playing && run != null) { run.playTime += Dt; Telemetry.Frame(Time.unscaledDeltaTime); }
             if (Playing && combo > 0) { comboT -= Dt; if (comboT <= 0) combo = 0; }
 
             if (state == GState.Playing && GameInput.Pause && ui.screen != UIScreen.Settings && ui.settingsClosed != Time.frameCount) { if (cinematic) cinema.Skip(); else SetPause(!paused); }
@@ -240,6 +241,8 @@ namespace VK
             player.gameObject.SetActive(true);
             player.Setup(Content.Chars[ci]);
             run = new RunState(ci, kiep, save);
+            Telemetry.RunStart();
+            Telemetry.Event("run_start", "char", ci, "kiep", kiep, "runs_total", save.runs);
             run.AddWeapon(Content.W(Content.Chars[ci].startWeapon), 0);
             run.hp = run.MaxHP;
             ui.ShowHUD();
@@ -293,6 +296,7 @@ namespace VK
             Ach.Unlock("wave1");
             if (run.wave >= 10) Ach.Unlock("wave10");
             if (System.Array.IndexOf(Events.Waves, run.wave) >= 0) run.eventPending = true;
+            Telemetry.Event("wave_end", "wave", run.wave, "level", run.level, "hp_pct", Mathf.RoundToInt(100f * run.hp / Mathf.Max(1f, run.MaxHP)), "hits", run.hitsThisWave, "kills", run.kills, "kiep", run.kiep, "char", run.charIndex, "time_s", Mathf.RoundToInt(run.playTime));
             Debug.Log("[VK] wave " + run.wave + " end: lvl " + run.level + " gold " + run.gold + " kills " + run.kills + " hp " + run.hp + "/" + run.MaxHP);
             if (run.wave >= 5 && run.hitsThisWave == 0) Ach.Unlock("nohit");
             save.Save();
@@ -374,6 +378,7 @@ namespace VK
         {
             var ev = run.currentEvent;
             if (ev == null || i < 0 || i >= ev.options.Length || !ev.options[i].can(run)) return;
+            Telemetry.Event("event_pick", "wave", run.wave, "id", ev.id, "opt", i);
             string res = ev.options[i].apply(run);
             run.eventPending = false; run.currentEvent = null;
             Sfx.Play("card", 0.7f);
@@ -471,6 +476,7 @@ namespace VK
         {
             paused = false;
             state = GState.Over;
+            Telemetry.Cause = "abandon";
             FinishRun(false);
         }
 
@@ -522,6 +528,17 @@ namespace VK
             if (save.CodexSeen() >= SaveData.CodexTotal) Ach.Unlock("codex");
             if (save.maxKiepUnlocked > kiepBefore) s.unlocks.Add("Mở khóa Kiếp " + save.maxKiepUnlocked);
             save.Save();
+
+            if (Telemetry.Active)
+            {
+                var wl = new List<string>(); foreach (var w in s.weapons) wl.Add(w.def.id + ":" + w.tier);
+                var il = new List<string>(); foreach (var it in s.items) il.Add(it.it.id + ":" + it.n);
+                Telemetry.Event("run_end", "win", win, "abandoned", Telemetry.Cause == "abandon", "cause", win ? "" : Telemetry.Cause,
+                    "char", run.charIndex, "kiep", run.kiep, "wave", run.wave, "level", run.level, "kills", run.kills, "time_s", Mathf.RoundToInt(run.playTime),
+                    "dmg", Mathf.RoundToInt(run.dmgDealt), "skill_pct", run.dmgDealt > 0 ? Mathf.RoundToInt(100f * run.skillDmg / run.dmgDealt) : 0,
+                    "weapons", wl, "items", il, "fps_avg", Telemetry.AvgFps, "slow_pct", Telemetry.SlowPct, "tips_seen", save.tips.Count);
+                Telemetry.Flush();
+            }
 
             if (win)
             {

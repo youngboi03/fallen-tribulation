@@ -355,6 +355,8 @@ namespace VK
         public void OnDeath()
         {
             Debug.Log("[BOSS] kill " + kit.bossId + " t=" + FightT.ToString("0.0"));
+            var gg = Game.I;
+            if (gg != null && gg.run != null) Telemetry.Event("boss_kill", "boss", kit.bossId, "wave", gg.run.wave, "t", Mathf.RoundToInt(FightT), "hp_pct", Mathf.RoundToInt(100f * gg.run.hp / Mathf.Max(1f, gg.run.MaxHP)), "kiep", gg.run.kiep, "char", gg.run.charIndex);
             Stop();
         }
 
@@ -366,6 +368,7 @@ namespace VK
             var p = g.player;
             float hp0 = g.run != null ? g.run.hp : 0f;
             bool hit = p.Hurt(dmg, from);
+            if (hit) Telemetry.Cause = owner != null && owner.boss ? "boss:" + (string.IsNullOrEmpty(moveId) ? "contact" : moveId) : "enemy:" + (owner != null && owner.def != null ? owner.def.id : "?");
             if (hit && owner != null && owner.boss)
             {
                 if (string.IsNullOrEmpty(moveId)) moveId = owner.brain != null && owner.brain.Current != null ? owner.brain.Current.id : "contact";

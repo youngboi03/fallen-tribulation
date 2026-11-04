@@ -242,7 +242,7 @@ namespace VK
                 Sfx.Play("zap", 0.7f, 0.1f, 1f, 0.05f);
                 Sfx.Play("heavy", 0.5f, 0.1f, 1f, 0.05f);
                 if (Vector2.Distance(g.player.Pos, p) < t.radius + g.player.radius * 0.5f)
-                    g.player.Hurt((3f + wave * 0.45f) * DmgMul, p);
+                    { if (g.player.Hurt((3f + wave * 0.45f) * DmgMul, p)) Telemetry.Cause = "lightning"; }
                 var list = Enemy.Snapshot();
                 foreach (var e in list)
                     if (!e.dead && !e.boss && Vector2.Distance(e.Pos, p) < t.radius + e.radius)
