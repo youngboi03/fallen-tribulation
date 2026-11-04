@@ -166,7 +166,7 @@ namespace VK
                         done_[i] = true;
                         var tc = Content.TierColor[ws[i].tier];
                         Fx.Burst(v.position, tc, 12, 5f, 0.12f, 0.5f, true); Fx.Ring(v.position, tc, 0.15f, 1.2f, 0.3f);
-                        Sfx.Play("tick", 0.5f, 0.05f, 0.8f);
+                        Sfx.Play("tick", 0.5f, 0.05f, 1f);
                         ws[i].DestroyView();
                     }
                 }
@@ -177,7 +177,7 @@ namespace VK
                 float tk = Mathf.Clamp01((t - tb - 0.15f) / 0.3f);
                 if (!hit && tk > 0f)
                 {   // the ink splashes in, then reveals the title (InkSplatFx drives the title's own alpha and scale)
-                    hit = true; Sfx.Play("heavy", 1f, 0f, 0.6f); Fx.Shake(0.35f, 0.3f);
+                    hit = true; Sfx.Play("heavy", 1f, 0f, 1f); Fx.Shake(0.35f, 0.3f);
                     UIK.InkSplat(title, win ? new Color(0.42f, 0.27f, 0.04f, 0.94f) : new Color(0.05f, 0f, 0.02f, 0.97f), win ? 1 : 0, win ? (Color?)null : new Color(1f, 0.38f, 0.34f, 0.85f));
                 }
                 tcg.alpha = hit ? 1f : 0f;

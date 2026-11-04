@@ -117,19 +117,19 @@ namespace VK
         {
             var e = b.e; var g = Game.I;
             g.camFocus = e.Pos;
-            Sfx.Play("heavy", 1f, 0f, 0.6f);
+            Sfx.Play("heavy", 1f, 0f, 1f);
             yield return Tween(0.6f, k => { SetVeil(new Color(0f, 0f, 0.05f, 0.45f * k)); Zoom(1f + 0.25f * k); });
             if (skipReq) goto done;
             for (int i = 0; i < 3; i++)
             {
-                Bolt(e.Pos, KbAura); Sfx.Play("zap", 1f, 0f, 0.8f);
+                Bolt(e.Pos, KbAura); Sfx.Play("zap", 1f, 0f, 1f);
                 SetVeil(new Color(1f, 1f, 1f, 0.5f));
                 yield return Wait(0.12f); SetVeil(new Color(0f, 0f, 0.05f, 0.45f));
                 yield return Wait(0.28f);
                 if (skipReq) goto done;
             }
             e.SetTint(KbTint); e.SetAura(KbAura);
-            Fx.Ring(e.Pos, KbAura, 1f, 6f, 0.7f); Sfx.Play("heavy", 1f, 0f, 0.7f);
+            Fx.Ring(e.Pos, KbAura, 1f, 6f, 0.7f); Sfx.Play("heavy", 1f, 0f, 1f);
             yield return Wait(0.8f);
             if (skipReq) goto done;
             Speak(e, b.kit.quoteMutate, KbAura);
@@ -154,12 +154,12 @@ namespace VK
             Fx.Sigil(e.Pos, MtAura, 3.5f, 1.8f);
             for (int i = 0; i < 9; i++)
             {
-                Bolt(e.Pos, MtAura); Sfx.Play("zap", 0.9f, 0f, 0.7f); Fx.Shake(0.15f, 0.15f);
+                Bolt(e.Pos, MtAura); Sfx.Play("zap", 0.9f, 0f, 1f); Fx.Shake(0.15f, 0.15f);
                 yield return Wait(0.2f);
                 if (skipReq) goto done;
             }
             Fx.Ring(e.Pos, Color.white, 1f, 9f, 0.6f);
-            SetVeil(new Color(1f, 1f, 1f, 0.8f)); Sfx.Play("heavy", 1f, 0f, 0.5f);
+            SetVeil(new Color(1f, 1f, 1f, 0.8f)); Sfx.Play("heavy", 1f, 0f, 1f);
             ApplyMaThan(b);
             yield return Wait(0.15f);
             SetVeil(new Color(0f, 0f, 0.05f, 0.5f));

@@ -13,9 +13,11 @@ namespace VK
         static string currentTrack;
         public static string CurrentTrack => currentTrack;
         static float musicTarget = 1f, musicFade = 1f;
+        const float SfxGain = 0.6f, MusicGain = 1.4f, SynthMusicGain = 0.9f;   // mix: the mastered tracks at -16 LUFS sit above the effects at the default sliders (music 0.5, sfx 0.8)
 
         public static void Init(GameObject host)
         {
+            if (!Platform.Touch) { var cfg = AudioSettings.GetConfiguration(); cfg.dspBufferSize = 512; AudioSettings.Reset(cfg); }   // ~11 ms: a hit is heard on the frame it lands
             srcs = new AudioSource[24];
             for (int i = 0; i < srcs.Length; i++)
             {
@@ -36,16 +38,27 @@ namespace VK
             if (clip == null) return;
             var s = srcs[next]; next = (next + 1) % srcs.Length;
             s.clip = clip;
-            s.volume = vol * Game.I.save.sfxVol;
+            s.volume = vol * Game.I.save.sfxVol * SfxGain;
             s.pitch = pitch * (1f + Random.Range(-pitchVar, pitchVar));
             s.Play();
+        }
+
+        /// <summary>Plays a sound delay seconds from now, sample-accurate: for a clip whose impact is not at its start.</summary>
+        public static void At(string name, float delay, float vol = 1f)
+        {
+            var clip = srcs == null ? null : Res.Clip(name);
+            if (clip == null) return;
+            var s = srcs[next]; next = (next + 1) % srcs.Length;
+            s.clip = clip; s.volume = vol * Game.I.save.sfxVol * SfxGain; s.pitch = 1f;
+            s.PlayDelayed(Mathf.Max(0f, delay));
         }
 
         public static void Preload()
         {
             Get("menu"); Get("battle"); Get("boss"); Get("boss_climax");
+            foreach (var c in Resources.LoadAll<AudioClip>("Music")) c.LoadAudioData();
             foreach (var c in Resources.LoadAll<AudioClip>("Audio")) c.LoadAudioData();   // otherwise each sound decodes on its first play and lags the hit
-            Res.RegisterClip("sk_chime", Synth.Chime()); Res.RegisterClip("sk_boom", Synth.Boom());
+            Res.RegisterClip("sk_boom", Synth.Boom());
             Res.RegisterClip("sk_whoosh", Synth.Whoosh()); Res.RegisterClip("sk_choir", Synth.Choir());
         }
 
@@ -55,10 +68,8 @@ namespace VK
             {
                 switch (track)
                 {
-                    case "menu": clip = Synth.Track(7, 76, 0); break;
+                    case "menu": case "battle": case "boss_climax": clip = Resources.Load<AudioClip>("Music/bgm_" + track); break;
                     case "boss": clip = Synth.Track(23, 128, 2); break;
-                    case "boss_climax": clip = Synth.Track(23, 150, 3); break;
-                    case "battle": clip = Synth.Track(11, 104, 1); break;
                     default: return null;   // unknown track names are ignored by Music
                 }
                 tracks[track] = clip;
@@ -84,7 +95,7 @@ namespace VK
         {
             if (music == null) return;
             musicFade = Mathf.MoveTowards(musicFade, 1f, dt * 0.7f);
-            float tgt = Game.I.save.musicVol * musicTarget * 0.55f * musicFade;
+            float tgt = Game.I.save.musicVol * musicTarget * (currentTrack == "boss" ? SynthMusicGain : MusicGain) * musicFade;
             music.volume = Mathf.MoveTowards(music.volume, tgt, dt * 1.5f);
         }
     }

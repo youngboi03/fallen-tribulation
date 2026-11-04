@@ -164,7 +164,7 @@ namespace VK
                     anim = 1; at = 0; adur = 0.07f + len * 0.025f;
                     hitSet.Clear(); maxHits = 1 + def.pierce;
                     Fx.Streak(pos + dir * len * 0.5f, dir, len, new Color(1f, 1f, 1f, 0.35f), 0.12f, 0.12f);
-                    Sfx.Play("swing", 0.22f, 0.15f, 1.35f);
+                    Sfx.Play("swing", 0.22f, 0.15f, 1f);
                     break;
                 }
                 case WType.Swing:
@@ -173,7 +173,7 @@ namespace VK
                     a1 = pos + dir * Mathf.Min(d.magnitude, rng);
                     anim = 3; at = 0; adur = 0.15f;
                     spinBase = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - Res.SpriteAngle(def.sprite);
-                    Sfx.Play("swing", 0.3f, 0.1f, 0.75f);
+                    Sfx.Play("swing", 0.3f, 0.1f, 1f);
                     break;
                 }
                 case WType.Bolt:
@@ -183,7 +183,7 @@ namespace VK
                         Projectile.FireWeapon(this, pos + dir * 0.3f, Quaternion.Euler(0, 0, Random.Range(-18f, 18f)) * dir);
                     tf.position = pos - dir * 0.25f;
                     Fx.Glow(pos + dir * 0.4f, new Color(def.fx.r, def.fx.g, def.fx.b, 0.7f), 0.7f, 0.12f);
-                    Sfx.Play(def.type == WType.Fly ? "swing" : "shoot", 0.22f, 0.12f, def.type == WType.Fly ? 1.6f : 1.1f);
+                    Sfx.Play(def.type == WType.Fly ? "swing" : "shoot", 0.22f, 0.12f);
                     break;
                 case WType.Chain:
                     Combat.Chain(this, pos + dir * 0.4f, tgt);
@@ -250,7 +250,7 @@ namespace VK
                     Fx.Ring(a1, new Color(1f, 0.9f, 0.7f, 0.7f), 0.2f, r, 0.22f);
                     Fx.Burst(a1, new Color(0.8f, 0.7f, 0.55f, 0.8f), 7, 5f, 0.12f, 0.35f);
                     if (hitN > 0) Fx.Shake(def.dmg >= 16 ? 0.12f : 0.07f, 0.12f);
-                    Sfx.Play("heavy", 0.25f, 0.15f, 1.2f, 0.06f);
+                    Sfx.Play("heavy", 0.25f, 0.15f, 1f, 0.06f);
                     anim = 4; at = 0; a0 = a1;
                 }
             }
@@ -301,7 +301,7 @@ namespace VK
                     Fx.Lightning(ePos, n.Pos, new Color(0.6f, 0.8f, 1f), 0.1f, 0.15f);
                     n.Damage(d * 0.6f, false, n.Pos - ePos, 0.2f, null, new Color(0.6f, 0.8f, 1f));
                 }
-                Sfx.Play("zap", 0.2f, 0.1f, 1.4f);
+                Sfx.Play("zap", 0.2f, 0.1f, 1f);
             }
         }
 
@@ -335,7 +335,7 @@ namespace VK
                 mult *= 0.85f;
                 cur = Enemy.Nearest(cp, 3.8f, hit);
             }
-            Sfx.Play("zap", 0.28f, 0.15f, 1.2f);
+            Sfx.Play("zap", 0.28f, 0.15f, 1f);
         }
     }
 }

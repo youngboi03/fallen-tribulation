@@ -11,6 +11,16 @@ namespace VK.EditorTools
     {
         public override uint GetVersion() => 5;
 
+        void OnPreprocessAudio()
+        {
+            if (!assetPath.Contains("/Resources/Music/")) return;
+            var a = (AudioImporter)assetImporter;
+            var c = a.defaultSampleSettings;
+            c.loadType = AudioClipLoadType.CompressedInMemory;   // a minute of stereo: decoding it all up front costs ~10 MB per track on phones
+            c.compressionFormat = AudioCompressionFormat.Vorbis; c.quality = 0.7f; c.preloadAudioData = true;
+            a.defaultSampleSettings = c;
+        }
+
         void OnPreprocessTexture()
         {
             if (assetPath.StartsWith("Assets/Resources/VFX/") && assetPath.EndsWith(".png"))

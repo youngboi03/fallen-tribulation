@@ -202,7 +202,7 @@ namespace VK
             Fx.Ring(e.Pos, kit.col, 1f, 11f, 0.9f);
             Fx.Ring(e.Pos, Color.white, 1f, 6f, 0.5f);
             Fx.Shake(0.5f, 0.6f);
-            Sfx.Play("heavy", 0.9f, 0f, 0.7f);
+            Sfx.Play("heavy", 0.9f, 0f, 1f);
             Sfx.Music("boss_climax");
             if (g.player != null)
             {   // shockwave: pushes the player out, no damage

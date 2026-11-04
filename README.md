@@ -44,7 +44,7 @@ The exe is not code-signed, so Windows SmartScreen may warn on first launch: cho
 ## Project notes
 - Unity **6000.3.27f1**. There are no hand-built scenes or prefabs: the game builds itself from code at runtime (`Assets/Scripts`, with `Core/`, `Play/`, `UI/`, `Data/`, `Auto/`).
 - Game content and balance live in `Assets/Scripts/Data/Content.cs` and `Events.cs`.
-- Music and sound effects are synthesized in code (`Synth`), mixed with Kenney sound packs.
+- Sound effects are designed from CC0 recordings (`tools/audio_gen.py design`), with some Kenney clips left. Menu, battle and climax music is AI-generated; boss-wave music is still synthesized in code (`Synth`).
 - A self-playing bot (`-autotest`) and scenario tests (`-skilltest`) drive balance and regression checks: `bash tools/build_and_test.sh 3 -skilltest -only ""`.
 - Store-readiness notes (input, saves, achievements abstraction): `docs/PORTING.md`. Design notes: `docs/DESIGN.md`.
 - Vietnamese README: [README.vi.md](README.vi.md). Development story: [docs/DEVLOG.en.md](docs/DEVLOG.en.md) ([Tiếng Việt](docs/DEVLOG.vi.md)).
@@ -53,5 +53,7 @@ The exe is not code-signed, so Windows SmartScreen may warn on first launch: cho
 - **Source code:** MIT, see `LICENSE`. Third-party assets keep their own licenses.
 - **Character, enemy, boss, weapon/treasure icon and background art:** generated with PixelLab (AI pixel-art tool), then cleaned up and edited in Aseprite with a scripted clean-up and QA pipeline; the tool and prompt for each image are logged in `Assets/ThirdParty/PixelLab-Assets.md`.
 - **Tiles and sound packs:** [Kenney](https://kenney.nl) (CC0): Tiny Dungeon, Impact Sounds, Interface Sounds, RPG Audio, Music Jingles. Licenses in `Assets/ThirdParty/`.
+- **Sound effects:** recordings from [BigSoundBank](https://bigsoundbank.com/licenses.html) by Joseph Sardin and contributors (CC0) and OpenGameArt (CC0), listed in `Assets/ThirdParty/CC0-Sounds.md`.
+- **Music:** generated with Stable Audio 3. Powered by Stability AI, see `Assets/ThirdParty/stability-NOTICE.txt`.
 - **Spell effects:** rendered with [pixelfx](https://github.com/patch-gg/pixelfx) by Patch and Hugo Duprez (MIT), `Assets/ThirdParty/pixelfx-LICENSE.txt`; our top-down effects are in `tools/vfx/fx/`.
 - **Fonts:** Baloo 2 by Ek Type (UI text), Comforter Brush by Robert Leuschke (Latin titles) and Zhi Mang Xing (Chinese titles), all SIL Open Font License 1.1 (`Assets/ThirdParty/*-OFL.txt`). Chinese body text uses an installed system font.

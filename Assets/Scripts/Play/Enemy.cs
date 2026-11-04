@@ -263,7 +263,7 @@ namespace VK
                     return dir * speed * 0.75f;
                 case 1:
                     chargeDir = Vector2.Lerp(chargeDir, dir, dt * 2f).normalized;
-                    if (stateT <= 0) { state = 2; stateT = 0.42f; Sfx.Play("swing", 0.4f, 0.1f, 0.8f); }
+                    if (stateT <= 0) { state = 2; stateT = 0.42f; Sfx.Play("swing", 0.4f, 0.1f, 1f); }
                     return Vector2.zero;
                 default:
                     if (stateT <= 0) { state = 0; stateT = Random.Range(2f, 3.5f); }
@@ -285,7 +285,7 @@ namespace VK
                     go.transform.SetParent(transform, false);
                     boom = go.AddComponent<SpriteRenderer>();
                     boom.sprite = Res.Circle; boom.sortingOrder = -201;
-                    Sfx.Play("tick", 0.6f, 0f, 1.4f);
+                    Sfx.Play("tick", 0.6f, 0f, 1f);
                 }
                 return dir * speed;
             }
@@ -310,7 +310,7 @@ namespace VK
             Fx.Glow(pos, new Color(1f, 0.5f, 0.15f, 0.9f), r * 3f, 0.3f);
             Fx.Burst(pos, new Color(1f, 0.6f, 0.2f), 18, 7f, 0.14f, 0.45f, true);
             Fx.Shake(0.25f, 0.2f);
-            Sfx.Play("heavy", 0.7f, 0.1f, 0.9f);
+            Sfx.Play("heavy", 0.7f, 0.1f, 1f);
             if (hurtsPlayer && Vector2.Distance(g.player.Pos, pos) < r + g.player.radius * 0.5f) g.player.Hurt(dmg * 1.15f, pos);
             var list = Snapshot();
             foreach (var e in list)
@@ -331,7 +331,7 @@ namespace VK
                     sr.sprite = Res.Tile(def.sprite);
                     if (outline) outline.sprite = sr.sprite;
                     Fx.Text(Pos + Vector2.up * radius * 1.5f, "!", new Color(1f, 0.4f, 0.3f), 1.4f);
-                    Sfx.Play("heavy", 0.5f, 0.1f, 1.3f);
+                    Sfx.Play("heavy", 0.5f, 0.1f, 1f);
                 }
                 return Vector2.zero;
             }
@@ -358,7 +358,7 @@ namespace VK
                             boom.sprite = Res.Ring; boom.sharedMaterial = Res.AddMat; boom.sortingOrder = -200;
                         }
                         boom.enabled = true;
-                        Sfx.Play("zap", 0.3f, 0.1f, 1.5f);
+                        Sfx.Play("zap", 0.3f, 0.1f, 1f);
                     }
                     return dir * speed * 0.7f;
                 case 1:
@@ -395,7 +395,7 @@ namespace VK
                     Projectile.FireHostile(Pos + dir * radius, v, dmg, def.id == "ta_tu" ? new Color(1f, 0.3f, 0.6f) : new Color(0.6f, 0.7f, 1f));
                 }
                 Fx.Glow(Pos + dir * radius, new Color(1f, 0.4f, 0.6f, 0.8f), 0.8f, 0.2f);
-                Sfx.Play("shoot", 0.25f, 0.1f, 0.6f);
+                Sfx.Play("shoot", 0.25f, 0.1f, 1f);
             }
             if (dist > 6.5f) return dir * speed;
             if (dist < 4f) return -dir * speed * 0.8f;
@@ -487,7 +487,7 @@ namespace VK
             }
             if (knockPow > 0)
             {
-                Sfx.Play(crit ? "crit" : "hit", crit ? 0.5f : 0.3f, 0.12f);
+                Sfx.Play("hit", crit ? 0.5f : 0.3f, 0.05f);
                 Fx.Burst(Pos, def.blood, crit ? 5 : 2, 4f, 0.1f, 0.3f);
             }
             if (hp <= 0) Die(d);
@@ -539,7 +539,7 @@ namespace VK
                 float r = 1.7f;
                 Fx.Ring(pos, new Color(1f, 0.5f, 0.15f), 0.2f, r, 0.3f);
                 Fx.Glow(pos, new Color(1f, 0.5f, 0.15f, 0.7f), r * 2f, 0.25f);
-                Sfx.Play("heavy", 0.25f, 0.2f, 1.4f, 0.08f);
+                Sfx.Play("heavy", 0.25f, 0.2f, 1f, 0.08f);
                 var list = Snapshot();
                 foreach (var e in list)
                     if (!e.dead && Vector2.Distance(e.Pos, pos) < r + e.radius)

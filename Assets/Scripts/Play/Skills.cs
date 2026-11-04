@@ -62,7 +62,7 @@ namespace VK
                 if (run.kiemKhi == 12)
                 {
                     Fx.Ring(Game.I.player.Pos, new Color(0.5f, 1f, 1f), 0.4f, 1.8f, 0.5f);
-                    Sfx.Play("bell", 0.5f, 0f, 1.5f, 0f);
+                    Sfx.Play("bell", 0.5f, 0f, 1f, 0f);
                 }
             }
             if (UnityEngine.Random.value * 100f < st[Stat.Lifesteal] + (run.riteT > 0 ? RiteLifesteal : 0f)) Game.I.player.Heal(1);
@@ -90,13 +90,13 @@ namespace VK
                 {
                     e.ApplyBurn(d * 0.3f * run.BurnMul);
                     Fx.Burst(ep, new Color(1f, 0.5f, 0.15f), 3, 2.5f, 0.12f, 0.3f, true);
-                    if (sfx) { Sfx.Play("heavy", 0.12f, 0.1f, 1.7f); sealSfxT = Time.time; }
+                    if (sfx) { Sfx.Play("heavy", 0.12f, 0.1f, 1f); sealSfxT = Time.time; }
                 }
                 if (run.HasCard("doc_an"))
                 {
                     e.ApplyPoison(d * 0.33f * run.PoisonMul, true);
                     Fx.Burst(ep, new Color(0.5f, 1f, 0.4f), 3, 1.5f, 0.12f, 0.45f, true);
-                    if (sfx) { Sfx.Play("pluck", 0.12f, 0.1f, 0.7f); sealSfxT = Time.time; }
+                    if (sfx) { Sfx.Play("pluck", 0.12f, 0.1f, 1f); sealSfxT = Time.time; }
                 }
                 if (run.HasCard("phu_an") && UnityEngine.Random.value < 0.25f)
                 {
@@ -119,7 +119,7 @@ namespace VK
                 if (tgt != null)
                 {
                     Fx.Lightning(ep, tgt.Pos, new Color(0.7f, 0.85f, 1f), 0.08f, 0.15f, 5, 0.25f);
-                    if (sfx) { Sfx.Play("tick", 0.15f, 0.1f, 1.8f); sealSfxT = Time.time; }
+                    if (sfx) { Sfx.Play("tick", 0.15f, 0.1f, 1f); sealSfxT = Time.time; }
                     sealBounce = true; bool lc = LastHitCrit;
                     Hit(tgt, coef * 0.5f, "loi_an", tgt.Pos - ep, 0.3f);
                     LastHitCrit = lc; sealBounce = false;
@@ -150,7 +150,7 @@ namespace VK
             Vector2 p = e.Pos;
             Fx.Ring(p, new Color(0.5f, 0.9f, 1f), 0.2f, SkillNum.PhuBurstR, 0.3f);
             Fx.Burst(p, new Color(0.7f, 0.95f, 1f), 10, 5f, 0.12f, 0.35f, true);
-            Sfx.Play("heavy", 0.2f, 0.2f, 1.6f);
+            Sfx.Play("heavy", 0.2f, 0.2f, 1f);
             Splash(p, SkillNum.PhuBurstR, SkillNum.PhuBurstHit, "phu_burst", 1f);
         }
 
@@ -178,7 +178,7 @@ namespace VK
             Talismans--;
             Fx.Burst(at, new Color(0.6f, 0.95f, 1f), 8, 4f, 0.12f, 0.3f, true);
             Fx.Ring(at, new Color(0.6f, 0.95f, 1f), 0.1f, 0.7f, 0.25f);
-            Sfx.Play("pluck", 0.4f, 0.05f, 1.6f);
+            Sfx.Play("pluck", 0.4f, 0.05f, 1f);
             return true;
         }
 
@@ -299,8 +299,7 @@ namespace VK
             }
             Fx.Ring(pos, new Color(0.5f, 1f, 1f), 0.3f, hundred ? 4.5f : 3f, 0.4f);
             Fx.Shake(0.2f, 0.2f);
-            Sfx.Play("swing", 0.8f, 0f, 1.6f, 0f);
-            Sfx.Play("zap", 0.4f, 0f, 1.8f, 0f);
+            Sfx.Play("swing", 0.8f, 0.05f, 1f, 0f);
             if (st >= 3 && rt != null)
             {
                 // the giant sword falls where the most enemies stand together
@@ -324,7 +323,7 @@ namespace VK
                         Fx.Ring(tp, new Color(0.5f, 1f, 1f), 0.4f, SkillNum.KiemGiantR, 0.4f);
                         Fx.Burst(tp, new Color(0.7f, 1f, 1f), 30, 9f, 0.16f, 0.5f, true);
                         Fx.Shake(0.5f, 0.35f);
-                        Sfx.Play("heavy", 1f, 0f, 0.7f, 0f);
+                        Sfx.Play("heavy", 1f, 0f, 1f, 0f);
                     });
                 }
             }
@@ -345,8 +344,7 @@ namespace VK
             p.Heal(Mathf.Round(r.MaxHP * (SkillNum.DanHeal + extraHeal) * k));
             Fx.Shake(0.35f, 0.3f);
             Fx.Hitstop(0.05f);
-            Sfx.Play("heavy", 0.9f, 0f, 0.8f, 0f);
-            Sfx.Play("shoot", 0.6f, 0f, 0.6f, 0f);
+            Sfx.Play("sk_dan", 1f, 0f, 1f, 0f);
             if (st >= 1)
             {
                 foreach (var e in Nearest(pos, SkillNum.DanPills, rad, SkillNum.DanPillRange))
@@ -376,7 +374,7 @@ namespace VK
                         Fx.Glow(c, new Color(1f, 0.45f, 0.1f, 0.7f), SkillNum.DanFollowR * 2.2f, 0.4f);
                         Fx.Burst(c, new Color(1f, 0.55f, 0.15f), 24, 9f, 0.16f, 0.5f, true);
                         Fx.Shake(0.3f, 0.25f);
-                        Sfx.Play("heavy", 0.6f, 0f, 0.9f, 0f);
+                        Sfx.Play("sk_dan", 0.6f, 0.05f, 1f, 0f);
                     });
             }
         }
@@ -397,8 +395,7 @@ namespace VK
                 Fx.Burst(pos, new Color(0.8f, 0.7f, 0.55f), 30, 9f, 0.18f, 0.5f);
                 Fx.Shake(0.45f, 0.35f);
                 Fx.Hitstop(0.08f);
-                Sfx.Play("heavy", 1f, 0f, 0.6f, 0f);
-                Sfx.Play("bell", 0.5f, 0f, 1.2f, 0f);
+                Sfx.Play("sk_the", 1f, 0f, 1f, 0f);
                 if (st >= 2 && rt != null) Fissures(pos, k, rt);
             };
             if (r.HasCard("son_bang") && rt != null)
@@ -455,7 +452,7 @@ namespace VK
                     Fx.Burst(c, new Color(1f, 0.85f, 0.4f), 50, 12f, 0.2f, 0.6f, true);
                     Fx.Shake(0.7f, 0.45f);
                     Fx.Hitstop(0.1f);
-                    Sfx.Play("heavy", 1f, 0f, 0.5f, 0f);
+                    Sfx.Play("sk_the", 1f, 0f, 1f, 0f);
                 });
             }
         }
@@ -518,8 +515,7 @@ namespace VK
             Fx.Ring(pos, new Color(0.5f, 0.9f, 1f), 0.5f, rad, 0.5f);
             Fx.Glow(pos, new Color(0.5f, 0.9f, 1f, 0.5f), rad * 2f, 0.5f);
             Fx.Shake(0.2f, 0.2f);
-            Sfx.Play("pluck", 0.8f, 0f, 0.8f, 0f);
-            Sfx.Play("bell", 0.4f, 0f, 1.6f, 0f);
+            Sfx.Play("sk_phu", 0.9f, 0f, 1f, 0f);
             if (st >= 1)
                 foreach (var e in Nearest(pos, SkillNum.PhuFlyers, rad, SkillNum.PhuFlyRange))
                 {
@@ -568,8 +564,7 @@ namespace VK
             Fx.Glow(pos, new Color(0.6f, 0.8f, 1f, 0.6f), 6f, 0.3f);
             Fx.Shake(0.35f, 0.3f);
             Fx.Hitstop(0.05f);
-            Sfx.Play("zap", 1f, 0f, 0.7f, 0f);
-            Sfx.Play("heavy", 0.6f, 0f, 0.9f, 0f);
+            Sfx.Play("sk_loi", 1f, 0f, 1f, 0f);
             if (r.HasCard("loi_linh") && rt != null)
             {   // Lôi Linh Hộ Thể: for 4 s a 1.6-tile lightning ring zaps everything inside every 0.3 s
                 rt.During(4f, 0.3f, () =>
@@ -595,7 +590,7 @@ namespace VK
                     Fx.Lightning(c, e.Pos, new Color(0.8f, 0.9f, 1f), 0.1f, 0.15f, 6, 0.4f);
                     Hit(e, SkillNum.LoiFieldHit * k, "loi_field", e.Pos - c, 0.3f);
                     if (!e.dead) e.Freeze(SkillNum.LoiFieldStun);
-                    Sfx.Play("zap", 0.25f, 0.2f, 1.3f);
+                    Sfx.Play("zap", 0.25f, 0.2f, 1f);
                 });
             }
             if (st >= 3 && rt != null)
@@ -613,8 +608,7 @@ namespace VK
                     Fx.Shake(0.55f, 0.4f);
                     Hit(big, SkillNum.LoiBigHit * k, "loi_big", Vector2.zero, 0.5f);
                     if (!big.dead) big.Freeze(SkillNum.LoiBigStun);
-                    Sfx.Play("zap", 1f, 0f, 0.5f, 0f);
-                    Sfx.Play("heavy", 0.9f, 0f, 0.6f, 0f);
+                    Sfx.Play("sk_loi", 1f, 0f, 1f, 0f);
                 });
         }
 
@@ -657,7 +651,7 @@ namespace VK
             Color red = new Color(0.9f, 0.1f, 0.2f, 0.8f);
             Fx.Streak(pp + dir * len * 0.5f, dir, len, red, 0.5f, 0.3f);
             Fx.Apparition(Res.Tile(r.ch.sprite), pp + dir * len, red, 5f, 0.4f);
-            Sfx.Play("swing", 0.5f, 0.05f, 0.7f);
+            Sfx.Play("swing", 0.5f, 0.05f, 1f);
         }
 
         static void CastMa(Player p, RunState r, Vector2 pos, float k, int st, SkillRuntime rt, bool echo)
@@ -675,8 +669,7 @@ namespace VK
             Fx.Ring(pos, new Color(0.9f, 0.1f, 0.2f), 0.3f, 3f, 0.4f);
             Fx.Burst(pos, new Color(0.9f, 0.1f, 0.2f), 30, 7f, 0.16f, 0.6f, true);
             Fx.Shake(0.25f, 0.2f);
-            Sfx.Play("hurt", 0.6f, 0f, 0.7f, 0f);
-            Sfx.Play("breakthrough", 0.5f, 0f, 0.7f, 0f);
+            Sfx.Play("sk_ma", 0.9f, 0f, 1f, 0f);
             if (st >= 1)
             {
                 float rad = st >= 3 ? SkillNum.MaNovaR4 : SkillNum.MaNovaR;

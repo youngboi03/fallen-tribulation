@@ -271,7 +271,6 @@ namespace VK
             var spots = new List<Vector2>();
             for (int i = 0; i < m.n; i++) spots.Add(Arena.Clamp(c + BossMoves.Dir(a0 + 360f * (i + 1) / (m.n + 1)) * 4.5f, 1.5f));
             foreach (var p in spots) { var mk = BossMoves.Mark(b, m, HShape.Circle, p, tele); mk.radius = b.e.radius + 0.4f; }
-            Sfx.Play("bell", 0.5f, 0.1f, 0.7f);
             yield return BossMoves.Wait(b, tele);
             foreach (var p in spots)
             {
@@ -301,7 +300,6 @@ namespace VK
             float a0 = Random.Range(0f, 90f);
             var os = new List<BossHookObj>();
             for (int i = 0; i < m.n; i++) os.Add(Clone(b, Arena.Clamp(pp + BossMoves.Dir(a0 + 360f * i / Mathf.Max(1, m.n)) * m.radius, 1f), 0f));
-            Sfx.Play("bell", 0.6f, 0f, 0.6f);
             for (int i = 0; i < os.Count; i++)
             {
                 Cast(os[i], dash);
@@ -327,7 +325,6 @@ namespace VK
                 spots.Add(edge ? BossMoves.EdgePoint(a, 1.5f) : Arena.Clamp(b.Pos + BossMoves.Dir(a) * (b.e.radius + 1.6f), 1f));
             }
             foreach (var p in spots) { var mk = BossMoves.Mark(b, m, HShape.Circle, p, tele); mk.radius = 0.8f; }
-            Sfx.Play("bell", 0.5f, 0.1f, 1.2f);
             yield return BossMoves.Wait(b, tele);
             foreach (var p in spots)
             {
@@ -359,7 +356,6 @@ namespace VK
                 flags.Add(f); starts.Add(start);
                 Fx.Pillar(p, b.kit.col, 3f, 0.5f);
             }
-            Sfx.Play("heavy", 0.6f, 0f, 0.7f);
             yield return BossMoves.Wait(b, tele);
             for (int i = 0; i < flags.Count; i++)
             {
@@ -368,7 +364,6 @@ namespace VK
                 var h = BossMoves.Hz(b, m, HShape.Bar, f.Pos, 0.01f, dur, BossMoves.D(b, m));
                 h.len = m.len; h.width = m.width; h.angleDeg = starts[i]; h.spinDeg = rot * m.angle / dur; h.anchor = f;
             }
-            Sfx.Play("swing", 0.6f, 0f, 0.6f);
             yield return BossMoves.Wait(b, dur + 0.1f);
             foreach (var f in flags) if (f != null && !f.dead) f.Vanish();
         }
@@ -386,13 +381,11 @@ namespace VK
             float lo = gapY - gw * 0.5f, hi = gapY + gw * 0.5f;
             var a = BossMoves.Mark(b, m, HShape.Bar, new Vector2(-HW, (-HH + lo) * 0.5f), tele); a.angleDeg = 0f; a.len = 2f * HW; a.width = lo + HH; a.SetLook("swarm");
             var c = BossMoves.Mark(b, m, HShape.Bar, new Vector2(-HW, (hi + HH) * 0.5f), tele); c.angleDeg = 0f; c.len = 2f * HW; c.width = HH - hi; c.SetLook("swarm");
-            Sfx.Play("heavy", 0.6f, 0f, 0.7f);
             yield return BossMoves.Wait(b, tele);
             var w1 = BossMoves.Hz(b, m, HShape.Bar, new Vector2(x0, -HH), 0.01f, dur, BossMoves.D(b, m));
             w1.angleDeg = 90f; w1.len = lo + HH; w1.width = Thick; w1.vel = new Vector2(vx, 0f);
             var w2 = BossMoves.Hz(b, m, HShape.Bar, new Vector2(x0, hi), 0.01f, dur, BossMoves.D(b, m));
             w2.angleDeg = 90f; w2.len = HH - hi; w2.width = Thick; w2.vel = new Vector2(vx, 0f);
-            Sfx.Play("swing", 0.7f, 0f, 0.5f);
             var bat = Res.Tile(Res.Px.MaBuc);
             Color bc = new Color(Mathf.Lerp(b.kit.col.r, 0.2f, 0.4f), Mathf.Lerp(b.kit.col.g, 0.05f, 0.4f), Mathf.Lerp(b.kit.col.b, 0.1f, 0.4f), 0.95f);
             float t = 0f;
@@ -420,7 +413,6 @@ namespace VK
             const float Close = 1f;
             float R = Mathf.Sqrt(HW * HW + HH * HH) + 0.5f;
             var mk = BossMoves.Mark(b, m, HShape.Annulus, Vector2.zero, tele); mk.radius = R; mk.radius2 = r;
-            Sfx.Play("heavy", 0.7f, 0f, 0.6f);
             yield return BossMoves.Wait(b, tele);
             var h = BossMoves.Hz(b, m, HShape.Annulus, Vector2.zero, 0.01f, Close + hold, BossMoves.D(b, m), m.tick);
             h.radius = R; h.radius2 = R;
@@ -467,7 +459,6 @@ namespace VK
             }
             var fl = FullField(b, m, tele, dur, BossMoves.D(b, m), m.tick);
             fl.holes = holes; fl.holeR = pr;
-            Sfx.Play("heavy", 0.6f, 0f, 0.6f);
             float t = 0f;
             while (t < tele + dur)
             {
@@ -518,7 +509,6 @@ namespace VK
                     VfxFx.Ground("rune_gold", cen, 3.6f, total, -185, 0.2f, 0.3f);
                 }
             }
-            Sfx.Play("heavy", 0.8f, 0f, 0.5f);
             float t = 0f;
             var slammed = new bool[hands.Count];
             while (t < total)
@@ -538,7 +528,7 @@ namespace VK
                         Fx.Shake(0.5f, 0.3f);
                         Fx.Burst(o.transform.position, b.kit.col, 30, 9f, 0.2f, 0.6f, true);
                         Fx.Ring(o.transform.position, b.kit.col2, 0.5f, 5f, 0.4f);
-                        Sfx.Play("heavy", 0.9f, 0f, 0.5f);
+                        BossMoves.Sig(m);
                     }
                     if (t >= at[i] + 0.35f) Remove(o);
                 }
@@ -565,7 +555,6 @@ namespace VK
             var fan = Sub(m, BMove.Fan); fan.n = Mathf.Max(1, m.gaps); fan.angle = m.angle; fan.speed = m.speed; fan.reps = 1;
             int reps = Mathf.Max(1, m.reps);
             float interval = Mathf.Max(0.3f, m.dur / reps);
-            Sfx.Play("bell", 0.6f, 0f, 0.6f);
             for (int v = 0; v < reps; v++)
             {
                 foreach (var g in gates) if (Alive(g) && g.busy == 0) Cast(g, fan);
@@ -630,7 +619,6 @@ namespace VK
             var h = FullField(b, m, t2, 0.25f, b.e.dmg * m.dmg2 * b.dmgMul, 0f);
             h.holes = new List<Vector2> { Vector2.zero }; h.holeR = r;
             Fx.ScreenTint(new Color(0.7f, 0.6f, 1f), 0.3f, t2 + 0.4f);
-            Sfx.Play("heavy", 0.8f, 0f, 0.5f);
             yield return BossMoves.Wait(b, t2);
             for (int k = 0; k < 10; k++)
             {
@@ -639,7 +627,6 @@ namespace VK
                 Fx.Lightning(q + new Vector2(Random.Range(-1f, 1f), 14f), q, b.kit.col2, 0.4f, 0.3f, 12, 0.8f);
             }
             Fx.Shake(0.6f, 0.4f);
-            Sfx.Play("zap", 0.9f, 0f, 0.6f);
             yield return BossMoves.Wait(b, 0.45f);
             Remove(safe);
         }

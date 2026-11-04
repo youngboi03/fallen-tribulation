@@ -304,7 +304,7 @@ namespace VK
         public void OnPointerEnter(PointerEventData e)
         {
             var b = GetComponent<Button>();
-            if (b == null || b.interactable) { target = hoverScale; Sfx.Play("tick", 0.25f, 0.05f, 1.2f); }
+            if (b == null || b.interactable) { target = hoverScale; Sfx.Play("tick", 0.25f, 0.05f, 1f); }
             if (b != null) PadNav.NoteHover(b, true);
             enter?.Invoke();
         }

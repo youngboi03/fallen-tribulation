@@ -177,7 +177,7 @@ namespace VK
                     dashDir = input.sqrMagnitude > 0.01f ? input.normalized : lastMove;
                     dashT = 0.16f; dashCd = DashCooldown;
                     iframe = Mathf.Max(iframe, 0.28f);
-                    Sfx.Play("dash", 0.6f, 0.1f, 1.3f);
+                    Sfx.Play("dash", 0.6f, 0.1f, 1f);
                     Fx.Burst(Pos + Vector2.down * 0.35f, new Color(0.8f, 0.7f, 0.6f, 0.7f), 6, 3f, 0.12f, 0.35f);
                 }
                 Vector2 target = input * spd * (slowT > 0f ? slowMul : 1f);
@@ -268,7 +268,7 @@ namespace VK
                 iframe = 0.4f;
                 Fx.Text(Pos + Vector2.up * 0.6f, "Chặn!", new Color(0.5f, 1f, 1f), 1.1f);
                 Fx.Ring(Pos, new Color(0.5f, 1f, 1f), 0.4f, 2.4f, 0.4f);
-                Sfx.Play("bell", 0.6f, 0f, 1.4f, 0f);
+                Sfx.Play("bell", 0.6f, 0f, 1f, 0f);
                 return false;
             }
             float armor = run.stats[Stat.Armor] + Skills.TempArmor;

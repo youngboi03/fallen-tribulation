@@ -49,7 +49,7 @@ namespace VK
                 int bi = w / 5 - 1;
                 var bd = Game.I.run.Boss(bi);
                 AddTele(new Vector2(0, 5.5f), bd, true, false, 2.2f, 1.6f);
-                Sfx.Play("bell", 0.8f, 0f, 0.6f);
+                Sfx.Play("bell", 0.8f, 0f, 1f);
             }
         }
 
@@ -204,7 +204,7 @@ namespace VK
             AddTele(Arena.Clamp(pl.Pos + pl.Vel * 0.45f, 0.5f), null, false, true, 1.1f, 1.3f);
             int extra = bossWave ? 2 + wave / 10 : 1;
             for (int i = 0; i < extra; i++) AddTele(Arena.Clamp(pl.Pos + Random.insideUnitCircle * 5f, 0.5f), null, false, true, 1.1f + i * 0.15f, 1.3f);
-            Sfx.Play("tick", 0.5f, 0f, 0.6f);
+            Sfx.Play("tick", 0.5f, 0f, 1f);
         }
 
         void AddTele(Vector2 p, EnemyDef def, bool isBoss, bool strike, float time, float radius)
@@ -239,8 +239,8 @@ namespace VK
                 Fx.Glow(p, new Color(1f, 0.9f, 0.5f, 0.9f), t.radius * 3f, 0.3f);
                 Fx.Burst(p, new Color(1f, 0.9f, 0.5f), 14, 7f, 0.12f, 0.4f, true);
                 Fx.Shake(0.25f, 0.25f);
-                Sfx.Play("zap", 0.7f, 0.1f, 0.6f, 0.05f);
-                Sfx.Play("heavy", 0.5f, 0.1f, 0.8f, 0.05f);
+                Sfx.Play("zap", 0.7f, 0.1f, 1f, 0.05f);
+                Sfx.Play("heavy", 0.5f, 0.1f, 1f, 0.05f);
                 if (Vector2.Distance(g.player.Pos, p) < t.radius + g.player.radius * 0.5f)
                     g.player.Hurt((3f + wave * 0.45f) * DmgMul, p);
                 var list = Enemy.Snapshot();
@@ -258,7 +258,7 @@ namespace VK
                 if (boss.brain != null) Game.I.cinema.OnBossSpawn(boss.brain);
                 Fx.Ring(t.pos, new Color(0.8f, 0.3f, 1f), 1f, 8f, 0.8f);
                 Fx.Shake(0.5f, 0.6f);
-                Sfx.Play("heavy", 1f, 0f, 0.5f);
+                Sfx.Play("heavy", 1f, 0f, 1f);
                 Sfx.Play("j_boss", 0.6f, 0f, 0.8f);
                 return;
             }

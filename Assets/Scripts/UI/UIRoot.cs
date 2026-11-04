@@ -235,7 +235,7 @@ namespace VK
                 hintId = h[0];
                 hintTxt.text = h[1];
                 hintT = 0;
-                Sfx.Play("pluck", 0.6f, 0f, 1.2f);
+                Sfx.Play("pluck", 0.6f, 0f, 1f);
             }
             float a = hintT < 0.25f ? hintT / 0.25f : hintT < 7.5f ? 1f : Mathf.Max(0, 1f - (hintT - 7.5f) / 0.5f);
             hintCg.alpha = a;
@@ -1176,7 +1176,7 @@ namespace VK
             string why = run.CantBuy(i);
             var buy = UIK.Btn(br, why == null ? "Mua  " + s.price : s.price + " · " + why, () =>
             {
-                if (Run.Buy(i)) { Sfx.Play("coin", 0.8f); Sfx.Play("confirm", 0.4f, 0.05f, 1.3f); ShowShop(); }
+                if (Run.Buy(i)) { Sfx.Play("coin", 0.8f); Sfx.Play("confirm", 0.4f, 0.05f, 1f); ShowShop(); }
                 else Sfx.Play("error", 0.5f);
             }, why == null ? new Color(0.2f, 0.45f, 0.3f) : UIK.BtnGrey, why == null ? 24 : 17);
             UIK.LE(buy.gameObject, 166, 54);
@@ -1261,7 +1261,7 @@ namespace VK
                 card.gameObject.AddComponent<UIHover>().hoverScale = 1.05f;
             }
             Sfx.Play("open", 0.8f);
-            Sfx.Play("bell", 0.5f, 0f, 0.8f);
+            Sfx.Play("bell", 0.5f, 0f, 1f);
         }
 
         // ================================================================== Event (Kỳ Ngộ)

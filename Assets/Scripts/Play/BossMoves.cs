@@ -11,6 +11,19 @@ namespace VK
     /// </summary>
     public static class BossMoves
     {
+        /// <summary>Each boss has one sound, on its Base ultimate; every other move is silent.</summary>
+        public static readonly Dictionary<string, string> Signature = new Dictionary<string, string>
+        {
+            { "van_nhan_thien_la", "ult_b1" }, { "huyet_nguyet_da_yen", "ult_b1b" }, { "thien_hoa_lac", "ult_b2" },
+            { "thien_la_dia_vong", "ult_b2b" }, { "huyet_ha_dao_luu", "ult_b3" }, { "thien_ma_giang_the", "ult_b4" },
+        };
+
+        /// <summary>The move's signature sound, delay seconds from now so it lands on the strike.</summary>
+        public static void Sig(BossMove m, float delay = 0f)
+        {
+            if (Signature.TryGetValue(m.id, out var clip)) Sfx.At(clip, delay);
+        }
+
         public static IEnumerator Run(BossBrain b, BossMove m)
         {
             switch (m.kind)
@@ -118,7 +131,6 @@ namespace VK
                     if (blast != null) { blast.pos = end; blast.transform.position = end; blast.tele = tele + laneLen / spd; }
                 };
                 aimLane();
-                Sfx.Play("heavy", 0.6f, 0f, 0.6f);
                 float t = 0f;
                 while (t < tele)
                 {
@@ -128,7 +140,7 @@ namespace VK
                 // the run
                 Vector2 dv = Dir(aim);
                 b.Dashing = true; b.vel = dv * spd;
-                Sfx.Play("swing", 0.8f, 0f, 0.5f);
+                Sig(m);
                 bool hit = false; float moved = 0f, el = 0f, maxT = laneLen / spd * 1.5f + 0.3f, trail = 0f;
                 Vector2 last = b.Pos;
                 float reach = Mathf.Max(b.e.radius, m.width * 0.5f);
@@ -196,7 +208,6 @@ namespace VK
                     Shoot(b, m, a, m.speed);
                     b.lastPoints.Add(Arena.Clamp(b.Pos + Dir(a) * reach, 0.5f));
                 }
-                Sfx.Play("shoot", 0.5f, 0.05f, 0.7f);
                 if (v < reps - 1) yield return Wait(b, m.gap);
             }
             yield return Wait(b, 0.2f);
@@ -215,7 +226,6 @@ namespace VK
             {
                 for (int i = 0; i < m.n; i++) Shoot(b, m, a0 + step * (i + (v % 2) * 0.5f), m.speed);
                 Fx.Ring(b.Pos, b.kit.col, 0.5f, 3f, 0.35f);
-                Sfx.Play("shoot", 0.6f, 0f, 0.5f);
                 if (v < reps - 1) yield return Wait(b, m.gap);
             }
             yield return Wait(b, 0.2f);
@@ -231,7 +241,7 @@ namespace VK
             const float BulletSpeed = 4.2f, RaySpread = 12f;
             int arms = Mathf.Max(1, m.n), rays = Mathf.Max(1, m.reps);
             float baseA = AimAt(b), t = 0f, fire = 0f, gap = Mathf.Max(0.05f, m.gap);
-            Sfx.Play("bell", 0.6f, 0f, 0.8f);
+            Sig(m);
             while (t < m.dur)
             {
                 if (fire <= 0f)
@@ -240,7 +250,6 @@ namespace VK
                     for (int i = 0; i < arms; i++)
                         for (int j = 0; j < rays; j++)
                             Shoot(b, m, baseA + i * 360f / arms + (j - (rays - 1) * 0.5f) * RaySpread, BulletSpeed);
-                    Sfx.Play("shoot", 0.25f, 0.05f, 0.7f, 0.09f);
                 }
                 yield return null;
                 float s = Step(b);
@@ -260,7 +269,6 @@ namespace VK
             {
                 var h = Hz(b, m, HShape.Cone, b.Pos, tele, 0.15f, D(b, m));
                 h.radius = m.radius; h.arcDeg = m.angle; h.angleDeg = AimAt(b);
-                Sfx.Play("swing", 0.5f, 0.1f, 0.7f);
                 yield return Wait(b, tele + 0.15f);
                 if (r < reps - 1) yield return Wait(b, m.gap);
             }
@@ -343,7 +351,6 @@ namespace VK
                             var h = Hz(b, m, HShape.Circle, at, tele + Sweep * (w % 2 == 0 ? x01 : 1f - x01) + Random.Range(0f, 0.15f), active, D(b, m), tick);
                             h.radius = r;
                         }
-                    Sfx.Play("tick", 0.5f, 0f, 0.8f);
                     yield return Wait(b, tele + Sweep + 0.15f + active);
                     if (w < reps - 1) yield return Wait(b, m.gap);
                     continue;
@@ -355,7 +362,6 @@ namespace VK
                         var h = Hz(b, m, HShape.Bar, new Vector2(q.x > 0 ? 0f : -Arena.HalfW, q.y * Arena.HalfH * 0.5f), tele, active, D(b, m), tick);
                         h.len = Arena.HalfW; h.width = Arena.HalfH; h.angleDeg = 0f;
                     }
-                    Sfx.Play("tick", 0.5f, 0f, 0.8f);
                     yield return Wait(b, tele + active);
                     if (w < reps - 1) yield return Wait(b, m.gap);
                     continue;
@@ -367,7 +373,7 @@ namespace VK
                     var h = Hz(b, m, HShape.Circle, p, tele + m.dur, active, D(b, m), tick);
                     h.radius = m.radius; hs.Add(h); offs.Add(p - P);
                 }
-                Sfx.Play("tick", 0.5f, 0f, 0.8f);
+                Sig(m, tele + m.dur - 0.34f);   // the meteor's impact is 0.34 s into its clip
                 if (m.dur > 0f)
                 {   // follow the player, then lock
                     float t = 0f;
@@ -410,7 +416,6 @@ namespace VK
                 var h = Hz(b, m, HShape.Circle, p, tele, 0.2f, D(b, m));
                 h.radius = m.radius;
                 b.lastPoints.Add(p);
-                Sfx.Play("tick", 0.4f, 0.1f, 1f);
                 if (i < m.n - 1) yield return Wait(b, m.gap);
             }
             yield return Wait(b, tele + 0.2f);
@@ -451,7 +456,6 @@ namespace VK
                 w.radius = m.len; w.arcDeg = Mathf.Min(359f, arc + 2f * halfW + 2f); w.angleDeg = start[i] + rot * arc * 0.5f;
                 wedges.Add(w);
             }
-            Sfx.Play("heavy", 0.5f, 0f, 0.7f);
             float t = 0f, total = at[n - 1] + dur;
             while (t < total)
             {
@@ -464,7 +468,7 @@ namespace VK
                         var h = Hz(b, m, HShape.Bar, c, 0.01f, dur, D(b, m));
                         h.len = m.len; h.width = m.width; h.angleDeg = start[i]; h.spinDeg = rot * arc / dur;
                         beams[i] = h;
-                        if (i == 0 || seq) Sfx.Play("swing", 0.5f, 0.1f, 0.6f);
+                        if (i == 0) Sig(m);
                     }
                     if (beams[i] != null) { beams[i].pos = c; beams[i].transform.position = c; }
                 }
@@ -499,7 +503,6 @@ namespace VK
                 mk.gapDirsDeg = dirs; mk.gapWidthDeg = m.angle; mk.angleDeg = k * m.speed;
             };
             telegraph(0, tele);
-            Sfx.Play("heavy", 0.5f, 0f, 0.7f);
             var live = new List<BossHazard>(); var ages = new List<float>();
             int next = 0; float t = 0f, total = tele + (reps - 1) * interval + dur + hold;
             while (t < total)
@@ -513,7 +516,6 @@ namespace VK
                     h.gapDirsDeg = dirs; h.gapWidthDeg = m.angle; h.angleDeg = next * m.speed;
                     live.Add(h); ages.Add(0f);
                     Fx.Ring(c, b.kit.col, 0.4f, 2.5f, 0.3f);
-                    Sfx.Play("heavy", 0.6f, 0.05f, 0.5f);
                     next++;
                     if (next < reps) telegraph(next, interval);
                 }
@@ -577,7 +579,7 @@ namespace VK
                     h.angleDeg = a; h.len = EdgeDist(o, Dir(a)); prep(h);
                 }
             }
-            Sfx.Play("tick", 0.5f, 0f, 0.8f);
+            Sig(m, tele);
             yield return Wait(b, tele + 0.4f);
         }
 
@@ -598,7 +600,6 @@ namespace VK
             }
             var h = Hz(b, m, HShape.Circle, spot, tele, 0.2f, D(b, m));
             h.radius = m.radius;
-            Sfx.Play("tick", 0.5f, 0f, 0.8f);
             float vanish = Mathf.Min(tele, Mathf.Max(0.1f, m.dur));
             yield return Wait(b, tele - vanish);
             b.e.SetHidden(true);
@@ -609,7 +610,6 @@ namespace VK
             b.lastPoints.Clear(); b.lastPoints.Add(spot);
             Fx.Ring(spot, b.kit.col, 0.4f, m.radius, 0.3f);
             Fx.Shake(0.2f, 0.2f);
-            Sfx.Play("swing", 0.7f, 0f, 0.5f);
             yield return Wait(b, 0.35f);
         }
 
@@ -689,7 +689,6 @@ namespace VK
                     var mk = Mark(b, m, HShape.Circle, p, Mathf.Max(0.85f, tele));
                     mk.radius = 0.5f;
                 }
-                Sfx.Play("bell", 0.5f, 0.1f, 1f);
             }
             foreach (var p in spots)
             {

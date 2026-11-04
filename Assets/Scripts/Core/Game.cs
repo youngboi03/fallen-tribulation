@@ -433,7 +433,7 @@ namespace VK
             {
                 Fx.Text(player.Pos + Vector2.up * 0.9f, Content.Realm(level), new Color(0.6f, 1f, 1f), 0.9f, 1.1f);
                 Fx.Ring(player.Pos, new Color(0.5f, 1f, 1f, 0.8f), 0.3f, 2.5f, 0.5f);
-                Sfx.Play("pluck", 0.7f, 0f, 1.5f);
+                Sfx.Play("pluck", 0.7f, 0f, 1f);
             }
         }
 

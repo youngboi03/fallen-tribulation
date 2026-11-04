@@ -1,0 +1,6 @@
+This Stability AI Model is licensed under the Stability AI Community License, Copyright (c) Stability AI Ltd. All Rights Reserved.
+
+Powered by Stability AI.
+
+The music in Assets/Resources/Music was generated with Stable Audio 3. The game ships the generated audio, not the model.
+Community License: https://stability.ai/community-license

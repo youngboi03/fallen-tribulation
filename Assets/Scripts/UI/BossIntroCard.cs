@@ -63,7 +63,7 @@ namespace VK
             float sc = nameK < 0f ? 0f : nameK < 1f ? Mathf.Lerp(1.5f, 1f, nameK) : 1f;
             nameRt.localScale = Vector3.one * sc;
             nameRt.anchoredPosition = new Vector2(900f * outK, 0);
-            if (nameK >= 0f && !slammed) { slammed = true; splat.hold = false; Sfx.Play("heavy", 0.9f, 0f, 0.8f); }
+            if (nameK >= 0f && !slammed) { slammed = true; splat.hold = false; Sfx.Play("heavy", 0.9f, 0f, 1f); }
             region.anchoredPosition = new Vector2(-900f * outK, 0);
             cg.alpha = 1f - outK * 0.5f;
         }

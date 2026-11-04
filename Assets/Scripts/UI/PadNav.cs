@@ -175,7 +175,7 @@ namespace VK
                 }
                 if (score < bestScore) { bestScore = score; best = b; }
             }
-            if (best != null) { sel = best; if (from != null) Sfx.Play("tick", 0.3f, 0.05f, 1.4f); }
+            if (best != null) { sel = best; if (from != null) Sfx.Play("tick", 0.3f, 0.05f, 1f); }
             else if (from == null) sel = null;
         }
 

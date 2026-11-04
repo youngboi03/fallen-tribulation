@@ -190,7 +190,7 @@ namespace VK
                     Skills.Splash(pos, ss.blastR, ss.blastCoef, ss.src, 1.5f, (en, d) => ss.onHit?.Invoke(en));
                     Fx.Ring(pos, ss.col, 0.2f, ss.blastR, 0.3f);
                     Fx.Burst(pos, ss.col, 12, 6f, 0.14f, 0.4f, true);
-                    Sfx.Play("heavy", 0.3f, 0.2f, 1.2f);
+                    Sfx.Play("heavy", 0.3f, 0.2f, 1f);
                     Kill();
                     return;
                 }
@@ -217,7 +217,7 @@ namespace VK
                 Fx.Ring(pos, col, 0.2f, splash, 0.25f);
                 Fx.Glow(pos, new Color(col.r, col.g, col.b, 0.7f), splash * 2f, 0.22f);
                 Fx.Burst(pos, col, 8, 4f, 0.12f, 0.35f, true);
-                Sfx.Play("heavy", 0.18f, 0.2f, 1.5f, 0.05f);
+                Sfx.Play("heavy", 0.18f, 0.2f, 1f, 0.05f);
             }
             pierce--;
             if (pierce < 0) Kill();
@@ -410,7 +410,7 @@ namespace VK
                 Fx.Burst(transform.position, new Color(1f, 0.8f, 0.3f), 20, 6f, 0.14f, 0.6f, true);
                 Sfx.Play("coin", 0.8f); Sfx.Play("open", 0.6f);
             }
-            else if (heal) { g.player.Heal(3); Sfx.Play("pluck", 0.5f, 0f, 1.8f); }
+            else if (heal) { g.player.Heal(3); Sfx.Play("pluck", 0.5f, 0f, 1f); }
             else { g.run.GainOrb(value); g.PickupSound(); g.ui.Hint("orb", "Linh Khí vừa là <color=#7CF0FF>kinh nghiệm</color> vừa là <color=#FFD266>Linh Thạch</color> để mua đồ giữa các đợt."); }
             All.Remove(this);
             Destroy(gameObject);
