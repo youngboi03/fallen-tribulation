@@ -68,8 +68,9 @@ namespace VK
             {
                 switch (track)
                 {
-                    case "menu": case "battle": case "boss_climax": clip = Resources.Load<AudioClip>("Music/bgm_" + track); break;
+                    case "menu": case "boss_climax": clip = Resources.Load<AudioClip>("Music/bgm_" + track); break;
                     case "boss": clip = Synth.Track(23, 128, 2); break;
+                    case "battle": clip = Synth.Track(11, 104, 1); break;   // the original synth track: preferred over bgm_battle.ogg
                     default: return null;   // unknown track names are ignored by Music
                 }
                 tracks[track] = clip;
@@ -95,7 +96,7 @@ namespace VK
         {
             if (music == null) return;
             musicFade = Mathf.MoveTowards(musicFade, 1f, dt * 0.7f);
-            float tgt = Game.I.save.musicVol * musicTarget * (currentTrack == "boss" ? SynthMusicGain : MusicGain) * musicFade;
+            float tgt = Game.I.save.musicVol * musicTarget * (currentTrack == "boss" || currentTrack == "battle" ? SynthMusicGain : MusicGain) * musicFade;
             music.volume = Mathf.MoveTowards(music.volume, tgt, dt * 1.5f);
         }
     }
