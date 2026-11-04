@@ -137,3 +137,4 @@ Weapon icon updates (frameless versions):
 - `Assets/Resources/PixelLab/Icons/w_loi_phu.png`: drawn procedurally with an Aseprite batch script (paper talisman with a lightning rune), no generative model.
 
 Effect sprite strips in `Assets/Resources/VFX/` (poison_pool, ink_pool, blood_pool, burning_ground, scorch, flame_tuft, violet_tuft, blood_tuft, poison_aura, burn_aura, meteor, acid_splash, blood_splash, blood_rain, rune_violet, rune_gold, rune_blood, thunder, gold_smite): rendered with pixelfx commit a841596 (Patch, Hugo Duprez; MIT, `Assets/ThirdParty/pixelfx-LICENSE.txt`) by `tools/vfx_export.py`. meteor and acid_splash are stock pixelfx effects; the others are our own top-down effects in `tools/vfx/fx/`.
+- Assets/Editor/Icon/app_icon.png: app icon (Windows/Android), original logo drawn procedurally by `tools/app_icon.py` (Pillow): falling sword through a golden cultivation ring, tribulation lightning, clouds; no third-party art.

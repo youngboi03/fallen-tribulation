@@ -15,8 +15,7 @@ namespace VK
         /// <summary>First meeting of each boss; the final boss every time (spec 4.2).</summary>
         public static bool NeedsIntro(string bossId)
         {
-            var seen = Game.I.save.bossIntroSeen;
-            return bossId == "b4" || seen == null || !seen.Contains(bossId);
+            return true;   // every encounter shows the card, first meeting or not
         }
         public int Skips;   // tests: cutscenes that ended through Skip()
 

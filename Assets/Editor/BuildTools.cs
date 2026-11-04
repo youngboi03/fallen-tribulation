@@ -49,8 +49,8 @@ namespace VK.EditorTools
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
             PlayerSettings.allowedAutorotateToPortrait = PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
             PlayerSettings.allowedAutorotateToLandscapeLeft = PlayerSettings.allowedAutorotateToLandscapeRight = true;
-            PlayerSettings.bundleVersion = "0.1.1";
-            PlayerSettings.Android.bundleVersionCode = 3;
+            PlayerSettings.bundleVersion = "0.1.2";
+            PlayerSettings.Android.bundleVersionCode = 4;
             PlayerSettings.Android.forceInternetPermission = true;   // anonymous statistics (Telemetry)
             EditorUserBuildSettings.buildAppBundle = false;
             string ks = System.Environment.GetEnvironmentVariable("VK_KEYSTORE"), pw = System.Environment.GetEnvironmentVariable("VK_KEYSTORE_PASS");
@@ -106,6 +106,27 @@ namespace VK.EditorTools
             PlayerSettings.runInBackground = true;
             PlayerSettings.SplashScreen.show = false;
             PlayerSettings.colorSpace = ColorSpace.Gamma;
+            ApplyIcon();
+        }
+
+        // One source image for every platform/size (Windows exe, Android launcher incl. adaptive layers).
+        static void ApplyIcon()
+        {
+            const string path = "Assets/Editor/Icon/app_icon.png";
+            var ti = (TextureImporter)AssetImporter.GetAtPath(path);
+            if (ti == null) return;
+            if (!ti.isReadable || ti.textureCompression != TextureImporterCompression.Uncompressed || ti.npotScale != TextureImporterNPOTScale.None || ti.mipmapEnabled)
+            { ti.isReadable = true; ti.textureCompression = TextureImporterCompression.Uncompressed; ti.npotScale = TextureImporterNPOTScale.None; ti.mipmapEnabled = false; ti.SaveAndReimport(); }
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { tex }, UnityEditor.IconKind.Any);
+            foreach (var t in new[] { UnityEditor.Build.NamedBuildTarget.Standalone, UnityEditor.Build.NamedBuildTarget.Android })
+                foreach (var kind in new[] { UnityEditor.IconKind.Application })   // round and adaptive Android icons fall back to these
+                {
+                    var sizes = PlayerSettings.GetIconSizes(t, kind);
+                    if (sizes.Length == 0) continue;
+                    var arr = new Texture2D[sizes.Length]; for (int i = 0; i < arr.Length; i++) arr[i] = tex;
+                    PlayerSettings.SetIcons(t, arr, kind);
+                }
         }
     }
 }

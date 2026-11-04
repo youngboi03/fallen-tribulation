@@ -465,7 +465,7 @@ namespace VK
                 {
                     if (beams[i] == null && t >= at[i])
                     {
-                        var h = Hz(b, m, HShape.Bar, c, 0.01f, dur, D(b, m));
+                        var h = Hz(b, m, HShape.Bar, c, 0.01f, dur, D(b, m), BossHazard.MinTick);   // stays harmful the whole sweep: touching it again hurts again
                         h.len = m.len; h.width = m.width; h.angleDeg = start[i]; h.spinDeg = rot * arc / dur;
                         beams[i] = h;
                         if (i == 0) Sig(m);

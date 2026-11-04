@@ -35,6 +35,7 @@ namespace VK
         Vector2 vel, lastMove = Vector2.right, dashDir;
         public float slowT, slowMul = 1f;   // BossHazard slow: movement multiplier while slowT > 0
         float dashT, dashCd, iframe, flash, animT, ghostT, dead;
+        const float Size = 1.3f;   // the hero reads a bit larger than ordinary monsters
         bool seq;   // EndSeq owns the sprite (death / ascension pose)
         static readonly Color AuraCol = new Color(0.4f, 0.9f, 1f, 0.18f);
         static readonly int FlashId = Shader.PropertyToID("_Flash");
@@ -99,13 +100,15 @@ namespace VK
             sr.color = Color.white; aura.color = AuraCol; shadow.color = new Color(0, 0, 0, 0.35f);
         }
 
-        /// <summary>End-of-run pose, k 0..1: defeat topples, dims and dissolves; ascension glows, lifts and fades upward.</summary>
+        /// <summary>End-of-run pose, k 0..1: defeat stays upright and thins into a rising thread of pale light (returns to heaven and earth); ascension glows, lifts and fades upward.</summary>
         public void EndPose(float k, bool win)
         {
             seq = true; anim.Stop();
-            body.localPosition = win ? new Vector3(0, k * k * 3.5f, 0) : Vector3.zero;
-            body.localRotation = win ? Quaternion.identity : Quaternion.Euler(0, 0, Mathf.Min(90f, k * 400f));
-            var c = win ? Color.Lerp(Color.white, new Color(1f, 0.92f, 0.55f), Mathf.Min(1f, k * 2f)) : Color.Lerp(Color.white, new Color(0.45f, 0.45f, 0.55f), Mathf.Min(1f, k * 3f));
+            float d = Mathf.SmoothStep(0f, 1f, k);
+            body.localPosition = win ? new Vector3(0, k * k * 3.5f, 0) : new Vector3(0, d * 0.5f, 0);
+            body.localRotation = Quaternion.identity;
+            if (!win) body.localScale = new Vector3(Size * (1f - 0.75f * d), Size * (1f + 0.45f * d), 1f);   // narrows and stretches upward like smoke into light
+            var c = win ? Color.Lerp(Color.white, new Color(1f, 0.92f, 0.55f), Mathf.Min(1f, k * 2f)) : Color.Lerp(Color.white, new Color(0.8f, 0.9f, 1f), Mathf.Min(1f, k * 2f));
             c.a = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.3f, 1f, k));
             sr.color = c;
             shadow.color = new Color(0, 0, 0, 0.35f * c.a);
@@ -140,8 +143,7 @@ namespace VK
                 dead += Time.deltaTime;
                 if (seq) return;
                 anim.Stop();
-                body.localRotation = Quaternion.Euler(0, 0, Mathf.Min(90f, dead * 300f));
-                sr.color = Color.Lerp(Color.white, new Color(0.5f, 0.2f, 0.2f, 0.7f), dead);
+                sr.color = Color.Lerp(Color.white, new Color(0.8f, 0.9f, 1f, 0f), dead);   // bot runs skip EndSeq: just fade to light
                 return;
             }
             if (!g.Playing) return;
@@ -193,7 +195,6 @@ namespace VK
 
             // animation: hop while walking, breathe while idle
             bool moving = vel.sqrMagnitude > 0.25f;
-            const float Size = 1.3f;   // the hero reads a bit larger than ordinary monsters
             // the walk strips are not good enough yet (SpriteAnimator stays for later): heroes hop like the monsters do
             if (moving)
             {

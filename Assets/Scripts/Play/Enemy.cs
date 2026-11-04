@@ -193,7 +193,7 @@ namespace VK
 
             if (frozenT <= 0 && !Hidden && def.beh != EBeh.Static && Vector2.Distance(pos, pp) < radius + p.radius)
             {
-                if (brain != null) { if (!brain.Dashing) BossBrain.HurtPlayer(this, "contact", dmg, pos); }
+                if (brain != null) BossBrain.HurtPlayer(this, "contact", dmg, pos);   // also while dashing: a charging boss hits what it runs through
                 else if (p.Hurt(dmg, pos)) Telemetry.Cause = "enemy:" + def.id;
             }
             sr.color = frozenT > 0 ? Color.Lerp(tintCol, new Color(0.5f, 0.85f, 1f), 0.65f) : tintCol;

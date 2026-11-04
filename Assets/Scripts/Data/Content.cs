@@ -65,7 +65,7 @@ namespace VK
         public static void ApplyIcons()
         {
             for (int i = 0; i < Weapons.Count; i++)
-                if (Res.RegisterPixelLab(400 + i, "Icons/w_" + Weapons[i].id, Weapons[i].sprite)) { Weapons[i].sprite = 400 + i; Weapons[i].tint = Color.white; }
+                if (Res.RegisterPixelLab(400 + i, "Icons/w_" + Weapons[i].id, Weapons[i].sprite)) { Weapons[i].sprite = 400 + i; Weapons[i].tint = Color.white; if (Res.TipDownLeft.Contains(Weapons[i].id)) Res.TipDown.Add(400 + i); }
             for (int i = 0; i < Items.Count; i++)
                 if (Res.RegisterPixelLab(500 + i, "Icons/i_" + Items[i].id, Items[i].sprite)) { Items[i].sprite = 500 + i; Items[i].tint = Color.white; }
         }

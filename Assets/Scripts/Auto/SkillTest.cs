@@ -1108,6 +1108,7 @@ namespace VK
         {
             yield return BossArena("b2", 3, 10); var b = boss.brain; var c = Game.I.cinema;
             c.testMode = true; c.Skips = 0; c.OnBossSpawn(b);
+            yield return null; while (c.CardUp) yield return null;   // the intro card shows on every meeting first
             yield return new WaitForSecondsRealtime(0.5f);
             Check("kb_cinematic", Game.I.cinematic && c.Active && b.Hold, "");
             Vector2 p0 = boss.Pos;
@@ -1135,6 +1136,7 @@ namespace VK
         {
             yield return BossArena("b2", 0, 10); var b = boss.brain; var c = Game.I.cinema;
             c.testMode = true; Game.I.save.bossIntroSeen.Add("b2"); c.Skips = 0; c.OnBossSpawn(b);
+            yield return null; while (c.CardUp) yield return null;   // the intro card shows on every meeting first
             yield return new WaitForSecondsRealtime(0.3f);
             Check("k0_no_cinematic", !Game.I.cinematic && !HasAura(boss), "");
             yield return Sec(1f);
@@ -1325,7 +1327,9 @@ namespace VK
         {
             yield return Arena(1, 12, 0); var g = Game.I; FillBuild(); int nw = g.run.weapons.Count;
             g.endSeq.testMode = true; g.OnPlayerDeath();
-            yield return new WaitForSecondsRealtime(1.17f); g.bot.Shot("end_death_splat");
+            yield return new WaitForSecondsRealtime(2.0f); g.bot.Shot("end_death_light");
+            Check("end_lose_title_waits", Object.FindObjectsOfType<InkSplatFx>().Length == 0 && g.player.transform.Find("body").localRotation == Quaternion.identity, "");   // no fall; the title waits for the light to finish
+            yield return new WaitForSecondsRealtime(1.87f); g.bot.Shot("end_death_splat");
             yield return new WaitForSecondsRealtime(0.3f); g.bot.Shot("end_death");
             Check("end_lose_ink", Object.FindObjectsOfType<InkSplatFx>().Length == 1, "");
             yield return new WaitForSecondsRealtime(0.9f); g.bot.Shot("end_death_title");
@@ -1366,7 +1370,7 @@ namespace VK
             c.testMode = false;
         }
 
-        IEnumerator T_cine_intro_first()   // card on the first meeting only, then remembered
+        IEnumerator T_cine_intro_first()   // card on the first meeting, remembered, and shown again on the next meeting
         {
             yield return BossArena("b1", 0, 5); var b = boss.brain; var c = Game.I.cinema;
             c.testMode = true; Game.I.save.bossIntroSeen.Clear();
@@ -1378,7 +1382,7 @@ namespace VK
             yield return Sec(0.8f);
             c.OnBossSpawn(b);
             yield return new WaitForSecondsRealtime(0.3f);
-            Check("intro_second_none", !c.CardUp, "");
+            Check("intro_second_card", c.CardUp, "");   // the card shows on every meeting, not only the first
             c.testMode = false;
         }
 
@@ -1514,6 +1518,18 @@ namespace VK
             Check("frozen_later", f[0] < 90f && f[0] - a[0] >= 0.4f, a[0].ToString("0.00") + " vs " + f[0].ToString("0.00"));
         }
 
+        IEnumerator T_boss_dash_contact()   // a charging boss hurts on contact, like at rest
+        {
+            yield return BossPrep("b1", 0, 5, new Vector2(-8, 5)); var b = boss.brain;
+            b.ForceMove("doc_nhan_xung");
+            float t = 0f;
+            while (!b.Dashing && t < 4f) { yield return null; t += Game.Dt; }
+            int h0 = BossBrain.HitCount;
+            for (t = 0f; b.Dashing && BossBrain.HitCount == h0 && t < 2f; t += Game.Dt) { Place(boss.Pos); yield return null; }
+            Check("dash_contact_hurts", BossBrain.HitCount > h0, t.ToString("0.00"));
+            b.Cancel(); BossHazard.ClearAll();
+        }
+
         IEnumerator T_boss_cancel_dash()   // a cancelled dash stops writing velocity and leaves nothing behind
         {
             yield return BossPrep("b1", 0, 5, new Vector2(-8, 5)); var b = boss.brain;
@@ -1620,6 +1636,9 @@ namespace VK
             yield return Fire(b, "ma_nhan_quet"); yield return Sec(0.2f);
             var w = TeleOf(HShape.Cone);
             Check("sweep_wedge", w != null && w.arcDeg >= 90f && w.radius >= 9f, w == null ? "none" : w.arcDeg + " r" + w.radius);
+            BossHazard beam = null;
+            for (float q = 0f; beam == null && q < 4f; q += Game.Dt) { beam = BossHazard.All.FirstOrDefault(x => x.owner == boss && x.shape == HShape.Bar && x.Live); if (beam == null) yield return null; }
+            Check("sweep_beam_rehits", beam != null && beam.tick >= BossHazard.MinTick, beam == null ? "none" : beam.tick.ToString());   // a beam that already hit stays harmful
             BossHazard.ClearAll();
         }
 

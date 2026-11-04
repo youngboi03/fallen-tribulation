@@ -48,7 +48,10 @@ namespace VK
         }
 
         /// <summary>Direction the art of sprite <paramref name="id"/> points, in degrees: Kenney weapons point up, PixelLab icons (400-599) to the upper right.</summary>
-        public static float SpriteAngle(int id) => id >= 400 && id < 600 ? 45f : 90f;
+        public static float SpriteAngle(int id) => (id >= 400 && id < 600 ? 45f : 90f) + (TipDown.Contains(id) ? 180f : 0f);
+        /// <summary>PixelLab weapon icons drawn blade to the lower left (handle upper right): turned half a circle so the tip leads.</summary>
+        public static readonly HashSet<string> TipDownLeft = new HashSet<string> { "doan_dao", "doc_dao", "moc_kiem" };
+        public static readonly HashSet<int> TipDown = new HashSet<int>();
 
         /// <summary>Boss intro portrait (Task 12); null until the PNG exists, the card then uses the boss sprite.</summary>
         public static Sprite BossPortrait(string id)
